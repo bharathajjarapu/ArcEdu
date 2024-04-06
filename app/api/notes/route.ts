@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { embed, generate } from '@/lib/api/openai';
-import { topK } from '@/lib/similarity';
+import { topK } from '@/lib/utils/similarity';
 
 export async function POST(request: NextRequest) {
   try {
