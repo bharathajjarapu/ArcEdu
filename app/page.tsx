@@ -717,9 +717,7 @@ export default function QuizApp() {
         <div className="max-w-2xl mx-auto px-4 py-16">
           <div className="text-center mb-8">
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              Quiz yourself on
-              <br />
-              anything
+              Quiz Yourself
             </h1>
             <p className="text-gray-600 mb-8">
               Upload a PDF, slides, or paste a URL.
@@ -1139,7 +1137,7 @@ export default function QuizApp() {
                   >
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium flex-shrink-0",
+                        "w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0",
                         !showFeedback &&
                           !isSelected &&
                           "border-gray-300 text-gray-600",
