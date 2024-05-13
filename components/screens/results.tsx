@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle, XCircle, Clock, Zap, TrendingUp, RotateCcw } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Zap,
+  TrendingUp,
+  RotateCcw,
+} from "lucide-react";
 import { time } from "@/lib/utils/format";
 
 interface Props {
@@ -13,8 +20,8 @@ interface Props {
   totalTime: number;
   fastest: number;
   maxStreak: number;
-  onRetry: () => void;
-  onNewSession: () => void;
+  onRetryAction: () => void;
+  onNewSessionAction: () => void;
 }
 
 export function ResultsScreen({
@@ -25,11 +32,25 @@ export function ResultsScreen({
   totalTime,
   fastest,
   maxStreak,
-  onRetry,
-  onNewSession,
+  onRetryAction,
+  onNewSessionAction,
 }: Props) {
-  const grade = accuracy >= 90 ? "Excellent!" : accuracy >= 70 ? "Good Job!" : accuracy >= 50 ? "Keep Going!" : "Try Again!";
-  const gradeColor = accuracy >= 90 ? "text-green-600" : accuracy >= 70 ? "text-blue-600" : accuracy >= 50 ? "text-yellow-600" : "text-red-600";
+  const grade =
+    accuracy >= 90
+      ? "Excellent!"
+      : accuracy >= 70
+        ? "Good Job!"
+        : accuracy >= 50
+          ? "Keep Going!"
+          : "Try Again!";
+  const gradeColor =
+    accuracy >= 90
+      ? "text-green-600"
+      : accuracy >= 70
+        ? "text-blue-600"
+        : accuracy >= 50
+          ? "text-yellow-600"
+          : "text-red-600";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -83,7 +104,7 @@ export function ResultsScreen({
         </div>
 
         {format === "quiz" && maxStreak > 0 && (
-          <div className="mt-8 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+          <div className="mt-8 p-4 bg-linear-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
             <div className="flex items-center justify-center gap-3">
               <TrendingUp className="w-6 h-6 text-orange-500" />
               <p className="text-lg font-semibold text-orange-700">
@@ -99,16 +120,12 @@ export function ResultsScreen({
           variant="outline"
           size="lg"
           className="flex-1"
-          onClick={onRetry}
+          onClick={onRetryAction}
         >
           <RotateCcw className="w-4 h-4 mr-2" />
           Try Again
         </Button>
-        <Button
-          size="lg"
-          className="flex-1"
-          onClick={onNewSession}
-        >
+        <Button size="lg" className="flex-1" onClick={onNewSessionAction}>
           New Session
         </Button>
       </div>

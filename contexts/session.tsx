@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 import type { Session } from "@/types";
 import * as sessions from "@/lib/storage/sessions";
 
@@ -41,11 +47,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const update = async (id: string, data: Partial<Session>) => {
     await sessions.update(id, data);
-    await refresh();
-    if (current?.id === id) {
-      const updated = await sessions.getById(id);
-      setCurrent(updated);
+    const updated = await sessions.getById(id);
+    if (updated) {
+      setCurrent((prev) => (prev?.id === id ? updated : prev));
     }
+    await refresh();
   };
 
   const remove = async (id: string) => {
@@ -62,7 +68,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   return (
     <SessionContext.Provider
-      value={{ current, all, loading, setCurrent, create, update, remove, refresh }}
+      value={{
+        current,
+        all,
+        loading,
+        setCurrent,
+        create,
+        update,
+        remove,
+        refresh,
+      }}
     >
       {children}
     </SessionContext.Provider>
@@ -71,6 +86,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 export function useSession() {
   const context = useContext(SessionContext);
-  if (!context) throw new Error("useSession must be used within SessionProvider");
+  if (!context)
+    throw new Error("useSession must be used within SessionProvider");
   return context;
 }
