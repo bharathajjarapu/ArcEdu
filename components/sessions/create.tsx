@@ -8,8 +8,8 @@ import { Card } from "@/components/ui/card";
 
 interface Props {
   open: boolean;
-  onClose: () => void;
-  onCreate: (title: string, color: string) => void;
+  onCloseAction: () => void;
+  onCreateAction: (title: string, color: string) => void;
 }
 
 const colors = [
@@ -23,7 +23,7 @@ const colors = [
   "#e5e7eb",
 ];
 
-export function CreateModal({ open, onClose, onCreate }: Props) {
+export function CreateModal({ open, onCloseAction, onCreateAction }: Props) {
   const [title, setTitle] = useState("");
   const [color, setColor] = useState(colors[0]);
 
@@ -31,7 +31,7 @@ export function CreateModal({ open, onClose, onCreate }: Props) {
 
   const handleCreate = () => {
     if (!title.trim()) return;
-    onCreate(title, color);
+    onCreateAction(title, color);
     setTitle("");
     setColor(colors[0]);
   };
@@ -45,7 +45,7 @@ export function CreateModal({ open, onClose, onCreate }: Props) {
       <Card className="w-full max-w-md p-6 bg-white">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">New Session</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onCloseAction}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -84,7 +84,7 @@ export function CreateModal({ open, onClose, onCreate }: Props) {
         </div>
 
         <div className="flex gap-3 mt-6">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button variant="outline" onClick={onCloseAction} className="flex-1">
             Cancel
           </Button>
           <Button

@@ -115,9 +115,7 @@ export function Results({
               </div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
-              <div className="text-sm text-gray-500 mb-2">
-                Hotstreak
-              </div>
+              <div className="text-sm text-gray-500 mb-2">Hotstreak</div>
               <div className="text-3xl font-bold text-gray-900">
                 {maxStreak}
               </div>
@@ -149,7 +147,7 @@ export function Results({
         )}
 
         <div className="flex justify-center mb-12 w-full">
-          <div className="grid grid-cols-6 gap-3 justify-items-center">
+          <div className="flex flex-wrap justify-center gap-3">
             {selectedFormat === "quiz"
               ? quizData.map((question, index) => {
                   const userAnswer = userAnswers[index];
