@@ -238,9 +238,10 @@ export default function QuizApp() {
 
   const handleNext = () => {
     if (currentQuestion < quizData.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-      setShowFeedback(false);
+      const nextQ = currentQuestion + 1;
+      setCurrentQuestion(nextQ);
+      setSelectedAnswer(userAnswers[nextQ] || null);
+      setShowFeedback(!!userAnswers[nextQ]);
       setQuestionStartTime(Date.now());
     } else {
       setCurrentScreen("results");
@@ -249,9 +250,10 @@ export default function QuizApp() {
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-      setSelectedAnswer(userAnswers[currentQuestion - 1] || null);
-      setShowFeedback(false);
+      const prevQ = currentQuestion - 1;
+      setCurrentQuestion(prevQ);
+      setSelectedAnswer(userAnswers[prevQ] || null);
+      setShowFeedback(!!userAnswers[prevQ]);
     }
   };
 
