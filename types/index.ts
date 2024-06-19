@@ -37,6 +37,7 @@ export interface Quiz {
   question: string;
   options: string[];
   answer: number;
+  explanation: string;
 }
 
 export interface Flashcard {

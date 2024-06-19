@@ -409,7 +409,12 @@ export default function QuizApp() {
           </div>
           {currentScreen !== "upload" && (
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={handleNewQuiz}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNewQuiz}
+                className="border border-gray-200 rounded-lg"
+              >
                 <Plus className="w-4 h-4 mr-1" />
                 New Session
               </Button>

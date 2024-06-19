@@ -41,11 +41,11 @@ export function QuizScreen({
           size="sm"
           onClick={onPreviousAction}
           disabled={currentQuestion === 0}
-          className="text-gray-600 hover:bg-white/50"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <span className="text-gray-600">
+        <span className="text-gray-600 text-lg font-medium">
           Question {currentQuestion + 1} of {quizData.length}
         </span>
         <Button
@@ -53,7 +53,7 @@ export function QuizScreen({
           size="sm"
           onClick={onNextAction}
           disabled={currentQuestion === quizData.length - 1}
-          className="text-gray-600 hover:bg-white/50"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -96,7 +96,7 @@ export function QuizScreen({
               >
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium shrink-0",
+                    "w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-medium shrink-0",
                     !showFeedback &&
                       !isSelected &&
                       "border-gray-300 text-gray-600",
@@ -139,9 +139,8 @@ export function QuizScreen({
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">Explanation:</h3>
                 <p className="text-gray-700">
-                  The correct answer is{" "}
-                  {String.fromCharCode(65 + question.answer)}:{" "}
-                  {question.options[question.answer]}
+                  {question.explanation ||
+                    `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
                 </p>
               </div>
             </div>
@@ -153,7 +152,7 @@ export function QuizScreen({
             variant="ghost"
             onClick={onPreviousAction}
             disabled={currentQuestion === 0}
-            className="text-gray-600 hover:bg-white/50"
+            className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Previous

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const prompt = `Based on the following context, generate ${num} multiple choice questions about "${topic}".\n\nContext:\n${context}\n\nReturn ONLY a JSON array with format: [{"question": "...", "options": ["A", "B", "C", "D"], "answer": 0}]`;
+  const prompt = `Based on the following context, generate ${num} multiple choice questions about "${topic}".\n\nContext:\n${context}\n\nReturn ONLY a JSON array with format: [{"question": "...", "options": ["A", "B", "C", "D"], "answer": 0, "explanation": "Brief explanation why this is correct"}]`;
 
   if (stream) {
     const encoder = new TextEncoder();
