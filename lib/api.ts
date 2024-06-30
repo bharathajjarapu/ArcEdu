@@ -2,6 +2,7 @@ import type { Quiz, Flashcard } from "@/types";
 import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
 import { simple as simpleHash } from "@/lib/data/hash";
+import { topK } from "@/lib/utils/similarity";
 
 export async function uploadPDF(file: File) {
   const formData = new FormData();
@@ -12,6 +13,17 @@ export async function uploadPDF(file: File) {
   });
   if (!response.ok) throw new Error("Failed to upload PDF");
   return response.json();
+}
+
+export async function embedText(text: string): Promise<number[]> {
+  const response = await fetch("/api/embed", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ texts: [text] }),
+  });
+  if (!response.ok) throw new Error("Failed to embed text");
+  const data = await response.json();
+  return data.embeddings[0].embedding;
 }
 
 export async function embedBatch(
@@ -60,10 +72,18 @@ export async function generateQuiz(
   num: number,
   chunks?: any[],
 ): Promise<Quiz[]> {
+  let context = "";
+
+  if (chunks && chunks.length > 0) {
+    const queryEmbedding = await embedText(topic);
+    const relevant = topK(queryEmbedding, chunks, 5);
+    context = relevant.map((r) => r.text).join("\n\n");
+  }
+
   const response = await fetch("/api/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, chunks }),
+    body: JSON.stringify({ topic, num, context }),
   });
   if (!response.ok) throw new Error("Failed to generate quiz");
   const data = await response.json();
@@ -75,10 +95,18 @@ export async function generateFlashcards(
   num: number,
   chunks?: any[],
 ): Promise<Flashcard[]> {
+  let context = "";
+
+  if (chunks && chunks.length > 0) {
+    const queryEmbedding = await embedText(topic);
+    const relevant = topK(queryEmbedding, chunks, 5);
+    context = relevant.map((r) => r.text).join("\n\n");
+  }
+
   const response = await fetch("/api/flashcards", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, chunks }),
+    body: JSON.stringify({ topic, num, context }),
   });
   if (!response.ok) throw new Error("Failed to generate flashcards");
   const data = await response.json();
