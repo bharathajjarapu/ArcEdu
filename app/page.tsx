@@ -17,12 +17,12 @@ import {
   generateQuiz,
   generateFlashcards,
   generateTitle,
-} from "@/lib/api";
-import { Upload } from "@/app/screens/Upload";
-import { Format as FormatScreen } from "@/app/screens/Format";
-import { QuizScreen } from "@/app/screens/Quiz";
-import { Flashcards } from "@/app/screens/Flashcards";
-import { Results } from "@/app/screens/Results";
+} from "@/lib/client";
+import { Upload } from "@/components/screens/upload";
+import { Format as FormatScreen } from "@/components/screens/format";
+import { QuizScreen } from "@/components/screens/quiz";
+import { Flashcards } from "@/components/screens/flashcards";
+import { Results } from "@/components/screens/results";
 
 export default function QuizApp() {
   const { current, all, setCurrent, create, remove, update, refresh } =

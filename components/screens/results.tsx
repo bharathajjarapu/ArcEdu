@@ -1,132 +1,231 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
-  CheckCircle,
-  XCircle,
-  Clock,
-  Zap,
-  TrendingUp,
+  ChevronLeft,
+  Plus,
   RotateCcw,
+  Check,
+  X,
+  ThumbsUp,
+  ThumbsDown,
+  Loader2,
 } from "lucide-react";
-import { time } from "@/lib/utils/format";
+import { cn } from "@/lib/utils";
+import type { Quiz, Flashcard, Format } from "@/types";
+import { formatTime } from "@/lib/utils/format";
 
-interface Props {
-  format: "quiz" | "flashcards";
-  correct: number;
-  total: number;
-  accuracy: number;
+interface ResultsProps {
+  selectedFormat: Format;
+  quizData: Quiz[];
+  flashcardData: Flashcard[];
+  userAnswers: Record<number, string>;
+  flashcardAnswers: Record<number, boolean>;
   totalTime: number;
-  fastest: number;
+  fastestAnswer: number;
   maxStreak: number;
-  onRetryAction: () => void;
+  onGoBackAction: () => void;
   onNewSessionAction: () => void;
+  onRetryAction: () => void;
+  isLoading: boolean;
 }
 
-export function ResultsScreen({
-  format,
-  correct,
-  total,
-  accuracy,
+export function Results({
+  selectedFormat,
+  quizData,
+  flashcardData,
+  userAnswers,
+  flashcardAnswers,
   totalTime,
-  fastest,
+  fastestAnswer,
   maxStreak,
-  onRetryAction,
+  onGoBackAction,
   onNewSessionAction,
-}: Props) {
-  const grade =
-    accuracy >= 90
-      ? "Excellent!"
-      : accuracy >= 70
-        ? "Good Job!"
-        : accuracy >= 50
-          ? "Keep Going!"
-          : "Try Again!";
-  const gradeColor =
-    accuracy >= 90
-      ? "text-green-600"
-      : accuracy >= 70
-        ? "text-blue-600"
-        : accuracy >= 50
-          ? "text-yellow-600"
-          : "text-red-600";
+  onRetryAction,
+  isLoading,
+}: ResultsProps) {
+  const calcResults = () => {
+    if (selectedFormat === "quiz") {
+      const correctAnswers = Object.entries(userAnswers).filter(
+        ([questionIndex, answer]) => {
+          const selectedIndex = answer.charCodeAt(0) - 65;
+          return (
+            quizData[Number.parseInt(questionIndex)].answer === selectedIndex
+          );
+        },
+      ).length;
+
+      const totalQuestions = quizData.length;
+      const accuracy =
+        totalQuestions > 0
+          ? Math.round((correctAnswers / totalQuestions) * 100)
+          : 0;
+
+      return {
+        correctAnswers,
+        totalQuestions,
+        accuracy,
+      };
+    }
+    const correctAnswers = Object.values(flashcardAnswers).filter(
+      (answer) => answer,
+    ).length;
+    const totalQuestions = flashcardData.length;
+    const accuracy =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
+
+    return {
+      correctAnswers,
+      totalQuestions,
+      accuracy,
+    };
+  };
+
+  const results = calcResults();
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-4xl font-bold">Results</h2>
-        <p className={`text-2xl font-semibold ${gradeColor}`}>{grade}</p>
-      </div>
-
-      <Card className="p-8">
-        <div className="text-center mb-8">
-          <div className="text-6xl font-bold text-blue-500">{accuracy}%</div>
-          <p className="text-gray-600 mt-2">Accuracy</p>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="text-center mb-12">
+        <div className="text-8xl font-bold text-gray-900 mb-4">
+          {results.correctAnswers}
+          <span className="text-5xl text-gray-500">
+            /{results.totalQuestions}
+          </span>
         </div>
+        <p className="text-gray-600 text-lg max-w-md mx-auto mb-8">
+          Great job! You answered {results.correctAnswers} out of{" "}
+          {results.totalQuestions} questions correctly — that's{" "}
+          {results.accuracy}% accuracy!
+        </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-            <div className="text-2xl font-bold">{correct}</div>
-            <p className="text-sm text-gray-600">Correct</p>
-          </div>
-
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <XCircle className="w-8 h-8 text-red-500" />
-            </div>
-            <div className="text-2xl font-bold">{total - correct}</div>
-            <p className="text-sm text-gray-600">Incorrect</p>
-          </div>
-
-          {format === "quiz" && (
-            <>
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Clock className="w-8 h-8 text-blue-500" />
-                </div>
-                <div className="text-2xl font-bold">{time(totalTime)}</div>
-                <p className="text-sm text-gray-600">Total Time</p>
+        {selectedFormat === "quiz" && (
+          <div className="flex justify-center gap-6 mb-8">
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+              <div className="text-sm text-gray-500 mb-2">Time taken</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {formatTime(totalTime)}
               </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Zap className="w-8 h-8 text-yellow-500" />
-                </div>
-                <div className="text-2xl font-bold">{time(fastest)}</div>
-                <p className="text-sm text-gray-600">Fastest</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+              <div className="text-sm text-gray-500 mb-2">Fastest answer</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {formatTime(fastestAnswer)}
               </div>
-            </>
-          )}
-        </div>
-
-        {format === "quiz" && maxStreak > 0 && (
-          <div className="mt-8 p-4 bg-linear-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
-            <div className="flex items-center justify-center gap-3">
-              <TrendingUp className="w-6 h-6 text-orange-500" />
-              <p className="text-lg font-semibold text-orange-700">
-                Best Streak: {maxStreak} correct in a row! 🔥
-              </p>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+              <div className="text-sm text-gray-500 mb-2">Hotstreak</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {maxStreak}
+              </div>
             </div>
           </div>
         )}
-      </Card>
 
-      <div className="flex gap-4">
+        {selectedFormat === "flashcards" && (
+          <div className="flex justify-center gap-6 mb-8">
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+              <div className="text-sm text-gray-500 mb-2">Correct answers</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {results.correctAnswers}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+              <div className="text-sm text-gray-500 mb-2">Total questions</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {results.totalQuestions}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+              <div className="text-sm text-gray-500 mb-2">Accuracy</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {results.accuracy}%
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-center mb-12 w-full">
+          <div className="flex flex-wrap justify-center gap-3">
+            {selectedFormat === "quiz"
+              ? quizData.map((question, index) => {
+                  const userAnswer = userAnswers[index];
+                  const selectedIndex = userAnswer
+                    ? userAnswer.charCodeAt(0) - 65
+                    : -1;
+                  const isCorrect = selectedIndex === question.answer;
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "w-12 h-12 rounded-lg flex items-center justify-center shadow-sm",
+                        isCorrect ? "bg-green-500/80" : "bg-red-500/80",
+                      )}
+                    >
+                      {isCorrect ? (
+                        <Check className="w-6 h-6 text-white" />
+                      ) : (
+                        <X className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                  );
+                })
+              : flashcardData.map((flashcard, index) => {
+                  const gotIt = flashcardAnswers[index];
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "w-12 h-12 rounded-lg flex items-center justify-center shadow-sm",
+                        gotIt ? "bg-green-500/80" : "bg-red-500/80",
+                      )}
+                    >
+                      {gotIt ? (
+                        <ThumbsUp className="w-6 h-6 text-white" />
+                      ) : (
+                        <ThumbsDown className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                  );
+                })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-4">
         <Button
-          variant="outline"
-          size="lg"
-          className="flex-1"
+          variant="ghost"
+          className="text-gray-600 hover:bg-white/50 border border-gray-300"
+          onClick={onGoBackAction}
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Go Back
+        </Button>
+        <Button
+          variant="ghost"
+          className="text-gray-600 hover:bg-white/50 border border-gray-300"
+          onClick={onNewSessionAction}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Session
+        </Button>
+        <Button
+          className="bg-gray-800 hover:bg-gray-900 text-white"
+          disabled={isLoading}
           onClick={onRetryAction}
         >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Try Again
-        </Button>
-        <Button size="lg" className="flex-1" onClick={onNewSessionAction}>
-          New Session
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Retry
+            </>
+          )}
         </Button>
       </div>
     </div>

@@ -1,90 +1,130 @@
 "use client";
 
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { BookOpen, HelpCircle, FileText } from "lucide-react";
+import { ChevronRight, HelpCircle, BookOpen, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Format } from "@/types";
 
-type Format = "quiz" | "flashcards";
-
-interface Props {
-  sessionId: string;
-  onSelect: (format: Format, numQuestions: number) => void;
-  loading?: boolean;
+interface FormatProps {
+  selectedFormat: Format;
+  setSelectedFormatAction: (format: Format) => void;
+  numQuestions: number;
+  setNumQuestionsAction: (num: number) => void;
+  error: string | null;
+  isLoading: boolean;
+  onSelectAction: (format: Format) => void;
 }
 
-export function FormatScreen({ sessionId, onSelect, loading }: Props) {
-  const [numQuestions, setNumQuestions] = React.useState(5);
-
-  const formats = [
-    {
-      id: "quiz" as Format,
-      title: "Quiz",
-      description: "Test your knowledge with multiple choice questions",
-      icon: HelpCircle,
-      color: "blue",
-    },
-    {
-      id: "flashcards" as Format,
-      title: "Flashcards",
-      description: "Review concepts with flashcard format",
-      icon: BookOpen,
-      color: "green",
-    },
-  ];
-
+export function Format({
+  selectedFormat,
+  setSelectedFormatAction,
+  numQuestions,
+  setNumQuestionsAction,
+  error,
+  isLoading,
+  onSelectAction,
+}: FormatProps) {
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">Choose Learning Format</h2>
-        <p className="text-gray-600">How would you like to study?</p>
+    <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Choose your learning format
+        </h1>
+        <p className="text-gray-600 text-lg">
+          How would you like to study this content?
+        </p>
       </div>
 
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Number of Questions
-            </label>
-            <Input
-              type="number"
-              min="1"
-              max="50"
-              value={numQuestions}
-              onChange={(e) => setNumQuestions(parseInt(e.target.value) || 5)}
-              className="w-32"
-            />
+      <div className="grid md:grid-cols-2 gap-8 mb-8 max-w-2xl mx-auto">
+        <Card
+          className={cn(
+            "p-8 cursor-pointer transition-all duration-200 hover:shadow-lg border-2",
+            "bg-white/90 backdrop-blur-sm",
+            selectedFormat === "quiz"
+              ? "border-gray-800 shadow-lg"
+              : "border-gray-200 hover:border-gray-300",
+          )}
+          onClick={() => setSelectedFormatAction("quiz")}
+        >
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <HelpCircle className="w-8 h-8 text-gray-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Quiz</h3>
+            <p className="text-gray-600 text-sm">
+              Test your knowledge with multiple choice questions and get instant
+              feedback
+            </p>
           </div>
+        </Card>
+
+        <Card
+          className={cn(
+            "p-8 cursor-pointer transition-all duration-200 hover:shadow-lg border-2",
+            "bg-white/90 backdrop-blur-sm",
+            selectedFormat === "flashcards"
+              ? "border-gray-800 shadow-lg"
+              : "border-gray-200 hover:border-gray-300",
+          )}
+          onClick={() => setSelectedFormatAction("flashcards")}
+        >
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-gray-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Flashcards
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Study with interactive cards featuring terms and definitions with
+              flip animations
+            </p>
+          </div>
+        </Card>
+      </div>
+
+      <Card className="p-6 mb-6 bg-white/90 backdrop-blur-sm border-gray-200 max-w-2xl mx-auto">
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium text-gray-700">
+            Number of questions:
+          </label>
+          <Input
+            type="number"
+            min="1"
+            max="20"
+            value={numQuestions}
+            onChange={(e) => setNumQuestionsAction(Number(e.target.value))}
+            className="w-20 bg-white border-gray-300"
+          />
         </div>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {formats.map((format) => {
-          const Icon = format.icon;
-          return (
-            <Card
-              key={format.id}
-              className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => !loading && onSelect(format.id, numQuestions)}
-            >
-              <div className="text-center space-y-4">
-                <div
-                  className={`w-16 h-16 mx-auto rounded-full bg-${format.color}-100 flex items-center justify-center`}
-                >
-                  <Icon className={`w-8 h-8 text-${format.color}-500`} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">{format.title}</h3>
-                  <p className="text-gray-600 text-sm">{format.description}</p>
-                </div>
-                <Button className="w-full" disabled={loading}>
-                  {loading ? "Generating..." : `Start ${format.title}`}
-                </Button>
-              </div>
-            </Card>
-          );
-        })}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg max-w-2xl mx-auto">
+          <p className="text-red-700 text-sm text-center">{error}</p>
+        </div>
+      )}
+
+      <div className="text-center">
+        <Button
+          onClick={() => onSelectAction(selectedFormat)}
+          disabled={isLoading}
+          className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              Start Learning
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

@@ -1,142 +1,182 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { QuizQuestion } from "@/components/shared/question";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Quiz } from "@/types";
 
-interface Props {
-  data: Quiz[];
-  sessionId: string;
-  onComplete: (answers: Record<number, string>, times: number[], streak: number) => void;
+interface QuizProps {
+  quizData: Quiz[];
+  currentQuestion: number;
+  selectedAnswer: string | null;
+  userAnswers: Record<number, string>;
+  showFeedback: boolean;
+  onAnswerSelectAction: (optionId: string) => void;
+  onContinueAction: () => void;
+  onNextAction: () => void;
+  onPreviousAction: () => void;
 }
 
-export function QuizScreen({ data, sessionId, onComplete }: Props) {
-  const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [feedback, setFeedback] = useState(false);
-  const [startTime] = useState(Date.now());
-  const [questionStart, setQuestionStart] = useState(Date.now());
-  const [times, setTimes] = useState<number[]>([]);
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
+export function QuizScreen({
+  quizData,
+  currentQuestion,
+  selectedAnswer,
+  userAnswers,
+  showFeedback,
+  onAnswerSelectAction,
+  onContinueAction,
+  onNextAction,
+  onPreviousAction,
+}: QuizProps) {
+  if (!quizData.length) return null;
 
-  const handleSelect = (option: string) => {
-    setSelected(option);
-  };
-
-  const handleContinue = () => {
-    if (selected) {
-      const newAnswers = { ...answers, [current]: selected };
-      setAnswers(newAnswers);
-      setFeedback(true);
-
-      const time = Date.now() - questionStart;
-      setTimes(prev => [...prev, time]);
-
-      const selectedIdx = selected.charCodeAt(0) - 65;
-      const isCorrect = selectedIdx === data[current].answer;
-
-      if (isCorrect) {
-        const newStreak = streak + 1;
-        setStreak(newStreak);
-        setMaxStreak(Math.max(maxStreak, newStreak));
-      } else {
-        setStreak(0);
-      }
-    }
-  };
-
-  const handleNext = () => {
-    if (current < data.length - 1) {
-      setCurrent(current + 1);
-      setSelected(null);
-      setFeedback(false);
-      setQuestionStart(Date.now());
-    } else {
-      onComplete(answers, times, maxStreak);
-    }
-  };
-
-  const handlePrev = () => {
-    if (current > 0) {
-      setCurrent(current - 1);
-      setSelected(answers[current - 1] || null);
-      setFeedback(false);
-    }
-  };
-
-  if (data.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">No quiz questions available</p>
-      </div>
-    );
-  }
+  const question = quizData[currentQuestion];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Quiz</h2>
-        <div className="text-sm text-gray-600">
-          Question {current + 1} of {data.length}
-        </div>
-      </div>
-
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-blue-500 h-2 rounded-full transition-all"
-          style={{ width: `${((current + 1) / data.length) * 100}%` }}
-        />
-      </div>
-
-      <QuizQuestion
-        question={data[current].question}
-        options={data[current].options}
-        answer={data[current].answer}
-        selected={selected}
-        showFeedback={feedback}
-        onSelect={handleSelect}
-      />
-
-      {streak > 0 && (
-        <Card className="p-4 bg-green-50 border-green-200">
-          <p className="text-green-700 font-medium">
-            🔥 {streak} correct in a row!
-          </p>
-        </Card>
-      )}
-
-      <div className="flex gap-4">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-center gap-4 mb-8">
         <Button
-          variant="outline"
-          onClick={handlePrev}
-          disabled={current === 0}
+          variant="ghost"
+          size="sm"
+          onClick={onPreviousAction}
+          disabled={currentQuestion === 0}
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
         >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Previous
+          <ChevronLeft className="w-4 h-4" />
         </Button>
+        <span className="text-gray-600 text-lg font-medium">
+          Question {currentQuestion + 1} of {quizData.length}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onNextAction}
+          disabled={currentQuestion === quizData.length - 1}
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
 
-        {!feedback ? (
-          <Button
-            className="flex-1"
-            onClick={handleContinue}
-            disabled={!selected}
-          >
-            Submit Answer
-          </Button>
-        ) : (
-          <Button
-            className="flex-1"
-            onClick={handleNext}
-          >
-            {current < data.length - 1 ? "Next Question" : "View Results"}
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
+      <div className="max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 leading-tight">
+          {question.question}
+        </h2>
+
+        <div className="space-y-4 mb-8">
+          {question.options.map((option, index) => {
+            const optionId = String.fromCharCode(65 + index);
+            const isSelected = selectedAnswer === optionId;
+            const isCorrect = index === question.answer;
+            const isIncorrect = showFeedback && isSelected && !isCorrect;
+            const shouldShowCorrect = showFeedback && isCorrect;
+
+            return (
+              <button
+                key={index}
+                onClick={() => !showFeedback && onAnswerSelectAction(optionId)}
+                disabled={showFeedback}
+                className={cn(
+                  "w-full p-4 rounded-lg border-2 text-left transition-all duration-200",
+                  "flex items-center gap-4",
+                  !showFeedback &&
+                    !isSelected &&
+                    "bg-white/90 backdrop-blur-sm border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+                  !showFeedback &&
+                    isSelected &&
+                    "bg-gray-100 border-gray-400 shadow-md",
+                  isIncorrect && "bg-red-50 border-red-300",
+                  shouldShowCorrect && "bg-green-50 border-green-300",
+                  showFeedback &&
+                    !isIncorrect &&
+                    !shouldShowCorrect &&
+                    "bg-white/90 backdrop-blur-sm border-gray-200",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-medium shrink-0",
+                    !showFeedback &&
+                      !isSelected &&
+                      "border-gray-300 text-gray-600",
+                    !showFeedback &&
+                      isSelected &&
+                      "border-gray-600 text-gray-700 bg-gray-200",
+                    isIncorrect && "border-red-500 bg-red-500 text-white",
+                    shouldShowCorrect &&
+                      "border-green-500 bg-green-500 text-white",
+                    showFeedback &&
+                      !isIncorrect &&
+                      !shouldShowCorrect &&
+                      "border-gray-300 text-gray-600",
+                  )}
+                >
+                  {showFeedback ? (
+                    isIncorrect ? (
+                      <X className="w-4 h-4" />
+                    ) : shouldShowCorrect ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      optionId
+                    )
+                  ) : (
+                    optionId
+                  )}
+                </div>
+                <span className="text-gray-900">{option}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {showFeedback && (
+          <Card className="p-6 mb-8 border-gray-200 bg-gray-50/90 backdrop-blur-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs">i</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Explanation:</h3>
+                <p className="text-gray-700">
+                  {question.explanation ||
+                    `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
+                </p>
+              </div>
+            </div>
+          </Card>
         )}
+
+        <div className="flex justify-between">
+          <Button
+            variant="ghost"
+            onClick={onPreviousAction}
+            disabled={currentQuestion === 0}
+            className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+
+          {!showFeedback ? (
+            <Button
+              onClick={onContinueAction}
+              disabled={!selectedAnswer}
+              className="bg-gray-800 hover:bg-gray-900 text-white"
+            >
+              Continue
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          ) : (
+            <Button
+              onClick={onNextAction}
+              className="bg-gray-800 hover:bg-gray-900 text-white"
+            >
+              {currentQuestion === quizData.length - 1 ? "Finish" : "Continue"}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
