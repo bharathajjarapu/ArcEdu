@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { embed } from "@/lib/api/openai";
-import { group } from "@/lib/process/batch";
-
-const batchSize = 20;
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,19 +9,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid texts" }, { status: 400 });
     }
 
-    const batches = group(texts, batchSize);
-    const allEmbeddings = [];
+    const results = await embed(texts);
+    const embeddings = results.map(embedding => ({ embedding }));
 
-    for (const batch of batches) {
-      const embeddings = await Promise.all(
-        batch.map(async (text) => ({
-          embedding: await embed(text),
-        })),
-      );
-      allEmbeddings.push(...embeddings);
-    }
-
-    return NextResponse.json({ embeddings: allEmbeddings });
+    return NextResponse.json({ embeddings });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

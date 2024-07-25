@@ -71,9 +71,34 @@ export async function setMany(
   sessionId: string,
   items: Array<{ hash: string; embedding: number[] }>,
 ): Promise<void> {
+  if (items.length === 0) return;
+  const now = Date.now();
+  const entries: Cache[] = [];
+
   for (const item of items) {
-    await set(sessionId, item.hash, item.embedding);
+    entries.push({
+      hash: `${sessionId}_${item.hash}`,
+      sessionId,
+      embedding: item.embedding,
+      createdAt: now,
+    });
   }
+
+  const newGlobals: Cache[] = [];
+  for (const item of items) {
+    const globalKey = `global_${item.hash}`;
+    const exists = await store.get<Cache>("cache", globalKey);
+    if (!exists) {
+      newGlobals.push({
+        hash: globalKey,
+        sessionId: "global",
+        embedding: item.embedding,
+        createdAt: now,
+      });
+    }
+  }
+
+  await store.putMany("cache", [...entries, ...newGlobals]);
 }
 
 export async function has(sessionId: string, hash: string): Promise<boolean> {

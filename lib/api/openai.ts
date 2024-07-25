@@ -4,12 +4,13 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function embed(text: string): Promise<number[]> {
+export async function embed(texts: string[]): Promise<number[][]> {
+  if (texts.length === 0) return [];
   const response = await client.embeddings.create({
     model: 'text-embedding-3-small',
-    input: text,
+    input: texts,
   });
-  return response.data[0].embedding;
+  return response.data.map(d => d.embedding);
 }
 
 export async function generate(prompt: string, system?: string): Promise<string> {

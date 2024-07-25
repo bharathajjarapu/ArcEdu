@@ -120,6 +120,18 @@ export async function put<T>(store: keyof Store, data: T): Promise<void> {
   });
 }
 
+export async function putMany<T>(store: keyof Store, items: T[]): Promise<void> {
+  if (items.length === 0) return;
+  const database = await init();
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction(store, "readwrite");
+    const obj = tx.objectStore(store);
+    for (const item of items) obj.put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 export async function remove(store: keyof Store, id: string): Promise<void> {
   const database = await init();
   return new Promise((resolve, reject) => {

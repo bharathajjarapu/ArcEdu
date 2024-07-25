@@ -54,14 +54,12 @@ export async function embedBatch(
       return response.json();
     });
 
-    for (let i = 0; i < needsApi.length; i++) {
-      await cache.set(
-        sessionId,
-        needsApiHashes[i],
-        data.embeddings[i].embedding,
-      );
-      cached.set(needsApiHashes[i], data.embeddings[i].embedding);
-    }
+    const items = needsApi.map((_, i) => ({
+      hash: needsApiHashes[i],
+      embedding: data.embeddings[i].embedding,
+    }));
+    await cache.setMany(sessionId, items);
+    for (const item of items) cached.set(item.hash, item.embedding);
   }
 
   return { embeddings: hashes.map((h) => ({ embedding: cached.get(h)! })) };

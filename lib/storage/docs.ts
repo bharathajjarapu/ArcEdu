@@ -36,9 +36,7 @@ export async function remove(id: string): Promise<void> {
 }
 
 export async function saveChunks(chunks: Chunk[]): Promise<void> {
-  for (const chunk of chunks) {
-    await store.put("chunks", chunk);
-  }
+  await store.putMany("chunks", chunks);
 }
 
 export async function getChunks(documentId: string): Promise<Chunk[]> {
