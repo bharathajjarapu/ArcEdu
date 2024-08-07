@@ -16,13 +16,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InputType } from "@/types";
-import { uploadPDF, generateTitle } from "@/lib/client";
+import { uploadPDF, generateTitle } from "@/lib/api/client";
 import * as docs from "@/lib/storage/docs";
 import * as queue from "@/lib/process/queue";
 import * as worker from "@/lib/process/worker";
 import { simple as simpleHash } from "@/lib/data/hash";
 import type { Chunk } from "@/types";
-import { getRelativeTime } from "@/lib/utils/format";
+import { getRelativeTime } from "@/lib/format";
 
 interface UploadProps {
   inputType: InputType;

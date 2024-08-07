@@ -17,7 +17,7 @@ import {
   generateQuiz,
   generateFlashcards,
   generateTitle,
-} from "@/lib/client";
+} from "@/lib/api/client";
 import { Upload } from "@/components/screens/upload";
 import { Format as FormatScreen } from "@/components/screens/format";
 import { QuizScreen } from "@/components/screens/quiz";

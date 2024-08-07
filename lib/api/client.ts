@@ -2,7 +2,7 @@ import type { Quiz, Flashcard } from "@/types";
 import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
 import { simple as simpleHash } from "@/lib/data/hash";
-import { topK } from "@/lib/utils/similarity";
+import * as worker from "@/lib/process/worker";
 
 export async function uploadPDF(file: File) {
   const formData = new FormData();
@@ -74,7 +74,7 @@ export async function generateQuiz(
 
   if (chunks && chunks.length > 0) {
     const queryEmbedding = await embedText(topic);
-    const relevant = topK(queryEmbedding, chunks, 5);
+    const relevant = await worker.findSimilar(queryEmbedding, chunks, 5);
     context = relevant.map((r) => r.text).join("\n\n");
   }
 
@@ -97,7 +97,7 @@ export async function generateFlashcards(
 
   if (chunks && chunks.length > 0) {
     const queryEmbedding = await embedText(topic);
-    const relevant = topK(queryEmbedding, chunks, 5);
+    const relevant = await worker.findSimilar(queryEmbedding, chunks, 5);
     context = relevant.map((r) => r.text).join("\n\n");
   }
 
@@ -125,3 +125,4 @@ export async function generateTitle(content: string): Promise<string> {
     return "New Session";
   }
 }
+

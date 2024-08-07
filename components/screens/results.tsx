@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Quiz, Flashcard, Format } from "@/types";
-import { formatTime } from "@/lib/utils/format";
+import { formatTime } from "@/lib/format";
 
 interface ResultsProps {
   selectedFormat: Format;
