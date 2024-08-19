@@ -1,7 +1,6 @@
 import type { Quiz, Flashcard } from "@/types";
 import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
-import { simple as simpleHash } from "@/lib/data/hash";
 import * as worker from "@/lib/process/worker";
 
 export async function uploadPDF(file: File) {
@@ -69,6 +68,7 @@ export async function generateQuiz(
   topic: string,
   num: number,
   chunks?: any[],
+  onProgress?: (quiz: Quiz) => void,
 ): Promise<Quiz[]> {
   let context = "";
 
@@ -83,15 +83,18 @@ export async function generateQuiz(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ topic, num, context }),
   });
+
   if (!response.ok) throw new Error("Failed to generate quiz");
-  const data = await response.json();
-  return data.quiz;
+
+  const { parseStream } = await import("@/lib/api/parser");
+  return parseStream<Quiz>(response, num, onProgress);
 }
 
 export async function generateFlashcards(
   topic: string,
   num: number,
   chunks?: any[],
+  onProgress?: (flashcard: Flashcard) => void,
 ): Promise<Flashcard[]> {
   let context = "";
 
@@ -106,9 +109,11 @@ export async function generateFlashcards(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ topic, num, context }),
   });
+
   if (!response.ok) throw new Error("Failed to generate flashcards");
-  const data = await response.json();
-  return data.flashcards;
+
+  const { parseStream } = await import("@/lib/api/parser");
+  return parseStream<Flashcard>(response, num, onProgress);
 }
 
 export async function generateTitle(content: string): Promise<string> {

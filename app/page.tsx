@@ -173,10 +173,8 @@ export default function QuizApp() {
           promptText ||
           uploadedDocs.map((d) => d.name).join(", ") ||
           "session content";
-        const quiz = await generateQuiz(topicText, numQuestions, chunks);
 
-        setQuizData(quiz);
-        setCurrentScreen("quiz");
+        setQuizData([]);
         setCurrentQuestion(0);
         setUserAnswers({});
         setSelectedAnswer(null);
@@ -186,23 +184,49 @@ export default function QuizApp() {
         setQuestionTimes([]);
         setCurrentStreak(0);
         setMaxStreak(0);
+
+        let first = true;
+        const quiz = await generateQuiz(
+          topicText,
+          numQuestions,
+          chunks,
+          (q) => {
+            setQuizData(prev => [...prev, q]);
+            if (first) {
+              setCurrentScreen("quiz");
+              first = false;
+            }
+          }
+        );
+
+        if (quiz.length === 0) setQuizData([]);
       } else {
         const topicText =
           topic ||
           promptText ||
           uploadedDocs.map((d) => d.name).join(", ") ||
           "session content";
+
+        setFlashcardData([]);
+        setCurrentFlashcard(0);
+        setIsFlashcardFlipped(false);
+        setFlashcardAnswers({});
+
+        let first = true;
         const flashcards = await generateFlashcards(
           topicText,
           numQuestions,
           chunks,
+          (f) => {
+            setFlashcardData(prev => [...prev, f]);
+            if (first) {
+              setCurrentScreen("flashcards");
+              first = false;
+            }
+          }
         );
 
-        setFlashcardData(flashcards);
-        setCurrentScreen("flashcards");
-        setCurrentFlashcard(0);
-        setIsFlashcardFlipped(false);
-        setFlashcardAnswers({});
+        if (flashcards.length === 0) setFlashcardData([]);
       }
     } catch (err) {
       setError("Failed to generate content");
@@ -303,9 +327,8 @@ export default function QuizApp() {
           promptText ||
           uploadedDocs.map((d) => d.name).join(", ") ||
           "session content";
-        const quiz = await generateQuiz(topicText, numQuestions, chunks);
-        setQuizData(quiz);
-        setCurrentScreen("quiz");
+
+        setQuizData([]);
         setCurrentQuestion(0);
         setUserAnswers({});
         setSelectedAnswer(null);
@@ -315,22 +338,49 @@ export default function QuizApp() {
         setQuestionTimes([]);
         setCurrentStreak(0);
         setMaxStreak(0);
+
+        let first = true;
+        const quiz = await generateQuiz(
+          topicText,
+          numQuestions,
+          chunks,
+          (q) => {
+            setQuizData(prev => [...prev, q]);
+            if (first) {
+              setCurrentScreen("quiz");
+              first = false;
+            }
+          }
+        );
+
+        if (quiz.length === 0) setQuizData([]);
       } else {
         const topicText =
           topic ||
           promptText ||
           uploadedDocs.map((d) => d.name).join(", ") ||
           "session content";
+
+        setFlashcardData([]);
+        setCurrentFlashcard(0);
+        setIsFlashcardFlipped(false);
+        setFlashcardAnswers({});
+
+        let first = true;
         const flashcards = await generateFlashcards(
           topicText,
           numQuestions,
           chunks,
+          (f) => {
+            setFlashcardData(prev => [...prev, f]);
+            if (first) {
+              setCurrentScreen("flashcards");
+              first = false;
+            }
+          }
         );
-        setFlashcardData(flashcards);
-        setCurrentScreen("flashcards");
-        setCurrentFlashcard(0);
-        setIsFlashcardFlipped(false);
-        setFlashcardAnswers({});
+
+        if (flashcards.length === 0) setFlashcardData([]);
       }
     } finally {
       setIsLoading(false);

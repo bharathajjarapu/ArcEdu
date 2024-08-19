@@ -27,4 +27,19 @@ export async function generate(prompt: string, system?: string): Promise<string>
   return response.choices[0].message.content || '';
 }
 
+export async function stream(prompt: string, system?: string) {
+  const messages: any[] = [];
+  if (system) messages.push({ role: 'system', content: system });
+  messages.push({ role: 'user', content: prompt });
+
+  const response = await client.chat.completions.create({
+    model: 'gpt-4.1-mini',
+    messages,
+    temperature: 0.7,
+    stream: true,
+  });
+
+  return response;
+}
+
 export default client;
