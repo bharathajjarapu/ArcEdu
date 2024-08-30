@@ -57,13 +57,13 @@ export async function getMany(
   sessionId: string,
   hashes: string[],
 ): Promise<Map<string, number[]>> {
+  const results = await Promise.all(hashes.map((hash) => get(sessionId, hash)));
   const map = new Map<string, number[]>();
-  for (const hash of hashes) {
-    const embedding = await get(sessionId, hash);
+  results.forEach((embedding, index) => {
     if (embedding) {
-      map.set(hash, embedding);
+      map.set(hashes[index], embedding);
     }
-  }
+  });
   return map;
 }
 
@@ -84,19 +84,22 @@ export async function setMany(
     });
   }
 
+  const globalKeys = items.map((item) => `global_${item.hash}`);
+  const existingGlobals = await Promise.all(
+    globalKeys.map((key) => store.get<Cache>("cache", key))
+  );
+
   const newGlobals: Cache[] = [];
-  for (const item of items) {
-    const globalKey = `global_${item.hash}`;
-    const exists = await store.get<Cache>("cache", globalKey);
-    if (!exists) {
+  items.forEach((item, index) => {
+    if (!existingGlobals[index]) {
       newGlobals.push({
-        hash: globalKey,
+        hash: globalKeys[index],
         sessionId: "global",
         embedding: item.embedding,
         createdAt: now,
       });
     }
-  }
+  });
 
   await store.putMany("cache", [...entries, ...newGlobals]);
 }

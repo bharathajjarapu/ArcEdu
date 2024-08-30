@@ -50,8 +50,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const updated = await sessions.getById(id);
     if (updated) {
       setCurrent((prev) => (prev?.id === id ? updated : prev));
+      setAll((prev) => prev.map((s) => (s.id === id ? updated : s)));
     }
-    await refresh();
   };
 
   const remove = async (id: string) => {

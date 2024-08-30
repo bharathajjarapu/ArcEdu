@@ -1,444 +1,227 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, lazy, Suspense, memo } from "react";
 import { useSession } from "@/contexts/session";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Quiz, Flashcard, Format, InputType, Chunk } from "@/types";
 import * as sessions from "@/lib/storage/sessions";
-import * as docs from "@/lib/storage/docs";
-import * as cache from "@/lib/data/cache";
-import { simple as simpleHash } from "@/lib/data/hash";
-import { group } from "@/lib/process/batch";
 import * as worker from "@/lib/process/worker";
-import * as queue from "@/lib/process/queue";
-import {
-  embedBatch,
-  generateQuiz,
-  generateFlashcards,
-  generateTitle,
-} from "@/lib/api/client";
-import { Upload } from "@/components/screens/upload";
-import { Format as FormatScreen } from "@/components/screens/format";
-import { QuizScreen } from "@/components/screens/quiz";
-import { Flashcards } from "@/components/screens/flashcards";
-import { Results } from "@/components/screens/results";
+import { generateTitle } from "@/lib/api/client";
+import { useQuiz } from "@/hooks/quiz";
+import { useFlash } from "@/hooks/flash";
+import { useScreen } from "@/hooks/screen"; // Renamed from useUI
+import { useContent } from "@/hooks/content";
+import { useUpload } from "@/hooks/upload";
+import type { Format, Quiz, Flashcard } from "@/types";
+
+// Lazy load screen components
+const Upload = lazy(() => import("@/components/screens/upload").then((m) => ({ default: m.Upload })));
+const FormatScreen = lazy(() => import("@/components/screens/format").then((m) => ({ default: m.Format })));
+const QuizScreen = lazy(() => import("@/components/screens/quiz").then((m) => ({ default: m.QuizScreen })));
+const Flashcards = lazy(() => import("@/components/screens/flashcards").then((m) => ({ default: m.Flashcards })));
+const Results = lazy(() => import("@/components/screens/results").then((m) => ({ default: m.Results })));
+
+// Memoized components to prevent unnecessary re-renders
+const MemoizedQuizScreen = memo(QuizScreen);
+const MemoizedFlashcards = memo(Flashcards);
 
 export default function QuizApp() {
-  const { current, all, setCurrent, create, remove, update, refresh } =
-    useSession();
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const { current, all, setCurrent, create, remove, update, refresh } = useSession();
+  const screen = useScreen();
+  const quiz = useQuiz();
+  const flash = useFlash();
+  const { generateQuizContent, generateFlashcardContent } = useContent();
+  const { validate, getTopicText } = useUpload();
 
+  // Initialize workers once on mount
   useEffect(() => {
     worker.initWorkers();
     return () => worker.terminate();
   }, []);
 
-  const [currentScreen, setCurrentScreen] = useState<
-    "upload" | "format" | "quiz" | "flashcards" | "results"
-  >("upload");
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [quizStartTime, setQuizStartTime] = useState<number>(0);
-  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
-  const [questionTimes, setQuestionTimes] = useState<number[]>([]);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
-  const [inputType, setInputType] = useState<InputType>("docs");
-  const [selectedFormat, setSelectedFormat] = useState<Format>("quiz");
-  const [currentFlashcard, setCurrentFlashcard] = useState(0);
-  const [isFlashcardFlipped, setIsFlashcardFlipped] = useState(false);
-  const [flashcardAnswers, setFlashcardAnswers] = useState<
-    Record<number, boolean>
-  >({});
-
-  const [topic, setTopic] = useState("");
-  const [numQuestions, setNumQuestions] = useState(5);
-  const [promptText, setPromptText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [quizData, setQuizData] = useState<Quiz[]>([]);
-  const [flashcardData, setFlashcardData] = useState<Flashcard[]>([]);
-
-  const [uploadedDocs, setUploadedDocs] = useState<
-    Array<{ id: string; name: string; size: string }>
-  >([]);
-  const [allChunks, setAllChunks] = useState<any[]>([]);
-  const [links, setLinks] = useState<string[]>([]);
-  const [currentLink, setCurrentLink] = useState("");
-
   const handleContinue = async () => {
-    setError(null);
+    screen.setError(null);
 
-    if (inputType === "prompt" && !promptText.trim()) {
-      setError("Please enter a prompt");
+    const error = validate({
+      inputType: screen.inputType,
+      promptText: screen.promptText,
+      uploadedDocs: screen.uploadedDocs,
+      links: screen.links,
+    });
+
+    if (error) {
+      screen.setError(error);
       return;
     }
 
-    if (inputType === "docs" && uploadedDocs.length === 0) {
-      setError("Please upload at least one document");
-      return;
-    }
+    let sessionId: string;
+    let currentSession = current;
 
-    if (inputType === "links" && links.length === 0) {
-      setError("Please add at least one link");
-      return;
-    }
-
-    let sessionId = activeSessionId;
-    if (!sessionId) {
+    if (!current) {
       const newSession = await create("New Session");
       sessionId = newSession.id;
-      setActiveSessionId(sessionId);
+      currentSession = newSession;
       setCurrent(newSession);
+    } else {
+      sessionId = current.id;
     }
 
-    const currentSession = current || (await sessions.getById(sessionId));
-    if (currentSession && currentSession.title === "New Session") {
-      let contentForTitle = "";
-      if (inputType === "prompt") {
-        contentForTitle = promptText.substring(0, 100);
-      } else if (inputType === "docs") {
-        contentForTitle = uploadedDocs.map((d) => d.name).join(", ");
-      } else if (inputType === "links") {
-        contentForTitle = links[0];
-      }
+    if (currentSession?.title === "New Session") {
+      const content = screen.inputType === "prompt"
+        ? screen.promptText.substring(0, 100)
+        : screen.inputType === "docs"
+          ? screen.uploadedDocs.map((d) => d.name).join(", ")
+          : screen.links[0];
 
-      if (contentForTitle) {
-        const title = await generateTitle(contentForTitle);
+      if (content) {
+        const title = await generateTitle(content);
         await update(sessionId, { title });
       }
     }
 
-    setCurrentScreen("format");
+    screen.setScreen("format");
   };
 
   const handleFormatSelect = async (format: Format) => {
-    setSelectedFormat(format);
-    setIsLoading(true);
-    setError(null);
+    screen.setSelectedFormat(format);
+    screen.setIsLoading(true);
+    screen.setError(null);
 
-    if (!activeSessionId) {
-      setError("No active session");
-      setIsLoading(false);
+    if (!current) {
+      screen.setError("No active session");
+      screen.setIsLoading(false);
       return;
     }
 
     try {
-      let chunks = await sessions.getChunks(activeSessionId);
-
-      if (!chunks || chunks.length === 0) {
-        setError("No document content. Please upload documents first.");
-        setIsLoading(false);
-        return;
-      }
-
-      const needsEmbedding = chunks.filter(
-        (c) => !c.embedding || c.embedding.length === 0,
+      const topicText = getTopicText(
+        screen.topic,
+        screen.promptText,
+        screen.uploadedDocs,
+        screen.links
       );
 
-      if (needsEmbedding.length > 0) {
-        const texts = needsEmbedding.map((c) => c.text);
-        const hashes = needsEmbedding.map((c) => c.hash || simpleHash(c.text));
-
-        const batches = group(texts, 10);
-        const hashBatches = group(hashes, 10);
-        let embedIndex = 0;
-
-        for (let b = 0; b < batches.length; b++) {
-          const { embeddings } = await embedBatch(
-            activeSessionId,
-            batches[b],
-            hashBatches[b],
-          );
-
-          for (let i = 0; i < embeddings.length; i++) {
-            needsEmbedding[embedIndex].embedding = embeddings[i].embedding;
-            needsEmbedding[embedIndex].hash = hashBatches[b][i];
-            await docs.saveChunks([needsEmbedding[embedIndex]]);
-            embedIndex++;
-          }
-        }
-
-        chunks = await sessions.getChunks(activeSessionId);
-      }
-
-      setAllChunks(chunks);
       if (format === "quiz") {
-        const topicText =
-          topic ||
-          promptText ||
-          uploadedDocs.map((d) => d.name).join(", ") ||
-          "session content";
-
-        setQuizData([]);
-        setCurrentQuestion(0);
-        setUserAnswers({});
-        setSelectedAnswer(null);
-        setShowFeedback(false);
-        setQuizStartTime(Date.now());
-        setQuestionStartTime(Date.now());
-        setQuestionTimes([]);
-        setCurrentStreak(0);
-        setMaxStreak(0);
-
+        quiz.startQuiz();
         let first = true;
-        const quiz = await generateQuiz(
-          topicText,
-          numQuestions,
-          chunks,
-          (q) => {
-            setQuizData(prev => [...prev, q]);
+
+        await generateQuizContent({
+          sessionId: current.id,
+          topic: topicText,
+          numQuestions: screen.numQuestions,
+          onProgress: (item) => {
+            quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
-              setCurrentScreen("quiz");
+              screen.setScreen("quiz");
               first = false;
             }
-          }
-        );
-
-        if (quiz.length === 0) setQuizData([]);
+          },
+        });
       } else {
-        const topicText =
-          topic ||
-          promptText ||
-          uploadedDocs.map((d) => d.name).join(", ") ||
-          "session content";
-
-        setFlashcardData([]);
-        setCurrentFlashcard(0);
-        setIsFlashcardFlipped(false);
-        setFlashcardAnswers({});
-
+        flash.startFlashcards();
         let first = true;
-        const flashcards = await generateFlashcards(
-          topicText,
-          numQuestions,
-          chunks,
-          (f) => {
-            setFlashcardData(prev => [...prev, f]);
+
+        await generateFlashcardContent({
+          sessionId: current.id,
+          topic: topicText,
+          numQuestions: screen.numQuestions,
+          onProgress: (item) => {
+            flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
-              setCurrentScreen("flashcards");
+              screen.setScreen("flashcards");
               first = false;
             }
-          }
-        );
-
-        if (flashcards.length === 0) setFlashcardData([]);
+          },
+        });
       }
     } catch (err) {
-      setError("Failed to generate content");
+      screen.setError("Failed to generate content");
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAnswerSelect = (optionId: string) => {
-    setSelectedAnswer(optionId);
-  };
-
-  const handleContinueQuiz = () => {
-    if (selectedAnswer) {
-      const newAnswers = { ...userAnswers, [currentQuestion]: selectedAnswer };
-      setUserAnswers(newAnswers);
-      setShowFeedback(true);
-      const questionTime = Date.now() - questionStartTime;
-      setQuestionTimes((prev) => [...prev, questionTime]);
-
-      const selectedIndex = selectedAnswer.charCodeAt(0) - 65;
-      const isCorrect = selectedIndex === quizData[currentQuestion].answer;
-
-      if (isCorrect) {
-        const newStreak = currentStreak + 1;
-        setCurrentStreak(newStreak);
-        setMaxStreak(Math.max(maxStreak, newStreak));
-      } else {
-        setCurrentStreak(0);
-      }
-    }
-  };
-
-  const handleNext = () => {
-    if (currentQuestion < quizData.length - 1) {
-      const nextQ = currentQuestion + 1;
-      setCurrentQuestion(nextQ);
-      setSelectedAnswer(userAnswers[nextQ] || null);
-      setShowFeedback(!!userAnswers[nextQ]);
-      setQuestionStartTime(Date.now());
-    } else {
-      setCurrentScreen("results");
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestion > 0) {
-      const prevQ = currentQuestion - 1;
-      setCurrentQuestion(prevQ);
-      setSelectedAnswer(userAnswers[prevQ] || null);
-      setShowFeedback(!!userAnswers[prevQ]);
-    }
-  };
-
-  const handleFlashcardScore = (gotIt: boolean) => {
-    const newAnswers = { ...flashcardAnswers, [currentFlashcard]: gotIt };
-    setFlashcardAnswers(newAnswers);
-    if (currentFlashcard < flashcardData.length - 1) {
-      setCurrentFlashcard(currentFlashcard + 1);
-      setIsFlashcardFlipped(false);
-    } else {
-      setCurrentScreen("results");
-    }
-  };
-
-  const handleFlashcardNext = () => {
-    if (currentFlashcard < flashcardData.length - 1) {
-      setCurrentFlashcard(currentFlashcard + 1);
-      setIsFlashcardFlipped(false);
-    }
-  };
-
-  const handleFlashcardPrevious = () => {
-    if (currentFlashcard > 0) {
-      setCurrentFlashcard(currentFlashcard - 1);
-      setIsFlashcardFlipped(false);
+      screen.setIsLoading(false);
     }
   };
 
   const handleRetry = async () => {
-    if (!activeSessionId) {
-      setError("No active session");
+    if (!current) {
+      screen.setError("No active session");
       return;
     }
 
-    setIsLoading(true);
+    screen.setIsLoading(true);
     try {
-      const chunks = await sessions.getChunks(activeSessionId);
+      const topicText = getTopicText(
+        screen.topic,
+        screen.promptText,
+        screen.uploadedDocs,
+        screen.links
+      );
 
-      if (!chunks || chunks.length === 0) {
-        setError("No document content available.");
-        setIsLoading(false);
-        return;
-      }
-      if (selectedFormat === "quiz") {
-        const topicText =
-          topic ||
-          promptText ||
-          uploadedDocs.map((d) => d.name).join(", ") ||
-          "session content";
-
-        setQuizData([]);
-        setCurrentQuestion(0);
-        setUserAnswers({});
-        setSelectedAnswer(null);
-        setShowFeedback(false);
-        setQuizStartTime(Date.now());
-        setQuestionStartTime(Date.now());
-        setQuestionTimes([]);
-        setCurrentStreak(0);
-        setMaxStreak(0);
-
+      if (screen.selectedFormat === "quiz") {
+        quiz.startQuiz();
         let first = true;
-        const quiz = await generateQuiz(
-          topicText,
-          numQuestions,
-          chunks,
-          (q) => {
-            setQuizData(prev => [...prev, q]);
+
+        await generateQuizContent({
+          sessionId: current.id,
+          topic: topicText,
+          numQuestions: screen.numQuestions,
+          onProgress: (item) => {
+            quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
-              setCurrentScreen("quiz");
+              screen.setScreen("quiz");
               first = false;
             }
-          }
-        );
-
-        if (quiz.length === 0) setQuizData([]);
+          },
+        });
       } else {
-        const topicText =
-          topic ||
-          promptText ||
-          uploadedDocs.map((d) => d.name).join(", ") ||
-          "session content";
-
-        setFlashcardData([]);
-        setCurrentFlashcard(0);
-        setIsFlashcardFlipped(false);
-        setFlashcardAnswers({});
-
+        flash.startFlashcards();
         let first = true;
-        const flashcards = await generateFlashcards(
-          topicText,
-          numQuestions,
-          chunks,
-          (f) => {
-            setFlashcardData(prev => [...prev, f]);
+
+        await generateFlashcardContent({
+          sessionId: current.id,
+          topic: topicText,
+          numQuestions: screen.numQuestions,
+          onProgress: (item) => {
+            flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
-              setCurrentScreen("flashcards");
+              screen.setScreen("flashcards");
               first = false;
             }
-          }
-        );
-
-        if (flashcards.length === 0) setFlashcardData([]);
+          },
+        });
       }
     } finally {
-      setIsLoading(false);
+      screen.setIsLoading(false);
     }
   };
 
   const handleNewQuiz = async () => {
-    if (activeSessionId && current) {
-      await update(activeSessionId, { completed: true });
+    if (current) {
+      await update(current.id, { completed: true });
     }
-
     setCurrent(null);
-    setActiveSessionId(null);
-    setCurrentScreen("upload");
-    setUploadedDocs([]);
-    setAllChunks([]);
-    setLinks([]);
-    setCurrentLink("");
-    setPromptText("");
-    setTopic("");
-    setQuizData([]);
-    setFlashcardData([]);
-    setError(null);
-    setInputType("docs");
+    screen.reset();
+    quiz.startQuiz();
+    flash.startFlashcards();
     await refresh();
   };
 
   const handleSelectSession = async (session: any) => {
-    setIsLoading(true);
+    screen.setIsLoading(true);
     try {
       setCurrent(session);
-      setActiveSessionId(session.id);
-
-      const chunks = await sessions.getChunks(session.id);
       const docsData = await sessions.getDocs(session.id);
 
-      setAllChunks(chunks);
-      setUploadedDocs(
-        docsData.map((d) => ({
-          id: d.id,
-          name: d.name,
-          size: d.size,
-        })),
-      );
-
-      setQuizData([]);
-      setFlashcardData([]);
+      screen.setUploadedDocs(docsData.map((d) => ({ id: d.id, name: d.name, size: d.size })));
 
       if (docsData.length > 0) {
-        setTopic(docsData.map((d) => d.name).join(", "));
+        screen.setTopic(docsData.map((d) => d.name).join(", "));
       }
 
-      setCurrentScreen("format");
+      screen.setScreen("format");
     } catch (err) {
-      console.error("Error loading session:", err);
-      setError("Failed to load session");
+      screen.setError("Failed to load session");
     } finally {
-      setIsLoading(false);
+      screen.setIsLoading(false);
     }
   };
 
@@ -457,14 +240,9 @@ export default function QuizApp() {
             <div className="w-6 h-6 bg-gray-800 rounded"></div>
             <span className="text-xl font-semibold text-gray-900">ArcEdu</span>
           </div>
-          {currentScreen !== "upload" && (
+          {screen.screen !== "upload" && (
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNewQuiz}
-                className="border border-gray-200 rounded-lg"
-              >
+              <Button variant="ghost" size="sm" onClick={handleNewQuiz} className="border border-gray-200 rounded-lg">
                 <Plus className="w-4 h-4 mr-1" />
                 New Session
               </Button>
@@ -473,95 +251,104 @@ export default function QuizApp() {
         </div>
       </header>
 
-      {currentScreen === "upload" && (
-        <Upload
-          inputType={inputType}
-          setInputTypeAction={setInputType}
-          promptText={promptText}
-          setPromptTextAction={setPromptText}
-          uploadedDocs={uploadedDocs}
-          setUploadedDocsAction={setUploadedDocs}
-          links={links}
-          setLinksAction={setLinks}
-          currentLink={currentLink}
-          setCurrentLinkAction={setCurrentLink}
-          error={error}
-          setErrorAction={setError}
-          isLoading={isLoading}
-          setIsLoadingAction={setIsLoading}
-          activeSessionId={activeSessionId}
-          onCreateAction={async (title) => {
-            const session = await create(title);
-            setActiveSessionId(session.id);
-            setCurrent(session);
-            return session;
-          }}
-          onUpdateSessionAction={async (id, data) => {
-            await update(id, data);
-          }}
-          onContinueAction={handleContinue}
-          all={all}
-          onSelectSessionAction={handleSelectSession}
-          onDeleteSessionAction={handleDeleteSession}
-        />
-      )}
+      <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div></div>}>
+        {screen.screen === "upload" && (
+          <Upload
+            inputType={screen.inputType}
+            setInputTypeAction={screen.setInputType}
+            promptText={screen.promptText}
+            setPromptTextAction={screen.setPromptText}
+            uploadedDocs={screen.uploadedDocs}
+            setUploadedDocsAction={screen.setUploadedDocs}
+            links={screen.links}
+            setLinksAction={screen.setLinks}
+            currentLink={screen.currentLink}
+            setCurrentLinkAction={screen.setCurrentLink}
+            error={screen.error}
+            setErrorAction={screen.setError}
+            isLoading={screen.isLoading}
+            setIsLoadingAction={screen.setIsLoading}
+            activeSessionId={current?.id || null}
+            onCreateAction={async (title) => {
+              const session = await create(title);
+              setCurrent(session);
+              return session;
+            }}
+            onUpdateSessionAction={update}
+            onContinueAction={handleContinue}
+            all={all}
+            onSelectSessionAction={handleSelectSession}
+            onDeleteSessionAction={handleDeleteSession}
+          />
+        )}
 
-      {currentScreen === "format" && (
-        <FormatScreen
-          selectedFormat={selectedFormat}
-          setSelectedFormatAction={setSelectedFormat}
-          numQuestions={numQuestions}
-          setNumQuestionsAction={setNumQuestions}
-          error={error}
-          isLoading={isLoading}
-          onSelectAction={handleFormatSelect}
-        />
-      )}
+        {screen.screen === "format" && (
+          <FormatScreen
+            selectedFormat={screen.selectedFormat}
+            setSelectedFormatAction={screen.setSelectedFormat}
+            numQuestions={screen.numQuestions}
+            setNumQuestionsAction={screen.setNumQuestions}
+            error={screen.error}
+            isLoading={screen.isLoading}
+            onSelectAction={handleFormatSelect}
+          />
+        )}
 
-      {currentScreen === "quiz" && quizData.length > 0 && (
-        <QuizScreen
-          quizData={quizData}
-          currentQuestion={currentQuestion}
-          selectedAnswer={selectedAnswer}
-          userAnswers={userAnswers}
-          showFeedback={showFeedback}
-          onAnswerSelectAction={handleAnswerSelect}
-          onContinueAction={handleContinueQuiz}
-          onNextAction={handleNext}
-          onPreviousAction={handlePrevious}
-        />
-      )}
+        {screen.screen === "quiz" && quiz.quizData.length > 0 && (
+          <MemoizedQuizScreen
+            quizData={quiz.quizData}
+            currentQuestion={quiz.currentQuestion}
+            selectedAnswer={quiz.selectedAnswer}
+            userAnswers={quiz.userAnswers}
+            showFeedback={quiz.showFeedback}
+            onAnswerSelectAction={quiz.setSelectedAnswer}
+            onContinueAction={quiz.submitAnswer}
+            onNextAction={() => {
+              if (quiz.isQuizComplete) {
+                screen.setScreen("results");
+              } else {
+                quiz.nextQuestion();
+              }
+            }}
+            onPreviousAction={quiz.prevQuestion}
+          />
+        )}
 
-      {currentScreen === "flashcards" && flashcardData.length > 0 && (
-        <Flashcards
-          flashcardData={flashcardData}
-          currentFlashcard={currentFlashcard}
-          isFlashcardFlipped={isFlashcardFlipped}
-          onFlipAction={() => setIsFlashcardFlipped(!isFlashcardFlipped)}
-          onScoreAction={handleFlashcardScore}
-          onNextAction={handleFlashcardNext}
-          onPreviousAction={handleFlashcardPrevious}
-        />
-      )}
+        {screen.screen === "flashcards" && flash.flashcardData.length > 0 && (
+          <MemoizedFlashcards
+            flashcardData={flash.flashcardData}
+            currentFlashcard={flash.currentFlashcard}
+            isFlashcardFlipped={flash.isFlashcardFlipped}
+            onFlipAction={() => flash.setIsFlashcardFlipped(prev => !prev)}
+            onScoreAction={(gotIt) => {
+              const isLastCard = flash.currentFlashcard === flash.flashcardData.length - 1;
+              flash.scoreFlashcard(gotIt);
+              if (isLastCard) {
+                screen.setScreen("results");
+              }
+            }}
+            onNextAction={flash.nextFlashcard}
+            onPreviousAction={flash.prevFlashcard}
+          />
+        )}
 
-      {currentScreen === "results" && (
-        <Results
-          selectedFormat={selectedFormat}
-          quizData={quizData}
-          flashcardData={flashcardData}
-          userAnswers={userAnswers}
-          flashcardAnswers={flashcardAnswers}
-          totalTime={quizStartTime > 0 ? Date.now() - quizStartTime : 0}
-          fastestAnswer={
-            questionTimes.length > 0 ? Math.min(...questionTimes) : 0
-          }
-          maxStreak={maxStreak}
-          onGoBackAction={() => setCurrentScreen("format")}
-          onNewSessionAction={handleNewQuiz}
-          onRetryAction={handleRetry}
-          isLoading={isLoading}
-        />
-      )}
+        {screen.screen === "results" && (
+          <Results
+            selectedFormat={screen.selectedFormat}
+            quizData={quiz.quizData}
+            flashcardData={flash.flashcardData}
+            userAnswers={quiz.userAnswers}
+            flashcardAnswers={flash.flashcardAnswers}
+            totalTime={quiz.startTime > 0 ? Date.now() - quiz.startTime : 0}
+            fastestAnswer={quiz.questionTimes.length > 0 ? Math.min(...quiz.questionTimes) : 0}
+            maxStreak={quiz.maxStreak}
+            onGoBackAction={() => screen.setScreen("format")}
+            onNewSessionAction={handleNewQuiz}
+            onRetryAction={handleRetry}
+            isLoading={screen.isLoading}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
