@@ -20,8 +20,8 @@ export function useContent() {
 
         const texts = needsEmbedding.map((c) => c.text);
         const hashes = needsEmbedding.map((c) => c.hash || simpleHash(c.text));
-        const batches = group(texts, 10);
-        const hashBatches = group(hashes, 10);
+        const batches = group(texts, 25);
+        const hashBatches = group(hashes, 25);
         let embedIndex = 0;
 
         for (let b = 0; b < batches.length; b++) {

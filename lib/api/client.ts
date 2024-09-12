@@ -3,17 +3,6 @@ import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
 import * as worker from "@/lib/process/worker";
 
-export async function uploadPDF(file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    body: formData,
-  });
-  if (!response.ok) throw new Error("Failed to upload PDF");
-  return response.json();
-}
-
 export async function embedText(text: string): Promise<number[]> {
   const response = await fetch("/api/embed", {
     method: "POST",

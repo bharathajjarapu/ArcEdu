@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InputType } from "@/types";
-import { uploadPDF, generateTitle } from "@/lib/api/client";
+import { generateTitle } from "@/lib/api/client";
+import { parse } from "@/lib/parse";
 import * as docs from "@/lib/storage/docs";
 import * as queue from "@/lib/process/queue";
 import * as worker from "@/lib/process/worker";
@@ -95,15 +96,7 @@ export function Upload({
           fileNames.push(file.name);
           let content = "";
           try {
-            if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-              const pdfData = await uploadPDF(file);
-              content = pdfData.text;
-            } else if (
-              file.type.startsWith("text/") ||
-              file.name.endsWith(".txt")
-            ) {
-              content = await file.text();
-            }
+            content = await parse(file);
           } catch (err) {
             console.error("Error processing file:", err);
           }

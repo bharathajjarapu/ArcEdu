@@ -1,4 +1,4 @@
-function chunkText(text: string, size: number = 500, overlap: number = 50): string[] {
+function chunkText(text: string, size: number = 1500, overlap: number = 100): string[] {
   const chunks: string[] = [];
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
 
