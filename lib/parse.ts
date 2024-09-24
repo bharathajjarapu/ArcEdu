@@ -7,7 +7,7 @@ export async function parse(file: File): Promise<string> {
   if (ext === "pdf") return parsePDF(buffer);
   if (ext === "docx") return parseDOCX(buffer);
   if (ext === "pptx") return parsePPTX(buffer);
-  if (ext === "txt") return file.text();
+  if (ext === "txt") return await file.text();
 
   return "";
 }

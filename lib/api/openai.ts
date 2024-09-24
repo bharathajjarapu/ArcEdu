@@ -34,7 +34,7 @@ export async function stream(prompt: string, system?: string) {
   messages.push({ role: 'user', content: prompt });
 
   const response = await client.chat.completions.create({
-    model: 'gpt-4.1-mini',
+    model: 'gpt-4.1-nano',
     messages,
     temperature: 0.7,
     stream: true,

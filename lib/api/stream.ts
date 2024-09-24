@@ -1,4 +1,3 @@
-// Shared JSON stream utilities
 const encoder = new TextEncoder();
 
 export function createJsonStream(
