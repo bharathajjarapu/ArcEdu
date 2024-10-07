@@ -10,6 +10,8 @@ import {
 import type { Session } from "@/types";
 import * as sessions from "@/lib/storage/sessions";
 
+// Provides a React context and provider for managing user sessions across the application
+
 interface SessionContextValue {
   current: Session | null;
   all: Session[];
