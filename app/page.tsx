@@ -16,6 +16,7 @@ import type { Format, Quiz, Flashcard } from "@/types";
 
 // Lazy load screen components
 const Upload = lazy(() => import("@/components/screens/upload").then((m) => ({ default: m.Upload })));
+const Sessions = lazy(() => import("@/components/screens/sessions").then((m) => ({ default: m.Sessions })));
 const FormatScreen = lazy(() => import("@/components/screens/format").then((m) => ({ default: m.Format })));
 const QuizScreen = lazy(() => import("@/components/screens/quiz").then((m) => ({ default: m.QuizScreen })));
 const Flashcards = lazy(() => import("@/components/screens/flashcards").then((m) => ({ default: m.Flashcards })));
@@ -237,10 +238,9 @@ export default function QuizApp() {
       <header className="px-4 py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-800 rounded"></div>
-            <span className="text-xl font-semibold text-gray-900">ArcEdu</span>
+            <span className="text-xl font-semibold tracking-tight text-gray-900">ArcEdu</span>
           </div>
-          {screen.screen !== "upload" && (
+          {screen.screen !== "upload" && screen.screen !== "sessions" && (
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleNewQuiz} className="border border-gray-200 rounded-lg">
                 <Plus className="w-4 h-4 mr-1" />
@@ -254,16 +254,8 @@ export default function QuizApp() {
       <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div></div>}>
         {screen.screen === "upload" && (
           <Upload
-            inputType={screen.inputType}
-            setInputTypeAction={screen.setInputType}
-            promptText={screen.promptText}
-            setPromptTextAction={screen.setPromptText}
             uploadedDocs={screen.uploadedDocs}
             setUploadedDocsAction={screen.setUploadedDocs}
-            links={screen.links}
-            setLinksAction={screen.setLinks}
-            currentLink={screen.currentLink}
-            setCurrentLinkAction={screen.setCurrentLink}
             error={screen.error}
             setErrorAction={screen.setError}
             isLoading={screen.isLoading}
@@ -277,8 +269,16 @@ export default function QuizApp() {
             onUpdateSessionAction={update}
             onContinueAction={handleContinue}
             all={all}
-            onSelectSessionAction={handleSelectSession}
-            onDeleteSessionAction={handleDeleteSession}
+            onSessionsClick={() => screen.setScreen("sessions")}
+          />
+        )}
+
+        {screen.screen === "sessions" && (
+          <Sessions
+            sessions={all}
+            onSelect={handleSelectSession}
+            onDelete={handleDeleteSession}
+            onBack={() => screen.setScreen("upload")}
           />
         )}
 

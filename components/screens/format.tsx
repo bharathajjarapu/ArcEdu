@@ -29,10 +29,10 @@ export function Format({
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
           Choose your learning format
         </h1>
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-500 text-lg leading-relaxed">
           How would you like to study this content?
         </p>
       </div>
@@ -40,20 +40,20 @@ export function Format({
       <div className="grid md:grid-cols-2 gap-8 mb-8 max-w-2xl mx-auto">
         <Card
           className={cn(
-            "p-8 cursor-pointer transition-all duration-200 hover:shadow-lg border-2",
-            "bg-white/90 backdrop-blur-sm",
+            "p-8 cursor-pointer transition-all duration-200 hover:shadow-md border-2 rounded-xl",
+            "bg-white",
             selectedFormat === "quiz"
-              ? "border-gray-800 shadow-lg"
+              ? "border-gray-900 shadow-md"
               : "border-gray-200 hover:border-gray-300",
           )}
           onClick={() => setSelectedFormatAction("quiz")}
         >
           <div className="text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <HelpCircle className="w-8 h-8 text-gray-600" />
+              <HelpCircle className="w-8 h-8 text-gray-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Quiz</h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-500 text-sm leading-relaxed">
               Test your knowledge with multiple choice questions and get instant
               feedback
             </p>
@@ -62,22 +62,22 @@ export function Format({
 
         <Card
           className={cn(
-            "p-8 cursor-pointer transition-all duration-200 hover:shadow-lg border-2",
-            "bg-white/90 backdrop-blur-sm",
+            "p-8 cursor-pointer transition-all duration-200 hover:shadow-md border-2 rounded-xl",
+            "bg-white",
             selectedFormat === "flashcards"
-              ? "border-gray-800 shadow-lg"
+              ? "border-gray-900 shadow-md"
               : "border-gray-200 hover:border-gray-300",
           )}
           onClick={() => setSelectedFormatAction("flashcards")}
         >
           <div className="text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-8 h-8 text-gray-600" />
+              <BookOpen className="w-8 h-8 text-gray-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Flashcards
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-500 text-sm leading-relaxed">
               Study with interactive cards featuring terms and definitions with
               flip animations
             </p>
@@ -85,7 +85,7 @@ export function Format({
         </Card>
       </div>
 
-      <Card className="p-6 mb-6 bg-white/90 backdrop-blur-sm border-gray-200 max-w-2xl mx-auto">
+      <Card className="p-6 mb-6 bg-white border-gray-200 rounded-xl max-w-2xl mx-auto">
         <div className="flex items-center gap-4">
           <label className="text-sm font-medium text-gray-700">
             Number of questions:
@@ -111,7 +111,7 @@ export function Format({
         <Button
           onClick={() => onSelectAction(selectedFormat)}
           disabled={isLoading}
-          className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3"
+          className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3"
         >
           {isLoading ? (
             <>

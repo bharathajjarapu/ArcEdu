@@ -37,11 +37,11 @@ export function Flashcards({
           size="sm"
           onClick={onPreviousAction}
           disabled={currentFlashcard === 0}
-          className="text-gray-600 hover:bg-white/50"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <span className="text-gray-600">
+        <span className="text-gray-600 text-lg font-medium">
           Card {currentFlashcard + 1} of {flashcardData.length}
         </span>
         <Button
@@ -49,7 +49,7 @@ export function Flashcards({
           size="sm"
           onClick={onNextAction}
           disabled={currentFlashcard === flashcardData.length - 1}
-          className="text-gray-600 hover:bg-white/50"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -63,9 +63,9 @@ export function Flashcards({
           )}
           onClick={onFlipAction}
         >
-          <Card className="absolute inset-0 w-full h-full backface-hidden bg-white/90 backdrop-blur-sm border-gray-200 flex items-center justify-center p-8">
+          <Card className="absolute inset-0 w-full h-full backface-hidden bg-white border-gray-200 rounded-xl flex items-center justify-center p-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-4">
                 {card.front}
               </h2>
               <p className="text-gray-500 text-sm">
@@ -74,7 +74,7 @@ export function Flashcards({
             </div>
           </Card>
 
-          <Card className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gray-100 backdrop-blur-sm border-gray-200 flex items-center justify-center p-8">
+          <Card className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gray-50 border-gray-200 rounded-xl flex items-center justify-center p-8">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 {card.front}
@@ -111,7 +111,7 @@ export function Flashcards({
           variant="ghost"
           onClick={onPreviousAction}
           disabled={currentFlashcard === 0}
-          className="text-gray-600 hover:bg-white/50"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Previous
@@ -120,7 +120,7 @@ export function Flashcards({
         <Button
           onClick={onNextAction}
           disabled={currentFlashcard === flashcardData.length - 1}
-          className="bg-gray-800 hover:bg-gray-900 text-white"
+          className="bg-gray-900 hover:bg-gray-800 text-white"
         >
           Next
           <ChevronRight className="w-4 h-4 ml-1" />

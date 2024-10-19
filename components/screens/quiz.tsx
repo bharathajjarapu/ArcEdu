@@ -60,7 +60,7 @@ export function QuizScreen({
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8 leading-tight">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-8 leading-tight">
           {question.question}
         </h2>
 
@@ -78,20 +78,20 @@ export function QuizScreen({
                 onClick={() => !showFeedback && onAnswerSelectAction(optionId)}
                 disabled={showFeedback}
                 className={cn(
-                  "w-full p-4 rounded-lg border-2 text-left transition-all duration-200",
+                  "w-full p-4 rounded-xl border-2 text-left transition-all duration-200",
                   "flex items-center gap-4",
                   !showFeedback &&
                     !isSelected &&
-                    "bg-white/90 backdrop-blur-sm border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+                    "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50",
                   !showFeedback &&
                     isSelected &&
-                    "bg-gray-100 border-gray-400 shadow-md",
+                    "bg-gray-100 border-gray-900 shadow-sm",
                   isIncorrect && "bg-red-50 border-red-300",
                   shouldShowCorrect && "bg-green-50 border-green-300",
                   showFeedback &&
                     !isIncorrect &&
                     !shouldShowCorrect &&
-                    "bg-white/90 backdrop-blur-sm border-gray-200",
+                    "bg-white border-gray-200",
                 )}
               >
                 <div
@@ -131,14 +131,14 @@ export function QuizScreen({
         </div>
 
         {showFeedback && (
-          <Card className="p-6 mb-8 border-gray-200 bg-gray-50/90 backdrop-blur-sm">
+          <Card className="p-6 mb-8 border-gray-200 bg-gray-50 rounded-xl">
             <div className="flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center mt-0.5">
+              <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center mt-0.5">
                 <span className="text-white text-xs">i</span>
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 mb-2">Explanation:</h3>
-                <p className="text-gray-700">
+                <h3 className="font-semibold text-gray-900 mb-2">Explanation:</h3>
+                <p className="text-gray-700 leading-relaxed">
                   {question.explanation ||
                     `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
                 </p>
@@ -162,7 +162,7 @@ export function QuizScreen({
             <Button
               onClick={onContinueAction}
               disabled={!selectedAnswer}
-              className="bg-gray-800 hover:bg-gray-900 text-white"
+              className="bg-gray-900 hover:bg-gray-800 text-white"
             >
               Continue
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -170,7 +170,7 @@ export function QuizScreen({
           ) : (
             <Button
               onClick={onNextAction}
-              className="bg-gray-800 hover:bg-gray-900 text-white"
+              className="bg-gray-900 hover:bg-gray-800 text-white"
             >
               {currentQuestion === quizData.length - 1 ? "Finish" : "Continue"}
               <ChevronRight className="w-4 h-4 ml-1" />

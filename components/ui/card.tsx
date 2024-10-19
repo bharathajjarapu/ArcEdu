@@ -8,7 +8,7 @@ export const Card = ({ className, children, ...props }: CardProps) => {
   return (
     <div
       className={cn(
-        "rounded-lg border border-gray-200 bg-white shadow-sm",
+        "rounded-xl border border-gray-200 bg-white",
         className
       )}
       {...props}
@@ -55,7 +55,7 @@ interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement
 export const CardDescription = ({ className, children, ...props }: CardDescriptionProps) => {
   return (
     <p
-      className={cn("text-sm text-gray-600", className)}
+      className={cn("text-sm text-gray-500", className)}
       {...props}
     >
       {children}

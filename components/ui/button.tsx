@@ -13,14 +13,14 @@ export const Button = ({
   children,
   ...props
 }: ButtonProps) => {
-  const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
+  const baseClasses = "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
 
   const variants = {
-    default: "bg-gray-800 text-white hover:bg-gray-900",
+    default: "bg-gray-900 text-white hover:bg-gray-800",
     destructive: "bg-red-500 text-white hover:bg-red-600",
-    outline: "border border-gray-300 bg-white hover:bg-gray-50 text-gray-900",
+    outline: "border border-gray-200 bg-white hover:bg-gray-50 text-gray-900",
     secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-    ghost: "hover:bg-gray-100 text-gray-900",
+    ghost: "hover:bg-gray-100 text-gray-700",
     link: "underline-offset-4 hover:underline text-gray-900"
   }
 

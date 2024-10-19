@@ -1,16 +1,15 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/contexts/session";
 import { AppProvider } from "@/contexts/app";
 
-const inter = Inter({ subsets: ["latin"] });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Quizz App",
+  title: "ArcEdu",
   description: "Quiz yourself on anything",
-  generator: "v0.app",
 };
 
 export default function RootLayout({
@@ -20,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={plusJakarta.className}>
         <SessionProvider>
           <AppProvider>{children}</AppProvider>
         </SessionProvider>

@@ -88,13 +88,13 @@ export function Results({
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-12">
-        <div className="text-8xl font-bold text-gray-900 mb-4">
+        <div className="text-8xl font-bold tracking-tight text-gray-900 mb-4">
           {results.correctAnswers}
           <span className="text-5xl text-gray-500">
             /{results.totalQuestions}
           </span>
         </div>
-        <p className="text-gray-600 text-lg max-w-md mx-auto mb-8">
+        <p className="text-gray-500 text-lg leading-relaxed max-w-md mx-auto mb-8">
           Great job! You answered {results.correctAnswers} out of{" "}
           {results.totalQuestions} questions correctly — that's{" "}
           {results.accuracy}% accuracy!
@@ -196,7 +196,7 @@ export function Results({
       <div className="flex justify-center gap-4">
         <Button
           variant="ghost"
-          className="text-gray-600 hover:bg-white/50 border border-gray-300"
+          className="text-gray-700 hover:bg-gray-100 border border-gray-200"
           onClick={onGoBackAction}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
@@ -204,14 +204,14 @@ export function Results({
         </Button>
         <Button
           variant="ghost"
-          className="text-gray-600 hover:bg-white/50 border border-gray-300"
+          className="text-gray-700 hover:bg-gray-100 border border-gray-200"
           onClick={onNewSessionAction}
         >
           <Plus className="w-4 h-4 mr-2" />
           New Session
         </Button>
         <Button
-          className="bg-gray-800 hover:bg-gray-900 text-white"
+          className="bg-gray-900 hover:bg-gray-800 text-white"
           disabled={isLoading}
           onClick={onRetryAction}
         >
