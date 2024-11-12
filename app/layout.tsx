@@ -9,7 +9,7 @@ const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500
 
 export const metadata: Metadata = {
   title: "ArcEdu",
-  description: "Quiz yourself on anything",
+  description: "Upload. Generate. Ace it.",
 };
 
 export default function RootLayout({

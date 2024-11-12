@@ -138,136 +138,138 @@ export function Upload({
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-6xl font-bold tracking-tight text-gray-900 mb-4">
-          Quiz yourself on
-          <br />
-          anything
-        </h1>
-        <p className="text-gray-500 text-lg leading-relaxed">
-          Upload a PDF, slides, or paste a URL.
-          <br />
-          We'll handle the questions!
-        </p>
-      </div>
-
-      {/* Upload Zone */}
-      <Card className="p-0 mb-0 bg-white border-gray-200 rounded-xl overflow-hidden">
-        <div
-          className="border-2 border-dashed border-gray-200 rounded-xl m-1 py-20 px-10 text-center hover:border-gray-300 transition-colors"
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.currentTarget.classList.add("border-gray-400", "bg-gray-50");
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            e.currentTarget.classList.remove("border-gray-400", "bg-gray-50");
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.currentTarget.classList.remove("border-gray-400", "bg-gray-50");
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-              const input = document.getElementById("file-upload") as HTMLInputElement;
-              const dataTransfer = new DataTransfer();
-              Array.from(files).forEach((file) => dataTransfer.items.add(file));
-              input.files = dataTransfer.files;
-              input.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-          }}
-        >
-          <UploadIcon className="w-6 h-6 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-700 font-medium mb-1">Drag & drop your file</p>
-          <p className="text-sm text-gray-500">
-            or{" "}
-            <button
-              onClick={() => document.getElementById("file-upload")?.click()}
-              className="text-gray-900 hover:text-gray-700"
-            >
-              browse files
-            </button>
+    <div className="min-h-[calc(100vh-10rem)] px-4 flex items-center justify-center">
+      <div className="w-full max-w-3xl py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-8xl font-bold tracking-tight text-gray-900 mb-9">
+             Ready to Quiz
+            <br />
+            anything ?
+          </h1>
+          <p className="text-gray-500 text-lg leading-relaxed">
+            Drop your Docs here
+            <br />
+            We'll handle your Learning !
           </p>
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
-            onChange={handleFileUpload}
-            className="hidden"
-            id="file-upload"
-          />
         </div>
-      </Card>
 
-      {/* Uploaded Files */}
-      {uploadedDocs.length > 0 && (
-        <div className="mt-4 space-y-2">
-          {uploadedDocs.map((doc) => (
-            <div
-              key={doc.id}
-              className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200"
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{doc.name}</p>
-                  <p className="text-xs text-gray-500">{doc.size}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveDoc(doc.id)}
-                className="text-gray-400 hover:text-red-500 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-700 text-sm">{error}</p>
-        </div>
-      )}
-
-      {/* Start Button */}
-      <div className="mt-8 flex justify-center">
-        <Button
-          onClick={onContinueAction}
-          disabled={isLoading}
-          className="bg-gray-900 hover:bg-gray-800 text-white h-12 px-8 rounded-xl text-base font-medium"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              Let's Start
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* My Sessions Button */}
-      {all.filter((s) => s.completed).length > 0 && (
-        <div className="mt-6 flex justify-center">
-          <Button
-            variant="ghost"
-            onClick={onSessionsClick}
-            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200"
+        {/* Upload Zone */}
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-xl py-25 px-10 text-center bg-gray-100 hover:bg-gray-300/40 hover:border-gray-400 transition-colors"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add("border-gray-400", "bg-gray-50");
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove("border-gray-400", "bg-gray-50");
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove("border-gray-400", "bg-gray-50");
+              const files = e.dataTransfer.files;
+              if (files.length > 0) {
+                const input = document.getElementById("file-upload") as HTMLInputElement;
+                const dataTransfer = new DataTransfer();
+                Array.from(files).forEach((file) => dataTransfer.items.add(file));
+                input.files = dataTransfer.files;
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            }}
           >
-            <FolderOpen className="w-4 h-4 mr-2" />
-            My Sessions
+            <UploadIcon className="w-6 h-6 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-700 font-medium mb-1">Drag & drop your file</p>
+            <p className="text-sm text-gray-500">
+              or{" "}
+              <button
+                onClick={() => document.getElementById("file-upload")?.click()}
+                className="px-1 underline text-gray-900 hover:text-gray-700"
+              >
+                browse files
+              </button>
+            </p>
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
+            />
+          </div>
+        </Card>
+
+        {/* Uploaded Files */}
+        {uploadedDocs.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {uploadedDocs.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200"
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                    <p className="text-xs text-gray-500">{doc.size}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveDoc(doc.id)}
+                  className="text-gray-400 hover:text-red-500 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Start Button */}
+        <div className="mt-8 flex justify-center">
+          <Button
+            onClick={onContinueAction}
+            disabled={isLoading}
+            className="bg-gray-900 hover:bg-gray-800 text-white h-12 px-8 text-base font-medium shadow-md hover:shadow-lg transition-all active:scale-95"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Let's Start
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
         </div>
-      )}
+
+        {/* My Sessions Button */}
+        {all.filter((s) => s.completed).length > 0 && (
+          <div className="mt-6 flex justify-center">
+            <Button
+              variant="ghost"
+              onClick={onSessionsClick}
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200"
+            >
+              <FolderOpen className="w-4 h-4 mr-2" />
+              My Sessions
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

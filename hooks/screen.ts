@@ -1,37 +1,37 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 import type { Screen, Format, InputType } from "@/types";
 
 const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "results"];
 
-function getScreenFromHash(): Screen {
+function getScreenFromPath(): Screen {
     if (typeof window === "undefined") return "upload";
-    const hash = window.location.hash.slice(1);
-    return validScreens.includes(hash as Screen) ? (hash as Screen) : "upload";
+    const path = window.location.pathname.slice(1) || "upload";
+    return validScreens.includes(path as Screen) ? (path as Screen) : "upload";
+}
+
+let listeners: (() => void)[] = [];
+
+function subscribe(callback: () => void) {
+    if (typeof window === "undefined") return () => {};
+    listeners.push(callback);
+    window.addEventListener("popstate", callback);
+    return () => {
+        listeners = listeners.filter(l => l !== callback);
+        window.removeEventListener("popstate", callback);
+    };
+}
+
+function emitChange() {
+    listeners.forEach(l => l());
 }
 
 export function useScreen() {
-    const [screen, setScreenState] = useState<Screen>("upload");
+    const screen = useSyncExternalStore(subscribe, getScreenFromPath, () => "upload" as Screen);
 
-    // Sync screen to URL hash
     const setScreen = useCallback((newScreen: Screen) => {
-        setScreenState(newScreen);
-        if (typeof window !== "undefined") {
-            window.history.pushState(null, "", `#${newScreen}`);
-        }
-    }, []);
-
-    // Initialize from hash and listen for back/forward
-    useEffect(() => {
         if (typeof window === "undefined") return;
-
-        setScreenState(getScreenFromHash());
-
-        const handlePopState = () => {
-            setScreenState(getScreenFromHash());
-        };
-
-        window.addEventListener("popstate", handlePopState);
-        return () => window.removeEventListener("popstate", handlePopState);
+        window.history.pushState(null, "", `/${newScreen}`);
+        emitChange();
     }, []);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -68,7 +68,6 @@ export function useScreen() {
         setIsLoading,
         error,
         setError,
-
         inputType,
         setInputType,
         promptText,
@@ -79,14 +78,12 @@ export function useScreen() {
         setCurrentLink,
         uploadedDocs,
         setUploadedDocs,
-
         selectedFormat,
         setSelectedFormat,
         numQuestions,
         setNumQuestions,
         topic,
         setTopic,
-
         reset
     };
 }
