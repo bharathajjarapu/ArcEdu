@@ -50,6 +50,7 @@ export function useScreen() {
 
     const reset = useCallback(() => {
         setScreen("upload");
+        setIsLoading(false);
         setError(null);
         setInputType("docs");
         setPromptText("");
