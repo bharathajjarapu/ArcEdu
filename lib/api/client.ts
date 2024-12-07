@@ -2,6 +2,7 @@ import type { Quiz, Flashcard } from "@/types";
 import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
 import * as worker from "@/lib/process/worker";
+import { makeTitleFromNames, makeTitleFromText } from "@/lib/title";
 
 export async function embedText(text: string): Promise<number[]> {
   const response = await fetch("/api/embed", {
@@ -105,18 +106,9 @@ export async function generateFlashcards(
   return parseStream<Flashcard>(response, num, onProgress);
 }
 
-export async function generateTitle(content: string): Promise<string> {
-  try {
-    const response = await fetch("/api/title", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
-    });
-    if (!response.ok) return "New Session";
-    const data = await response.json();
-    return data.title || "New Session";
-  } catch {
-    return "New Session";
+export async function generateTitle(content: string | string[]): Promise<string> {
+  if (Array.isArray(content)) {
+    return makeTitleFromNames(content);
   }
+  return makeTitleFromText(content);
 }
-

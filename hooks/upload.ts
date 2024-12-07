@@ -14,7 +14,7 @@ export function useUpload() {
             return "Please enter a prompt";
         }
         if (options.inputType === "docs" && options.uploadedDocs.length === 0) {
-            return "Please upload at least one document";
+            return "Upload at least one document";
         }
         if (options.inputType === "links" && options.links.length === 0) {
             return "Please add at least one link";

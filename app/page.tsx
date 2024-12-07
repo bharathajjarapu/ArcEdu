@@ -14,8 +14,8 @@ import { useContent } from "@/hooks/content";
 import { useUpload } from "@/hooks/upload";
 import type { Format, Quiz, Flashcard } from "@/types";
 
-// Lazy load screen components
-const Upload = lazy(() => import("@/components/screens/upload").then((m) => ({ default: m.Upload })));
+// Eager load initial screen to avoid suspense flash on first paint
+import { Upload } from "@/components/screens/upload";
 const Sessions = lazy(() => import("@/components/screens/sessions").then((m) => ({ default: m.Sessions })));
 const FormatScreen = lazy(() => import("@/components/screens/format").then((m) => ({ default: m.Format })));
 const QuizScreen = lazy(() => import("@/components/screens/quiz").then((m) => ({ default: m.QuizScreen })));
@@ -68,14 +68,18 @@ export default function QuizApp() {
     }
 
     if (currentSession?.title === "New Session") {
-      const content = screen.inputType === "prompt"
-        ? screen.promptText.substring(0, 100)
-        : screen.inputType === "docs"
-          ? screen.uploadedDocs.map((d) => d.name).join(", ")
+      const content = screen.inputType === "docs"
+        ? screen.uploadedDocs.map((d) => d.name)
+        : screen.inputType === "prompt"
+          ? screen.promptText.substring(0, 100)
           : screen.links[0];
 
-      if (content) {
-        const title = await generateTitle(content);
+      const hasContent = Array.isArray(content)
+        ? content.length > 0
+        : Boolean(content);
+
+      if (hasContent) {
+        const title = await generateTitle(content as string | string[]);
         await update(sessionId, { title });
       }
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Folder, Trash2 } from "lucide-react";
+import { ArrowLeft, Folder, Link, Trash2 } from "lucide-react";
 import { getRelativeTime } from "@/lib/format";
 
 interface SessionsProps {
@@ -19,8 +19,7 @@ export function Sessions({ sessions, onSelect, onDelete, onBack }: SessionsProps
       {completed.length === 0 ? (
         <div className="text-center py-20">
           <Folder className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">No sessions yet</p>
-          <p className="text-gray-400 text-sm mt-1">Complete a quiz to see it here</p>
+          <Button variant="ghost" size="sm" onClick={onBack} className="border border-gray-200 rounded-lg mt-5"> <Link className="w-4 h-4 mr-1" /> Go Back</Button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

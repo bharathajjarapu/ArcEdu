@@ -91,7 +91,7 @@ export function Upload({
       setUploadedDocsAction([...uploadedDocs, ...newDocs]);
 
       if (sessionId && fileNames.length > 0) {
-        const title = await generateTitle(fileNames.join(", "));
+        const title = await generateTitle(fileNames);
         if (title && title !== "New Session") {
           await onUpdateSessionAction(sessionId, { title });
         }
