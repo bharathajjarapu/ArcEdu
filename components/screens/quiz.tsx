@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -133,11 +133,8 @@ export function QuizScreen({
         {showFeedback && (
           <Card className="p-6 mb-8 border-gray-200 bg-gray-50 rounded-xl">
             <div className="flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center mt-0.5">
-                <span className="text-white text-xs">i</span>
-              </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Explanation:</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Explanation</h3>
                 <p className="text-gray-700 leading-relaxed">
                   {question.explanation ||
                     `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
