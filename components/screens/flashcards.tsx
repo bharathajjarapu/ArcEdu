@@ -68,13 +68,11 @@ export function Flashcards({
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-4">
                 {card.front}
               </h2>
-              <p className="text-gray-500 text-sm">
-                Click to reveal definition
-              </p>
+              <p className="text-gray-500 text-sm">Click to reveal definition</p>
             </div>
           </Card>
 
-          <Card className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gray-50 border-gray-200 rounded-xl flex items-center justify-center p-8">
+          <Card className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gray-100 border-gray-200 rounded-xl flex items-center justify-center p-8">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 {card.front}
@@ -87,11 +85,11 @@ export function Flashcards({
       </div>
 
       {isFlashcardFlipped && (
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex justify-center gap-4 mb-6">
           <Button
             onClick={() => onScoreAction(false)}
             variant="outline"
-            className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:border-red-400"
+            className="bg-red-600 hover:bg-red-700 text-white border-red-700"
           >
             <ThumbsDown className="w-4 h-4 mr-2" />
             Didn't Get It
@@ -106,12 +104,12 @@ export function Flashcards({
         </div>
       )}
 
-      <div className="flex justify-between">
+      <div className="grid grid-cols-2 gap-4">
         <Button
           variant="ghost"
           onClick={onPreviousAction}
           disabled={currentFlashcard === 0}
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-300 rounded-lg w-full"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Previous
@@ -120,7 +118,7 @@ export function Flashcards({
         <Button
           onClick={onNextAction}
           disabled={currentFlashcard === flashcardData.length - 1}
-          className="bg-gray-900 hover:bg-gray-800 text-white"
+          className="bg-gray-900 hover:bg-gray-800 text-white w-full"
         >
           Next
           <ChevronRight className="w-4 h-4 ml-1" />

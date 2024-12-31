@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -60,7 +60,7 @@ export function QuizScreen({
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-8 leading-tight">
+        <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-8 leading-tight">
           {question.question}
         </h2>
 
@@ -130,26 +130,31 @@ export function QuizScreen({
           })}
         </div>
 
-        {showFeedback && (
-          <Card className="p-6 mb-8 border-gray-200 bg-gray-50 rounded-xl">
-            <div className="flex items-start gap-3">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Explanation</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {question.explanation ||
-                    `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
-                </p>
+        <div className="mb-10">
+          {showFeedback && (
+            <Card className="p-6 border-gray-200 bg-gray-50 rounded-xl">
+              <div className="flex items-start gap-3">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Explanation</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {question.explanation ||
+                      `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Card>
-        )}
+            </Card>
+          )}
+        </div>
 
-        <div className="flex justify-between">
+        <div className="grid grid-cols-2 gap-4">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={onPreviousAction}
             disabled={currentQuestion === 0}
-            className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg"
+            className={cn(
+              "text-gray-600 border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300",
+              "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200"
+            )}
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Previous
