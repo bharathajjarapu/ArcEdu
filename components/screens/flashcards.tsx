@@ -68,7 +68,9 @@ export function Flashcards({
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-4">
                 {card.front}
               </h2>
-              <p className="text-gray-500 text-sm">Click to reveal definition</p>
+              <p className="text-gray-500 text-sm">
+                Click to reveal definition
+              </p>
             </div>
           </Card>
 
@@ -84,25 +86,23 @@ export function Flashcards({
         </div>
       </div>
 
-      {isFlashcardFlipped && (
-        <div className="flex justify-center gap-4 mb-6">
-          <Button
-            onClick={() => onScoreAction(false)}
-            variant="outline"
-            className="bg-red-600 hover:bg-red-700 text-white border-red-700"
-          >
-            <ThumbsDown className="w-4 h-4 mr-2" />
-            Didn't Get It
-          </Button>
-          <Button
-            onClick={() => onScoreAction(true)}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <ThumbsUp className="w-4 h-4 mr-2" />
-            Got It
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-center gap-4 mb-6">
+        <Button
+          onClick={() => onScoreAction(false)}
+          variant="outline"
+          className="bg-red-600 hover:bg-red-700 text-white border-red-700"
+        >
+          <ThumbsDown className="w-4 h-4 mr-2" />
+          Didn't Get It
+        </Button>
+        <Button
+          onClick={() => onScoreAction(true)}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          <ThumbsUp className="w-4 h-4 mr-2" />
+          Got It
+        </Button>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Button
