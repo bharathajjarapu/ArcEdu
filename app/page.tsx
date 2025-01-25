@@ -114,6 +114,7 @@ export default function QuizApp() {
           sessionId: current.id,
           topic: topicText,
           numQuestions: screen.numQuestions,
+          difficulty: screen.difficulty,
           onProgress: (item) => {
             quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
@@ -130,6 +131,7 @@ export default function QuizApp() {
           sessionId: current.id,
           topic: topicText,
           numQuestions: screen.numQuestions,
+          difficulty: screen.difficulty,
           onProgress: (item) => {
             flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
@@ -169,6 +171,7 @@ export default function QuizApp() {
           sessionId: current.id,
           topic: topicText,
           numQuestions: screen.numQuestions,
+          difficulty: screen.difficulty,
           onProgress: (item) => {
             quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
@@ -185,6 +188,7 @@ export default function QuizApp() {
           sessionId: current.id,
           topic: topicText,
           numQuestions: screen.numQuestions,
+          difficulty: screen.difficulty,
           onProgress: (item) => {
             flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
@@ -292,6 +296,11 @@ export default function QuizApp() {
             setSelectedFormatAction={screen.setSelectedFormat}
             numQuestions={screen.numQuestions}
             setNumQuestionsAction={screen.setNumQuestions}
+            difficulty={screen.difficulty}
+            setDifficultyAction={screen.setDifficulty}
+            uploadedDocs={screen.uploadedDocs}
+            promptText={screen.promptText}
+            setPromptTextAction={screen.setPromptText}
             error={screen.error}
             isLoading={screen.isLoading}
             onSelectAction={handleFormatSelect}

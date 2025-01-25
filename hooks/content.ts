@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Quiz, Flashcard, Chunk } from "@/types";
+import type { Quiz, Flashcard, Chunk, Difficulty } from "@/types";
 import * as sessions from "@/lib/storage/sessions";
 import * as docs from "@/lib/storage/docs";
 import { simple as simpleHash } from "@/lib/data/hash";
@@ -10,6 +10,7 @@ interface GenerateOptions {
     sessionId: string;
     topic: string;
     numQuestions: number;
+    difficulty?: Difficulty;
     onProgress?: (item: Quiz | Flashcard) => void;
 }
 
@@ -46,7 +47,7 @@ export function useContent() {
             }
 
             const embedded = await embedChunks(options.sessionId, chunks);
-            return await generateQuiz(options.topic, options.numQuestions, embedded, options.onProgress as (quiz: Quiz) => void);
+            return await generateQuiz(options.topic, options.numQuestions, embedded, options.difficulty, options.onProgress as (quiz: Quiz) => void);
         },
         [embedChunks]
     );
@@ -59,7 +60,7 @@ export function useContent() {
             }
 
             const embedded = await embedChunks(options.sessionId, chunks);
-            return await generateFlashcards(options.topic, options.numQuestions, embedded, options.onProgress as (flashcard: Flashcard) => void);
+            return await generateFlashcards(options.topic, options.numQuestions, embedded, options.difficulty, options.onProgress as (flashcard: Flashcard) => void);
         },
         [embedChunks]
     );

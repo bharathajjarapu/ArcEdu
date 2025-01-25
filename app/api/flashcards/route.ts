@@ -2,8 +2,15 @@ import { NextRequest } from "next/server";
 import { stream } from "@/lib/api/openai";
 import { createJsonStream, streamHeaders } from "@/lib/api/stream";
 
+const difficultyInstructions = {
+  easy: "Focus on basic terms and simple definitions. Keep answers short and direct.",
+  medium: "Include concept explanations and applications. Answers can be more detailed.",
+  hard: "Cover complex relationships, nuances, and deeper understanding. Include edge cases and exceptions.",
+  adaptive: "Mix difficulty levels - start with basic terms, then concepts, then complex ideas.",
+};
+
 export async function POST(request: NextRequest) {
-  const { topic, num = 10, context } = await request.json();
+  const { topic, num = 10, context, difficulty = "medium" } = await request.json();
 
   if (!topic) {
     return Response.json({ error: "No topic provided" }, { status: 400 });
@@ -13,7 +20,13 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "No context provided" }, { status: 400 });
   }
 
+  const difficultyGuide = difficultyInstructions[difficulty as keyof typeof difficultyInstructions] || difficultyInstructions.medium;
+
   const prompt = `Based on the following context, generate ${num} flashcards about "${topic}".
+
+Difficulty: ${difficulty.toUpperCase()}
+${difficultyGuide}
+
 Context:
 ${context}
 

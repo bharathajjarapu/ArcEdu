@@ -1,4 +1,4 @@
-import type { Quiz, Flashcard } from "@/types";
+import type { Quiz, Flashcard, Difficulty } from "@/types";
 import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
 import * as worker from "@/lib/process/worker";
@@ -58,6 +58,7 @@ export async function generateQuiz(
   topic: string,
   num: number,
   chunks?: any[],
+  difficulty: Difficulty = "medium",
   onProgress?: (quiz: Quiz) => void,
 ): Promise<Quiz[]> {
   let context = "";
@@ -71,7 +72,7 @@ export async function generateQuiz(
   const response = await fetch("/api/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, context }),
+    body: JSON.stringify({ topic, num, context, difficulty }),
   });
 
   if (!response.ok) throw new Error("Failed to generate quiz");
@@ -84,6 +85,7 @@ export async function generateFlashcards(
   topic: string,
   num: number,
   chunks?: any[],
+  difficulty: Difficulty = "medium",
   onProgress?: (flashcard: Flashcard) => void,
 ): Promise<Flashcard[]> {
   let context = "";
@@ -97,7 +99,7 @@ export async function generateFlashcards(
   const response = await fetch("/api/flashcards", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, context }),
+    body: JSON.stringify({ topic, num, context, difficulty }),
   });
 
   if (!response.ok) throw new Error("Failed to generate flashcards");

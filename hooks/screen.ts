@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
-import type { Screen, Format, InputType } from "@/types";
+import type { Screen, Format, InputType, Difficulty } from "@/types";
 
 const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "results"];
 
@@ -67,6 +67,7 @@ export function useScreen() {
     const [selectedFormat, setSelectedFormat] = useState<Format>("quiz");
     const [numQuestions, setNumQuestions] = useState(5);
     const [topic, setTopic] = useState("");
+    const [difficulty, setDifficulty] = useState<Difficulty>("medium");
 
     const reset = useCallback(() => {
         setScreen("upload");
@@ -80,6 +81,7 @@ export function useScreen() {
         setSelectedFormat("quiz");
         setTopic("");
         setNumQuestions(5);
+        setDifficulty("medium");
     }, [setScreen]);
 
     return {
@@ -105,6 +107,8 @@ export function useScreen() {
         setNumQuestions,
         topic,
         setTopic,
+        difficulty,
+        setDifficulty,
         reset
     };
 }
