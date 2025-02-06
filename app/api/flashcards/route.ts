@@ -10,7 +10,7 @@ const difficultyInstructions = {
 };
 
 export async function POST(request: NextRequest) {
-  const { topic, num = 10, context, difficulty = "medium" } = await request.json();
+  const { topic, num = 10, context, difficulty = "medium", prompt } = await request.json();
 
   if (!topic) {
     return Response.json({ error: "No topic provided" }, { status: 400 });
@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
 
   const difficultyGuide = difficultyInstructions[difficulty as keyof typeof difficultyInstructions] || difficultyInstructions.medium;
 
-  const prompt = `Based on the following context, generate ${num} flashcards about "${topic}".
+  const focusInstruction = prompt?.trim()
+    ? `\n\nFOCUS: ${prompt}\nCreate flashcards that specifically address these topics/concepts.`
+    : '';
+
+  const flashcardPrompt = `Based on the following context, generate ${num} flashcards about "${topic}".
 
 Difficulty: ${difficulty.toUpperCase()}
-${difficultyGuide}
+${difficultyGuide}${focusInstruction}
 
 Context:
 ${context}
@@ -35,7 +39,7 @@ Format: {"front": "...", "back": "..."}`;
 
   try {
     const response = await stream(
-      prompt,
+      flashcardPrompt,
       "You are a flashcard generator. Return one JSON object per line.",
     );
 

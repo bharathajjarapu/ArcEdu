@@ -59,12 +59,14 @@ export async function generateQuiz(
   num: number,
   chunks?: any[],
   difficulty: Difficulty = "medium",
+  prompt?: string,
   onProgress?: (quiz: Quiz) => void,
 ): Promise<Quiz[]> {
   let context = "";
 
   if (chunks && chunks.length > 0) {
-    const queryEmbedding = await embedText(topic);
+    const searchQuery = prompt?.trim() || topic;
+    const queryEmbedding = await embedText(searchQuery);
     const relevant = await worker.findSimilar(queryEmbedding, chunks, 5);
     context = relevant.map((r) => r.text).join("\n\n");
   }
@@ -72,7 +74,7 @@ export async function generateQuiz(
   const response = await fetch("/api/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, context, difficulty }),
+    body: JSON.stringify({ topic, num, context, difficulty, prompt }),
   });
 
   if (!response.ok) throw new Error("Failed to generate quiz");
@@ -86,12 +88,14 @@ export async function generateFlashcards(
   num: number,
   chunks?: any[],
   difficulty: Difficulty = "medium",
+  prompt?: string,
   onProgress?: (flashcard: Flashcard) => void,
 ): Promise<Flashcard[]> {
   let context = "";
 
   if (chunks && chunks.length > 0) {
-    const queryEmbedding = await embedText(topic);
+    const searchQuery = prompt?.trim() || topic;
+    const queryEmbedding = await embedText(searchQuery);
     const relevant = await worker.findSimilar(queryEmbedding, chunks, 5);
     context = relevant.map((r) => r.text).join("\n\n");
   }
@@ -99,7 +103,7 @@ export async function generateFlashcards(
   const response = await fetch("/api/flashcards", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, context, difficulty }),
+    body: JSON.stringify({ topic, num, context, difficulty, prompt }),
   });
 
   if (!response.ok) throw new Error("Failed to generate flashcards");

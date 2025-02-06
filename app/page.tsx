@@ -101,7 +101,6 @@ export default function QuizApp() {
     try {
       const topicText = getTopicText(
         screen.topic,
-        screen.promptText,
         screen.uploadedDocs,
         screen.links
       );
@@ -115,6 +114,7 @@ export default function QuizApp() {
           topic: topicText,
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
+          prompt: screen.promptText.trim() || undefined,
           onProgress: (item) => {
             quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
@@ -123,7 +123,7 @@ export default function QuizApp() {
             }
           },
         });
-      } else {
+      } else if (format === "flashcards") {
         flash.startFlashcards();
         let first = true;
 
@@ -132,6 +132,7 @@ export default function QuizApp() {
           topic: topicText,
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
+          prompt: screen.promptText.trim() || undefined,
           onProgress: (item) => {
             flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
@@ -140,6 +141,8 @@ export default function QuizApp() {
             }
           },
         });
+      } else {
+        throw new Error("Notes format is not yet implemented");
       }
     } catch (err) {
       screen.setError("Failed to generate content");
@@ -158,7 +161,6 @@ export default function QuizApp() {
     try {
       const topicText = getTopicText(
         screen.topic,
-        screen.promptText,
         screen.uploadedDocs,
         screen.links
       );
@@ -172,6 +174,7 @@ export default function QuizApp() {
           topic: topicText,
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
+          prompt: screen.promptText.trim() || undefined,
           onProgress: (item) => {
             quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
@@ -180,7 +183,7 @@ export default function QuizApp() {
             }
           },
         });
-      } else {
+      } else if (screen.selectedFormat === "flashcards") {
         flash.startFlashcards();
         let first = true;
 
@@ -189,6 +192,7 @@ export default function QuizApp() {
           topic: topicText,
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
+          prompt: screen.promptText.trim() || undefined,
           onProgress: (item) => {
             flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
@@ -197,6 +201,8 @@ export default function QuizApp() {
             }
           },
         });
+      } else {
+        throw new Error("Notes format is not yet implemented");
       }
     } finally {
       screen.setIsLoading(false);

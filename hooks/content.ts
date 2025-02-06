@@ -11,6 +11,7 @@ interface GenerateOptions {
     topic: string;
     numQuestions: number;
     difficulty?: Difficulty;
+    prompt?: string;
     onProgress?: (item: Quiz | Flashcard) => void;
 }
 
@@ -47,7 +48,7 @@ export function useContent() {
             }
 
             const embedded = await embedChunks(options.sessionId, chunks);
-            return await generateQuiz(options.topic, options.numQuestions, embedded, options.difficulty, options.onProgress as (quiz: Quiz) => void);
+            return await generateQuiz(options.topic, options.numQuestions, embedded, options.difficulty, options.prompt, options.onProgress as (quiz: Quiz) => void);
         },
         [embedChunks]
     );
@@ -60,7 +61,7 @@ export function useContent() {
             }
 
             const embedded = await embedChunks(options.sessionId, chunks);
-            return await generateFlashcards(options.topic, options.numQuestions, embedded, options.difficulty, options.onProgress as (flashcard: Flashcard) => void);
+            return await generateFlashcards(options.topic, options.numQuestions, embedded, options.difficulty, options.prompt, options.onProgress as (flashcard: Flashcard) => void);
         },
         [embedChunks]
     );

@@ -25,12 +25,10 @@ export function useUpload() {
     const getTopicText = useCallback(
         (
             topic: string,
-            promptText: string,
             uploadedDocs: Array<{ id: string; name: string; size: string }>,
             links: string[]
         ): string => {
             if (topic) return topic;
-            if (promptText) return promptText;
             if (uploadedDocs.length > 0) return uploadedDocs.map((d) => d.name).join(", ");
             if (links.length > 0) return links[0];
             return "session content";

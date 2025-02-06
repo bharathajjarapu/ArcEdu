@@ -375,7 +375,7 @@ export function Format({
             <div className="grid grid-cols-2 gap-3">
               {/* Questions */}
               <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
-                <div className="flex items-center justify-between mb-4 h-14 items-start pt-1">
+                <div className="flex justify-between mb-4 h-14 items-start pt-1">
                   <button
                     onClick={() => setNumQuestionsAction(Math.max(1, numQuestions - 1))}
                     disabled={numQuestions <= 1}

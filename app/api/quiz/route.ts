@@ -10,7 +10,7 @@ const difficultyInstructions = {
 };
 
 export async function POST(request: NextRequest) {
-  const { topic, num = 5, context, difficulty = "medium" } = await request.json();
+  const { topic, num = 5, context, difficulty = "medium", prompt } = await request.json();
 
   if (!topic) {
     return Response.json({ error: "No topic provided" }, { status: 400 });
@@ -22,10 +22,14 @@ export async function POST(request: NextRequest) {
 
   const difficultyGuide = difficultyInstructions[difficulty as keyof typeof difficultyInstructions] || difficultyInstructions.medium;
 
-  const prompt = `Based on the following context, generate ${num} multiple choice questions about "${topic}".
+  const focusInstruction = prompt?.trim()
+    ? `\n\nFOCUS: ${prompt}\nGenerate questions that specifically address these topics/concepts.`
+    : '';
+
+  const questionPrompt = `Based on the following context, generate ${num} multiple choice questions about "${topic}".
 
 Difficulty: ${difficulty.toUpperCase()}
-${difficultyGuide}
+${difficultyGuide}${focusInstruction}
 
 Context:
 ${context}
@@ -35,7 +39,7 @@ Format: {"question": "...", "options": ["A", "B", "C", "D"], "answer": 0, "expla
 
   try {
     const response = await stream(
-      prompt,
+      questionPrompt,
       "You are a quiz generator. Return one JSON object per line.",
     );
 
