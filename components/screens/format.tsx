@@ -266,40 +266,36 @@ export function Format({
         <div className="grid grid-cols-3 gap-3">
           {/* Documents Panel - takes 1 column, full height */}
           <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden flex flex-col">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-widest">Source</span>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-                  <span className="text-xs text-gray-400 tabular-nums">{uploadedDocs.length}</span>
-                </div>
+            <div className="px-4 pt-3 pb-2 border-gray-100 flex-shrink-0">
+              <div className="flex items-center ">
+                <span className="text-sm font-bold text-gray-600 tracking-wider">Documents</span>
               </div>
             </div>
-            <div className="p-3 flex-1 overflow-y-auto">
+            <div className="px-4 flex-1 overflow-y-auto">
               {uploadedDocs.length > 0 ? (
-                <div className="space-y-2">
-                  {uploadedDocs.map((doc, index) => (
-                    <div
-                      key={doc.id}
-                      className="group relative bg-gradient-to-r from-gray-50 to-gray-100/50 hover:from-gray-100 hover:to-gray-100 rounded-xl p-3 transition-all duration-200 border border-gray-100 hover:border-gray-200"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <span className="text-sm font-bold text-white tabular-nums">{String(index + 1).padStart(2, '0')}</span>
-                        </div>
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
-                            {doc.name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-400">{doc.size}</span>
-                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                            <span className="text-xs text-gray-400">Ready</span>
+                <div className="space-y-1">
+                  {uploadedDocs.map((doc) => {
+                    const lastDotIndex = doc.name.lastIndexOf('.');
+                    const fileName = lastDotIndex > -1 ? doc.name.substring(0, lastDotIndex) : doc.name;
+                    const fileExt = lastDotIndex > -1 ? doc.name.substring(lastDotIndex + 1).toUpperCase() : '';
+                    return (
+                      <div
+                        key={doc.id}
+                        className="group relative bg-white hover:bg-gray-50 rounded-md px-2.5 py-1.5 transition-all duration-200 border-2 border-gray-200 hover:border-gray-300"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1 flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-500 truncate">
+                              {fileName}
+                            </p>
+                            <span className="text-xs text-gray-400 flex-shrink-0">•</span>
+                            <span className="text-xs font-semibold text-gray-400 flex-shrink-0">{doc.size}</span>
                           </div>
+                          <span className="text-xs font-semibold text-gray-400 uppercase flex-shrink-0">{fileExt}</span>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="h-full flex flex-col items-center justify-center py-8">
@@ -321,7 +317,7 @@ export function Format({
               value={promptText}
               onChange={(e) => setPromptTextAction(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 bg-white focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl text-sm text-gray-700 resize-none transition-colors"
+              className="w-full px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors"
             />
 
             {/* Difficulty Selection */}
