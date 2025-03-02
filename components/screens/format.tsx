@@ -131,7 +131,7 @@ export function Format({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header */}
+
       <div className="mb-10 text-center">
         <h1 className="text-5xl font-bold tracking-tight text-gray-900">
           Setup your Learning
@@ -141,10 +141,8 @@ export function Format({
         </p>
       </div>
 
-      {/* Format Selection - 3 columns */}
       <div className="mb-4">
         <div className="grid grid-cols-3 gap-3">
-          {/* Notes */}
           <button
             onClick={() => setSelectedFormatAction("notes")}
             className={cn(
@@ -181,7 +179,6 @@ export function Format({
             )}
           </button>
 
-          {/* Quiz */}
           <button
             onClick={() => setSelectedFormatAction("quiz")}
             className={cn(
@@ -218,7 +215,6 @@ export function Format({
             )}
           </button>
 
-          {/* Flashcards */}
           <button
             onClick={() => setSelectedFormatAction("flashcards")}
             className={cn(
@@ -261,10 +257,8 @@ export function Format({
         </div>
       </div>
 
-      {/* Main Content - Documents on left, Options on right */}
       <div className="mb-6">
         <div className="grid grid-cols-3 gap-3">
-          {/* Documents Panel - takes 1 column, full height */}
           <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden flex flex-col">
             <div className="px-4 pt-3 pb-2 border-gray-100 flex-shrink-0">
               <div className="flex items-center ">
@@ -309,9 +303,7 @@ export function Format({
             </div>
           </div>
 
-          {/* Options Panel - takes 2 columns */}
           <div className="col-span-2 space-y-3">
-            {/* Prompt Input */}
             <textarea
               placeholder="Focus your learning — describe what topics or concepts to emphasize..."
               value={promptText}
@@ -320,7 +312,6 @@ export function Format({
               className="w-full px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors"
             />
 
-            {/* Difficulty Selection */}
             <div className="grid grid-cols-4 gap-2">
               {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
                 const config = difficultyConfig[level];
@@ -367,9 +358,7 @@ export function Format({
               })}
             </div>
 
-            {/* Question Count + Time */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Questions */}
               <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
                 <div className="flex justify-between mb-4 h-14 items-start pt-1">
                   <button
@@ -413,9 +402,7 @@ export function Format({
                 </div>
               </div>
 
-              {/* Time */}
               <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 relative">
-                {/* Plus/Minus buttons - top right */}
                 <div className="absolute top-0 right-0 flex flex-col h-full">
                   <button
                     onClick={incrementTime}
@@ -431,7 +418,6 @@ export function Format({
                   </button>
                 </div>
 
-                {/* Time display and presets */}
                 <div className="pr-14 flex flex-col items-center justify-between h-full">
                   <div className="flex items-center justify-center gap-3 mb-4 h-14">
                     <span className="text-lg text-gray-500 uppercase tracking-wider">time</span>
@@ -488,14 +474,12 @@ export function Format({
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
           <p className="text-red-700 text-sm text-center">{error}</p>
         </div>
       )}
 
-      {/* Start Button */}
       <div className="flex justify-center">
         <Button
           onClick={() => onSelectAction(selectedFormat)}
