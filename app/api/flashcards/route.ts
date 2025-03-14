@@ -10,7 +10,7 @@ const difficultyInstructions = {
 };
 
 export async function POST(request: NextRequest) {
-  const { topic, num = 10, context, difficulty = "medium", prompt } = await request.json();
+  const { topic, num = 10, context, difficulty = "medium", prompt, timeLimit } = await request.json();
 
   if (!topic) {
     return Response.json({ error: "No topic provided" }, { status: 400 });
@@ -26,10 +26,14 @@ export async function POST(request: NextRequest) {
     ? `\n\nFOCUS: ${prompt}\nCreate flashcards that specifically address these topics/concepts.`
     : '';
 
+  const timeLimitInstruction = timeLimit
+    ? `\n\nTIME CONSTRAINT: ${timeLimit} minutes total for ${num} flashcards (approx ${Math.floor(timeLimit / num)} min per card). Keep content concise and focused.`
+    : '';
+
   const flashcardPrompt = `Based on the following context, generate ${num} flashcards about "${topic}".
 
 Difficulty: ${difficulty.toUpperCase()}
-${difficultyGuide}${focusInstruction}
+${difficultyGuide}${focusInstruction}${timeLimitInstruction}
 
 Context:
 ${context}

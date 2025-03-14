@@ -14,7 +14,7 @@ const handlePopState = (event: PopStateEvent) => {
 };
 
 function subscribe(callback: () => void) {
-    if (typeof window === "undefined") return () => {};
+    if (typeof window === "undefined") return () => { };
     listeners.push(callback);
     if (!popstateAttached) {
         window.addEventListener("popstate", handlePopState);
@@ -43,7 +43,7 @@ export function useScreen() {
         window.history.pushState({ screen: newScreen }, "", `/${newScreen}`);
         emitChange();
     }, []);
-    
+
     useEffect(() => {
         if (typeof window === "undefined") return;
         const path = window.location.pathname.slice(1) || "upload";
@@ -68,6 +68,7 @@ export function useScreen() {
     const [numQuestions, setNumQuestions] = useState(5);
     const [topic, setTopic] = useState("");
     const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+    const [timeLimit, setTimeLimit] = useState(5); // minutes
 
     const reset = useCallback(() => {
         setScreen("upload");
@@ -82,6 +83,7 @@ export function useScreen() {
         setTopic("");
         setNumQuestions(5);
         setDifficulty("medium");
+        setTimeLimit(5);
     }, [setScreen]);
 
     return {
@@ -109,6 +111,8 @@ export function useScreen() {
         setTopic,
         difficulty,
         setDifficulty,
+        timeLimit,
+        setTimeLimit,
         reset
     };
 }

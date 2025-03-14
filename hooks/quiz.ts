@@ -70,6 +70,7 @@ export function useQuiz({ initialQuizData = [] }: UseQuizProps = {}) {
             setCurrentQuestion(prevQ);
             setSelectedAnswer(userAnswers[prevQ] || null);
             setShowFeedback(!!userAnswers[prevQ]);
+            setQuestionStartTime(Date.now());
         }
     }, [currentQuestion, userAnswers]);
 
@@ -87,6 +88,7 @@ export function useQuiz({ initialQuizData = [] }: UseQuizProps = {}) {
 
         // Stats
         startTime,
+        questionStartTime,
         questionTimes,
         maxStreak,
 

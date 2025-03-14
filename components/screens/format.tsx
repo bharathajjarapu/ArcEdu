@@ -25,6 +25,8 @@ interface FormatProps {
   setNumQuestionsAction: (num: number) => void;
   difficulty: Difficulty;
   setDifficultyAction: (difficulty: Difficulty) => void;
+  timeLimit: number;
+  setTimeLimitAction: (minutes: number) => void;
   uploadedDocs: Array<{ id: string; name: string; size: string }>;
   promptText: string;
   setPromptTextAction: (text: string) => void;
@@ -74,6 +76,8 @@ export function Format({
   setNumQuestionsAction,
   difficulty,
   setDifficultyAction,
+  timeLimit,
+  setTimeLimitAction,
   uploadedDocs,
   promptText,
   setPromptTextAction,
@@ -81,8 +85,8 @@ export function Format({
   isLoading,
   onSelectAction,
 }: FormatProps) {
-  const [totalSeconds, setTotalSeconds] = useState<number>(600); // 10:00 default
-  const [minInput, setMinInput] = useState("10");
+  const [totalSeconds, setTotalSeconds] = useState<number>(timeLimit * 60);
+  const [minInput, setMinInput] = useState(String(Math.floor(timeLimit)).padStart(2, "0"));
   const [secInput, setSecInput] = useState("00");
   const [isEditingMin, setIsEditingMin] = useState(false);
   const [isEditingSec, setIsEditingSec] = useState(false);
@@ -98,7 +102,9 @@ export function Format({
     if (!isEditingSec) {
       setSecInput(String(timeSeconds).padStart(2, "0"));
     }
-  }, [timeMinutes, timeSeconds, isEditingMin, isEditingSec]);
+    // Sync to parent (convert seconds to minutes)
+    setTimeLimitAction(totalSeconds === 0 ? 0 : totalSeconds / 60);
+  }, [totalSeconds, timeMinutes, timeSeconds, isEditingMin, isEditingSec, setTimeLimitAction]);
 
   const incrementTime = () => {
     setTotalSeconds((t) => Math.min(20 * 60, t + 1));

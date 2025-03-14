@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState, useRef } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown } from "lucide-react";
@@ -14,6 +16,10 @@ interface FlashcardsProps {
   onScoreAction: (gotIt: boolean) => void;
   onNextAction: () => void;
   onPreviousAction: () => void;
+  onTimeoutAction?: () => void;
+  startTime: number;
+  questionStartTime: number;
+  timeLimit?: number;
 }
 
 export function Flashcards({
@@ -24,13 +30,74 @@ export function Flashcards({
   onScoreAction,
   onNextAction,
   onPreviousAction,
+  onTimeoutAction,
+  startTime,
+  questionStartTime,
+  timeLimit,
 }: FlashcardsProps) {
+  const [now, setNow] = useState(Date.now());
+  const timeoutFired = useRef(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Reset timeout guard when session restarts
+  useEffect(() => {
+    timeoutFired.current = false;
+  }, [startTime]);
+
   if (!flashcardData.length) return null;
+
+  const totalElapsed = Math.floor((now - startTime) / 1000);
+  const questionElapsed = Math.floor((now - questionStartTime) / 1000);
+
+  const totalTimeLimit = timeLimit !== undefined && timeLimit > 0 ? timeLimit * 60 : 0;
+  const remainingTime = totalTimeLimit > 0 ? Math.max(0, totalTimeLimit - totalElapsed) : Infinity;
+  const isLowTime = remainingTime < totalTimeLimit * 0.2;
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Auto-redirect when time runs out (fires only once via useEffect)
+  useEffect(() => {
+    if (remainingTime === 0 && !timeoutFired.current) {
+      timeoutFired.current = true;
+      if (onTimeoutAction) {
+        onTimeoutAction();
+      } else {
+        onNextAction();
+      }
+    }
+  }, [remainingTime, onTimeoutAction, onNextAction]);
 
   const card = flashcardData[currentFlashcard];
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* TE-Style Timer */}
+      <div className="flex items-center justify-center gap-3 mb-6">
+        <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-sm">
+          <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">C</span>
+          <span className="text-sm tabular-nums text-gray-600">
+            {formatTime(questionElapsed)}
+          </span>
+        </div>
+        <div className={cn(
+          "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-sm transition-all",
+          isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-200"
+        )}>
+          <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Total</span>
+          <span className={cn("text-sm tabular-nums font-medium", isLowTime ? "text-gray-900" : "text-gray-600")}>
+            {remainingTime === Infinity ? "∞" : formatTime(remainingTime)}
+          </span>
+        </div>
+      </div>
+
       <div className="flex items-center justify-center gap-4 mb-8">
         <Button
           variant="ghost"

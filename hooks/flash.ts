@@ -11,11 +11,17 @@ export function useFlash({ initialFlashcardData = [] }: UseFlashProps = {}) {
     const [isFlashcardFlipped, setIsFlashcardFlipped] = useState(false);
     const [flashcardAnswers, setFlashcardAnswers] = useState<Record<number, boolean>>({});
 
+    // Stats
+    const [startTime, setStartTime] = useState(0);
+    const [questionStartTime, setQuestionStartTime] = useState(0);
+
     const startFlashcards = useCallback(() => {
         setFlashcardData([]);
         setCurrentFlashcard(0);
         setIsFlashcardFlipped(false);
         setFlashcardAnswers({});
+        setStartTime(Date.now());
+        setQuestionStartTime(Date.now());
     }, []);
 
     const scoreFlashcard = useCallback((gotIt: boolean) => {
@@ -23,6 +29,7 @@ export function useFlash({ initialFlashcardData = [] }: UseFlashProps = {}) {
         if (currentFlashcard < flashcardData.length - 1) {
             setCurrentFlashcard(prev => prev + 1);
             setIsFlashcardFlipped(false);
+            setQuestionStartTime(Date.now());
         }
     }, [currentFlashcard, flashcardData.length]);
 
@@ -30,6 +37,7 @@ export function useFlash({ initialFlashcardData = [] }: UseFlashProps = {}) {
         if (currentFlashcard < flashcardData.length - 1) {
             setCurrentFlashcard(prev => prev + 1);
             setIsFlashcardFlipped(false);
+            setQuestionStartTime(Date.now());
         }
     }, [currentFlashcard, flashcardData.length]);
 
@@ -37,6 +45,7 @@ export function useFlash({ initialFlashcardData = [] }: UseFlashProps = {}) {
         if (currentFlashcard > 0) {
             setCurrentFlashcard(prev => prev - 1);
             setIsFlashcardFlipped(false);
+            setQuestionStartTime(Date.now());
         }
     }, [currentFlashcard]);
 
@@ -47,6 +56,8 @@ export function useFlash({ initialFlashcardData = [] }: UseFlashProps = {}) {
         isFlashcardFlipped,
         setIsFlashcardFlipped,
         flashcardAnswers,
+        startTime,
+        questionStartTime,
         startFlashcards,
         scoreFlashcard,
         nextFlashcard,

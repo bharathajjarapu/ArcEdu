@@ -115,6 +115,7 @@ export default function QuizApp() {
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
           prompt: screen.promptText.trim() || undefined,
+          timeLimit: screen.timeLimit,
           onProgress: (item) => {
             quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
@@ -133,6 +134,7 @@ export default function QuizApp() {
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
           prompt: screen.promptText.trim() || undefined,
+          timeLimit: screen.timeLimit,
           onProgress: (item) => {
             flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
@@ -175,6 +177,7 @@ export default function QuizApp() {
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
           prompt: screen.promptText.trim() || undefined,
+          timeLimit: screen.timeLimit,
           onProgress: (item) => {
             quiz.setQuizData(prev => [...prev, item as Quiz]);
             if (first) {
@@ -193,6 +196,7 @@ export default function QuizApp() {
           numQuestions: screen.numQuestions,
           difficulty: screen.difficulty,
           prompt: screen.promptText.trim() || undefined,
+          timeLimit: screen.timeLimit,
           onProgress: (item) => {
             flash.setFlashcardData(prev => [...prev, item as Flashcard]);
             if (first) {
@@ -304,6 +308,8 @@ export default function QuizApp() {
             setNumQuestionsAction={screen.setNumQuestions}
             difficulty={screen.difficulty}
             setDifficultyAction={screen.setDifficulty}
+            timeLimit={screen.timeLimit}
+            setTimeLimitAction={screen.setTimeLimit}
             uploadedDocs={screen.uploadedDocs}
             promptText={screen.promptText}
             setPromptTextAction={screen.setPromptText}
@@ -330,6 +336,10 @@ export default function QuizApp() {
               }
             }}
             onPreviousAction={quiz.prevQuestion}
+            onTimeoutAction={() => screen.setScreen("results")}
+            startTime={quiz.startTime}
+            questionStartTime={quiz.questionStartTime}
+            timeLimit={screen.timeLimit}
           />
         )}
 
@@ -348,6 +358,10 @@ export default function QuizApp() {
             }}
             onNextAction={flash.nextFlashcard}
             onPreviousAction={flash.prevFlashcard}
+            onTimeoutAction={() => screen.setScreen("results")}
+            startTime={flash.startTime}
+            questionStartTime={flash.questionStartTime}
+            timeLimit={screen.timeLimit}
           />
         )}
 
