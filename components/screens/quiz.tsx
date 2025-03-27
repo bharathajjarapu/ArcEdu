@@ -91,10 +91,10 @@ export function QuizScreen({
           </span>
         </div>
         <div className={cn(
-          "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-sm transition-all",
-          isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-200"
+          "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-400 rounded-sm transition-all",
+          isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-400"
         )}>
-          <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Total</span>
+          <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">T</span>
           <span className={cn("text-sm tabular-nums font-medium", isLowTime ? "text-gray-900" : "text-gray-600")}>
             {remainingTime === Infinity ? "∞" : formatTime(remainingTime)}
           </span>
