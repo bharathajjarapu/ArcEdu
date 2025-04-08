@@ -91,8 +91,8 @@ export function QuizScreen({
           </span>
         </div>
         <div className={cn(
-          "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-400 rounded-sm transition-all",
-          isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-400"
+          "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-sm transition-all",
+          isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-300"
         )}>
           <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">T</span>
           <span className={cn("text-sm tabular-nums font-medium", isLowTime ? "text-gray-900" : "text-gray-600")}>
@@ -111,7 +111,7 @@ export function QuizScreen({
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <span className="text-gray-600 text-lg font-medium">
+        <span className="text-gray-600 text-2xl font-medium">
           Question {currentQuestion + 1} of {quizData.length}
         </span>
         <Button
