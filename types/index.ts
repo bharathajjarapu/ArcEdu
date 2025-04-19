@@ -72,6 +72,8 @@ export type Screen =
 export type InputType = "prompt" | "docs" | "links";
 export type Format = "quiz" | "flashcards" | "notes";
 export type Difficulty = "easy" | "medium" | "hard" | "adaptive";
+export type NotesFormat = "summary" | "structured" | "exam" | "cheatsheet";
+export type ContentDepth = "short" | "medium" | "long" | "auto";
 
 export interface AppState {
   screen: Screen;

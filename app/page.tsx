@@ -313,6 +313,10 @@ export default function QuizApp() {
             uploadedDocs={screen.uploadedDocs}
             promptText={screen.promptText}
             setPromptTextAction={screen.setPromptText}
+            notesFormat={screen.notesFormat}
+            setNotesFormatAction={screen.setNotesFormat}
+            contentDepth={screen.contentDepth}
+            setContentDepthAction={screen.setContentDepth}
             error={screen.error}
             isLoading={screen.isLoading}
             onSelectAction={handleFormatSelect}

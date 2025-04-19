@@ -14,9 +14,17 @@ import {
   Plus,
   StickyNote,
   FileText,
+  FileSearch,
+  LayoutList,
+  GraduationCap,
+  ScrollText,
+  AlignLeft,
+  AlignCenter,
+  AlignJustify,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Format, Difficulty } from "@/types";
+import type { Format, Difficulty, NotesFormat, ContentDepth } from "@/types";
 
 interface FormatProps {
   selectedFormat: Format;
@@ -30,6 +38,10 @@ interface FormatProps {
   uploadedDocs: Array<{ id: string; name: string; size: string }>;
   promptText: string;
   setPromptTextAction: (text: string) => void;
+  notesFormat: NotesFormat;
+  setNotesFormatAction: (format: NotesFormat) => void;
+  contentDepth: ContentDepth;
+  setContentDepthAction: (depth: ContentDepth) => void;
   error: string | null;
   isLoading: boolean;
   onSelectAction: (format: Format) => void;
@@ -66,6 +78,48 @@ const difficultyConfig = {
   },
 };
 
+const notesFormatConfig = {
+  summary: {
+    label: "Summary",
+    icon: FileSearch,
+    description: "Condensed overview",
+  },
+  structured: {
+    label: "Structured",
+    icon: LayoutList,
+    description: "Organized sections",
+  },
+  exam: {
+    label: "Exam",
+    icon: GraduationCap,
+    description: "Test preparation",
+  },
+  cheatsheet: {
+    label: "Cheatsheet",
+    icon: ScrollText,
+    description: "Quick reference",
+  },
+};
+
+const contentDepthConfig = {
+  short: {
+    label: "Short",
+    icon: AlignLeft,
+  },
+  medium: {
+    label: "Medium",
+    icon: AlignCenter,
+  },
+  long: {
+    label: "Long",
+    icon: AlignJustify,
+  },
+  auto: {
+    label: "Auto",
+    icon: Wand2,
+  },
+};
+
 const questionPresets = [3, 5, 10, 15, 20, 25, 30];
 const timePresets = [0, 3, 5, 10, 20];
 
@@ -81,6 +135,10 @@ export function Format({
   uploadedDocs,
   promptText,
   setPromptTextAction,
+  notesFormat,
+  setNotesFormatAction,
+  contentDepth,
+  setContentDepthAction,
   error,
   isLoading,
   onSelectAction,
@@ -318,164 +376,260 @@ export function Format({
               className="w-full px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors"
             />
 
-            <div className="grid grid-cols-4 gap-2">
-              {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
-                const config = difficultyConfig[level];
-                const isActive = difficulty === level;
-                const Icon = config.icon;
-
-                return (
-                  <button
-                    key={level}
-                    onClick={() => setDifficultyAction(level)}
-                    className={cn(
-                      "relative p-3 rounded-xl border-2 transition-all duration-200",
-                      isActive
-                        ? `${config.activeBg} ${config.activeBorder}`
-                        : `bg-white border-gray-200 hover:border-gray-300`
-                    )}
-                  >
-                    <div className="flex flex-col items-center text-center">
-                      <Icon
-                        className={cn(
-                          "w-5 h-5 mb-1.5",
-                          isActive ? config.color : "text-gray-400"
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          "text-sm font-medium",
-                          isActive ? "text-gray-900" : "text-gray-600"
-                        )}
-                      >
-                        {config.label}
-                      </span>
-                    </div>
-                    {isActive && (
-                      <div
-                        className={cn(
-                          "absolute top-2 right-2 w-1.5 h-1.5 rounded-full",
-                          config.color.replace("text-", "bg-")
-                        )}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
-                <div className="flex justify-between mb-4 h-14 items-start pt-1">
-                  <button
-                    onClick={() => setNumQuestionsAction(Math.max(1, numQuestions - 1))}
-                    disabled={numQuestions <= 1}
-                    className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
-                  >
-                    <Minus className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-4xl font-bold text-gray-900 tabular-nums leading-none">
-                      {numQuestions}
-                    </span>
-                    <span className="text-xs text-gray-400 uppercase tracking-wider">
-                      questions
-                    </span>
+            {selectedFormat === "notes" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+                  <div className="flex items-center mb-4">
+                    <span className="text-sm font-bold text-gray-600 tracking-wider">Notes Format</span>
                   </div>
-                  <button
-                    onClick={() => setNumQuestionsAction(Math.min(30, numQuestions + 1))}
-                    disabled={numQuestions >= 30}
-                    className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-gray-600" />
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
+                      const config = notesFormatConfig[format];
+                      const isActive = notesFormat === format;
+                      const Icon = config.icon;
+
+                      return (
+                        <button
+                          key={format}
+                          onClick={() => setNotesFormatAction(format)}
+                          className={cn(
+                            "relative p-3 rounded-xl border-2 transition-all duration-200",
+                            isActive
+                              ? "bg-gray-100 border-gray-900"
+                              : "bg-white border-gray-200 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex flex-col items-center text-center">
+                            <Icon
+                              className={cn(
+                                "w-5 h-5 mb-1.5",
+                                isActive ? "text-gray-900" : "text-gray-400"
+                              )}
+                            />
+                            <span
+                              className={cn(
+                                "text-sm font-medium",
+                                isActive ? "text-gray-900" : "text-gray-600"
+                              )}
+                            >
+                              {config.label}
+                            </span>
+                          </div>
+
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {questionPresets.map((preset) => (
-                    <button
-                      key={preset}
-                      onClick={() => setNumQuestionsAction(preset)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                        numQuestions === preset
-                          ? "bg-gray-900 text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      )}
-                    >
-                      {preset}
-                    </button>
-                  ))}
+
+                {/* Content Depth - Right column */}
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+                  <div className="flex items-center mb-4">
+                    <span className="text-sm font-bold text-gray-600 tracking-wider">Content Depth</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(Object.keys(contentDepthConfig) as ContentDepth[]).map((depth) => {
+                      const config = contentDepthConfig[depth];
+                      const isActive = contentDepth === depth;
+                      const Icon = config.icon;
+
+                      return (
+                        <button
+                          key={depth}
+                          onClick={() => setContentDepthAction(depth)}
+                          className={cn(
+                            "relative p-3 rounded-xl border-2 transition-all duration-200",
+                            isActive
+                              ? "bg-gray-100 border-gray-900"
+                              : "bg-white border-gray-200 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex flex-col items-center text-center">
+                            <Icon
+                              className={cn(
+                                "w-5 h-5 mb-1.5",
+                                isActive ? "text-gray-900" : "text-gray-400"
+                              )}
+                            />
+                            <span
+                              className={cn(
+                                "text-sm font-medium",
+                                isActive ? "text-gray-900" : "text-gray-600"
+                              )}
+                            >
+                              {config.label}
+                            </span>
+                          </div>
+
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+            ) : (
+              /* Quiz and Flashcards options: Difficulty, Questions, Time */
+              <>
+                <div className="grid grid-cols-4 gap-2">
+                  {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
+                    const config = difficultyConfig[level];
+                    const isActive = difficulty === level;
+                    const Icon = config.icon;
 
-              <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 relative">
-                <div className="absolute top-0 right-0 flex flex-col h-full">
-                  <button
-                    onClick={incrementTime}
-                    className="flex-1 w-12 rounded-tr-2xl border-l border-b border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={decrementTime}
-                    className="flex-1 w-12 rounded-br-2xl border-l border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="pr-14 flex flex-col items-center justify-between h-full">
-                  <div className="flex items-center justify-center gap-3 mb-4 h-14">
-                    <span className="text-lg text-gray-500 uppercase tracking-wider">time</span>
-                    {totalSeconds === 0 ? (
-                      <span className="text-5xl font-bold text-gray-800 tabular-nums leading-none">∞</span>
-                    ) : (
-                      <div className="flex items-center">
-                        <div className="bg-gray-100 rounded-lg px-2">
-                          <input
-                            type="text"
-                            value={minInput}
-                            onChange={(e) => setMinInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                            onFocus={() => setIsEditingMin(true)}
-                            onBlur={handleMinutesBlur}
-                            className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
-                            maxLength={2}
-                          />
-                        </div>
-                        <span className="text-3xl font-bold text-gray-300 mx-0.5 leading-none">:</span>
-                        <div className="bg-gray-100 rounded-lg px-2">
-                          <input
-                            type="text"
-                            value={secInput}
-                            onChange={(e) => setSecInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                            onFocus={() => setIsEditingSec(true)}
-                            onBlur={handleSecondsBlur}
-                            className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
-                            maxLength={2}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-2 justify-center">
-                    {timePresets.map((preset) => (
+                    return (
                       <button
-                        key={preset}
-                        onClick={() => setPresetTime(preset)}
+                        key={level}
+                        onClick={() => setDifficultyAction(level)}
                         className={cn(
-                          "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                          totalSeconds === preset * 60
-                            ? "bg-gray-900 text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          "relative p-3 rounded-xl border-2 transition-all duration-200",
+                          isActive
+                            ? `${config.activeBg} ${config.activeBorder}`
+                            : `bg-white border-gray-200 hover:border-gray-300`
                         )}
                       >
-                        {preset === 0 ? "∞m" : `${preset}m`}
+                        <div className="flex flex-col items-center text-center">
+                          <Icon
+                            className={cn(
+                              "w-5 h-5 mb-1.5",
+                              isActive ? config.color : "text-gray-400"
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              isActive ? "text-gray-900" : "text-gray-600"
+                            )}
+                          >
+                            {config.label}
+                          </span>
+                        </div>
+                        {isActive && (
+                          <div
+                            className={cn(
+                              "absolute top-2 right-2 w-1.5 h-1.5 rounded-full",
+                              config.color.replace("text-", "bg-")
+                            )}
+                          />
+                        )}
                       </button>
-                    ))}
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+                    <div className="flex justify-between mb-4 h-14 items-start pt-1">
+                      <button
+                        onClick={() => setNumQuestionsAction(Math.max(1, numQuestions - 1))}
+                        disabled={numQuestions <= 1}
+                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
+                      >
+                        <Minus className="w-4 h-4 text-gray-600" />
+                      </button>
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-4xl font-bold text-gray-900 tabular-nums leading-none">
+                          {numQuestions}
+                        </span>
+                        <span className="text-xs text-gray-400 uppercase tracking-wider">
+                          questions
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setNumQuestionsAction(Math.min(30, numQuestions + 1))}
+                        disabled={numQuestions >= 30}
+                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
+                      >
+                        <Plus className="w-4 h-4 text-gray-600" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {questionPresets.map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => setNumQuestionsAction(preset)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            numQuestions === preset
+                              ? "bg-gray-900 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          )}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 relative">
+                    <div className="absolute top-0 right-0 flex flex-col h-full">
+                      <button
+                        onClick={incrementTime}
+                        className="flex-1 w-12 rounded-tr-2xl border-l border-b border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={decrementTime}
+                        className="flex-1 w-12 rounded-br-2xl border-l border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
+                      >
+                        <Minus className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="pr-14 flex flex-col items-center justify-between h-full">
+                      <div className="flex items-center justify-center gap-3 mb-4 h-14">
+                        <span className="text-lg text-gray-500 uppercase tracking-wider">time</span>
+                        {totalSeconds === 0 ? (
+                          <span className="text-5xl font-bold text-gray-800 tabular-nums leading-none">∞</span>
+                        ) : (
+                          <div className="flex items-center">
+                            <div className="bg-gray-100 rounded-lg px-2">
+                              <input
+                                type="text"
+                                value={minInput}
+                                onChange={(e) => setMinInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                                onFocus={() => setIsEditingMin(true)}
+                                onBlur={handleMinutesBlur}
+                                className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
+                                maxLength={2}
+                              />
+                            </div>
+                            <span className="text-3xl font-bold text-gray-300 mx-0.5 leading-none">:</span>
+                            <div className="bg-gray-100 rounded-lg px-2">
+                              <input
+                                type="text"
+                                value={secInput}
+                                onChange={(e) => setSecInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                                onFocus={() => setIsEditingSec(true)}
+                                onBlur={handleSecondsBlur}
+                                className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
+                                maxLength={2}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 justify-center">
+                        {timePresets.map((preset) => (
+                          <button
+                            key={preset}
+                            onClick={() => setPresetTime(preset)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                              totalSeconds === preset * 60
+                                ? "bg-gray-900 text-white"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            )}
+                          >
+                            {preset === 0 ? "∞m" : `${preset}m`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

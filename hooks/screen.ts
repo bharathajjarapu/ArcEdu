@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
-import type { Screen, Format, InputType, Difficulty } from "@/types";
+import type { Screen, Format, InputType, Difficulty, NotesFormat, ContentDepth } from "@/types";
 
 const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "results"];
 
@@ -70,6 +70,10 @@ export function useScreen() {
     const [difficulty, setDifficulty] = useState<Difficulty>("medium");
     const [timeLimit, setTimeLimit] = useState(5); // minutes
 
+    // Notes-specific State
+    const [notesFormat, setNotesFormat] = useState<NotesFormat>("structured");
+    const [contentDepth, setContentDepth] = useState<ContentDepth>("medium");
+
     const reset = useCallback(() => {
         setScreen("upload");
         setIsLoading(false);
@@ -84,6 +88,8 @@ export function useScreen() {
         setNumQuestions(5);
         setDifficulty("medium");
         setTimeLimit(5);
+        setNotesFormat("structured");
+        setContentDepth("medium");
     }, [setScreen]);
 
     return {
@@ -113,6 +119,10 @@ export function useScreen() {
         setDifficulty,
         timeLimit,
         setTimeLimit,
+        notesFormat,
+        setNotesFormat,
+        contentDepth,
+        setContentDepth,
         reset
     };
 }
