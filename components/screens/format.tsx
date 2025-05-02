@@ -18,13 +18,10 @@ import {
   LayoutList,
   GraduationCap,
   ScrollText,
-  AlignLeft,
-  AlignCenter,
-  AlignJustify,
-  Wand2,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Format, Difficulty, NotesFormat, ContentDepth } from "@/types";
+import type { Format, Difficulty, NotesFormat, DifficultyCurve } from "@/types";
 
 interface FormatProps {
   selectedFormat: Format;
@@ -35,13 +32,23 @@ interface FormatProps {
   setDifficultyAction: (difficulty: Difficulty) => void;
   timeLimit: number;
   setTimeLimitAction: (minutes: number) => void;
+  revealEnabled: boolean;
+  setRevealEnabledAction: (enabled: boolean) => void;
+  difficultyCurve: DifficultyCurve;
+  setDifficultyCurveAction: (curve: DifficultyCurve) => void;
   uploadedDocs: Array<{ id: string; name: string; size: string }>;
   promptText: string;
   setPromptTextAction: (text: string) => void;
   notesFormat: NotesFormat;
   setNotesFormatAction: (format: NotesFormat) => void;
-  contentDepth: ContentDepth;
-  setContentDepthAction: (depth: ContentDepth) => void;
+  codeEnabled: boolean;
+  setCodeEnabledAction: (enabled: boolean) => void;
+  formulasEnabled: boolean;
+  setFormulasEnabledAction: (enabled: boolean) => void;
+  diagramsEnabled: boolean;
+  setDiagramsEnabledAction: (enabled: boolean) => void;
+  tablesEnabled: boolean;
+  setTablesEnabledAction: (enabled: boolean) => void;
   error: string | null;
   isLoading: boolean;
   onSelectAction: (format: Format) => void;
@@ -101,25 +108,6 @@ const notesFormatConfig = {
   },
 };
 
-const contentDepthConfig = {
-  short: {
-    label: "Short",
-    icon: AlignLeft,
-  },
-  medium: {
-    label: "Medium",
-    icon: AlignCenter,
-  },
-  long: {
-    label: "Long",
-    icon: AlignJustify,
-  },
-  auto: {
-    label: "Auto",
-    icon: Wand2,
-  },
-};
-
 const questionPresets = [3, 5, 10, 15, 20, 25, 30];
 const timePresets = [0, 3, 5, 10, 20];
 
@@ -132,13 +120,23 @@ export function Format({
   setDifficultyAction,
   timeLimit,
   setTimeLimitAction,
+  revealEnabled,
+  setRevealEnabledAction,
+  difficultyCurve,
+  setDifficultyCurveAction,
   uploadedDocs,
   promptText,
   setPromptTextAction,
   notesFormat,
   setNotesFormatAction,
-  contentDepth,
-  setContentDepthAction,
+  codeEnabled,
+  setCodeEnabledAction,
+  formulasEnabled,
+  setFormulasEnabledAction,
+  diagramsEnabled,
+  setDiagramsEnabledAction,
+  tablesEnabled,
+  setTablesEnabledAction,
   error,
   isLoading,
   onSelectAction,
@@ -367,156 +365,281 @@ export function Format({
             </div>
           </div>
 
-          <div className="col-span-2 space-y-3">
+          <div className="col-span-2 flex flex-col gap-3 h-[350px]">
             <textarea
               placeholder="Focus your learning — describe what topics or concepts to emphasize..."
               value={promptText}
               onChange={(e) => setPromptTextAction(e.target.value)}
-              rows={4}
-              className="w-full px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors"
+              className={cn(
+                "w-full px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors resize-none",
+                selectedFormat === "notes" ? "h-24" : "flex-1"
+              )}
             />
 
             {selectedFormat === "notes" ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
-                  <div className="flex items-center mb-4">
-                    <span className="text-sm font-bold text-gray-600 tracking-wider">Notes Format</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
-                      const config = notesFormatConfig[format];
-                      const isActive = notesFormat === format;
-                      const Icon = config.icon;
-
-                      return (
-                        <button
-                          key={format}
-                          onClick={() => setNotesFormatAction(format)}
-                          className={cn(
-                            "relative p-3 rounded-xl border-2 transition-all duration-200",
-                            isActive
-                              ? "bg-gray-100 border-gray-900"
-                              : "bg-white border-gray-200 hover:border-gray-300"
-                          )}
-                        >
-                          <div className="flex flex-col items-center text-center">
-                            <Icon
-                              className={cn(
-                                "w-5 h-5 mb-1.5",
-                                isActive ? "text-gray-900" : "text-gray-400"
-                              )}
-                            />
-                            <span
-                              className={cn(
-                                "text-sm font-medium",
-                                isActive ? "text-gray-900" : "text-gray-600"
-                              )}
-                            >
-                              {config.label}
-                            </span>
-                          </div>
-
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Content Depth - Right column */}
-                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
-                  <div className="flex items-center mb-4">
-                    <span className="text-sm font-bold text-gray-600 tracking-wider">Content Depth</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(Object.keys(contentDepthConfig) as ContentDepth[]).map((depth) => {
-                      const config = contentDepthConfig[depth];
-                      const isActive = contentDepth === depth;
-                      const Icon = config.icon;
-
-                      return (
-                        <button
-                          key={depth}
-                          onClick={() => setContentDepthAction(depth)}
-                          className={cn(
-                            "relative p-3 rounded-xl border-2 transition-all duration-200",
-                            isActive
-                              ? "bg-gray-100 border-gray-900"
-                              : "bg-white border-gray-200 hover:border-gray-300"
-                          )}
-                        >
-                          <div className="flex flex-col items-center text-center">
-                            <Icon
-                              className={cn(
-                                "w-5 h-5 mb-1.5",
-                                isActive ? "text-gray-900" : "text-gray-400"
-                              )}
-                            />
-                            <span
-                              className={cn(
-                                "text-sm font-medium",
-                                isActive ? "text-gray-900" : "text-gray-600"
-                              )}
-                            >
-                              {config.label}
-                            </span>
-                          </div>
-
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Quiz and Flashcards options: Difficulty, Questions, Time */
-              <>
-                <div className="grid grid-cols-4 gap-2">
-                  {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
-                    const config = difficultyConfig[level];
-                    const isActive = difficulty === level;
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                <div className="flex flex-col bg-white rounded-xl border-2 border-gray-200 p-2 gap-1">
+                  {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
+                    const config = notesFormatConfig[format];
+                    const isActive = notesFormat === format;
                     const Icon = config.icon;
 
                     return (
                       <button
-                        key={level}
-                        onClick={() => setDifficultyAction(level)}
+                        key={format}
+                        onClick={() => setNotesFormatAction(format)}
                         className={cn(
-                          "relative p-3 rounded-xl border-2 transition-all duration-200",
+                          "flex-1 px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-3",
                           isActive
-                            ? `${config.activeBg} ${config.activeBorder}`
-                            : `bg-white border-gray-200 hover:border-gray-300`
+                            ? "bg-gray-900"
+                            : "hover:bg-gray-50"
                         )}
                       >
-                        <div className="flex flex-col items-center text-center">
+                        <div className={cn(
+                          "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 transition-colors",
+                          isActive ? "bg-white/10" : "bg-gray-100"
+                        )}>
                           <Icon
                             className={cn(
-                              "w-5 h-5 mb-1.5",
-                              isActive ? config.color : "text-gray-400"
+                              "w-4 h-4",
+                              isActive ? "text-white" : "text-gray-400"
                             )}
                           />
+                        </div>
+                        <div className="flex items-center gap-1.5 min-w-0">
                           <span
                             className={cn(
-                              "text-sm font-medium",
-                              isActive ? "text-gray-900" : "text-gray-600"
+                              "text-sm font-semibold",
+                              isActive ? "text-white" : "text-gray-700"
                             )}
                           >
                             {config.label}
                           </span>
-                        </div>
-                        {isActive && (
-                          <div
+                          <span
                             className={cn(
-                              "absolute top-2 right-2 w-1.5 h-1.5 rounded-full",
-                              config.color.replace("text-", "bg-")
+                              "text-[10px]",
+                              isActive ? "text-white/50" : "text-gray-400"
                             )}
-                          />
-                        )}
+                          >
+                            •
+                          </span>
+                          <span
+                            className={cn(
+                              "text-[10px] truncate",
+                              isActive ? "text-white/50" : "text-gray-400"
+                            )}
+                          >
+                            {config.description}
+                          </span>
+                        </div>
                       </button>
                     );
                   })}
                 </div>
 
+                {/* Content Toggles - Right side 2x2 grid with larger icons, no bg */}
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Code Toggle */}
+                  <button
+                    onClick={() => setCodeEnabledAction(!codeEnabled)}
+                    className={cn(
+                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
+                      codeEnabled
+                        ? "bg-gray-900 border-gray-900"
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <span className={cn(
+                      "font-mono text-3xl font-bold leading-none",
+                      codeEnabled ? "text-white" : "text-gray-400"
+                    )}>
+                      {"</>"}
+                    </span>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      codeEnabled ? "text-white" : "text-gray-500"
+                    )}>
+                      Code
+                    </span>
+                  </button>
+
+                  {/* Formulas Toggle */}
+                  <button
+                    onClick={() => setFormulasEnabledAction(!formulasEnabled)}
+                    className={cn(
+                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
+                      formulasEnabled
+                        ? "bg-gray-900 border-gray-900"
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <span className={cn(
+                      "text-3xl font-serif leading-none",
+                      formulasEnabled ? "text-white" : "text-gray-400"
+                    )}>
+                      ∑
+                    </span>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      formulasEnabled ? "text-white" : "text-gray-500"
+                    )}>
+                      Formulas
+                    </span>
+                  </button>
+
+                  {/* Diagrams Toggle */}
+                  <button
+                    onClick={() => setDiagramsEnabledAction(!diagramsEnabled)}
+                    className={cn(
+                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
+                      diagramsEnabled
+                        ? "bg-gray-900 border-gray-900"
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <svg viewBox="0 0 24 24" className={cn("w-7 h-7", diagramsEnabled ? "text-white" : "text-gray-400")} fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="6" cy="6" r="3" />
+                      <circle cx="18" cy="6" r="3" />
+                      <circle cx="12" cy="18" r="3" />
+                      <path d="M8.5 7.5L10.5 15.5M15.5 7.5L13.5 15.5" />
+                    </svg>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      diagramsEnabled ? "text-white" : "text-gray-500"
+                    )}>
+                      Diagrams
+                    </span>
+                  </button>
+
+                  {/* Tables Toggle */}
+                  <button
+                    onClick={() => setTablesEnabledAction(!tablesEnabled)}
+                    className={cn(
+                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
+                      tablesEnabled
+                        ? "bg-gray-900 border-gray-900"
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <svg viewBox="0 0 24 24" className={cn("w-7 h-7", tablesEnabled ? "text-white" : "text-gray-400")} fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+                    </svg>
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      tablesEnabled ? "text-white" : "text-gray-500"
+                    )}>
+                      Tables
+                    </span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Quiz and Flashcards options: Difficulty, Questions, Time */
+              <div className="flex-1 flex flex-col gap-3">
+                {/* Difficulty + Reveal/Curve: Compact segmented controls */}
                 <div className="grid grid-cols-2 gap-3">
+                  {/* Difficulty - Direct segmented control */}
+                  <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-300">
+                    {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
+                      const config = difficultyConfig[level];
+                      const isActive = difficulty === level;
+                      return (
+                        <button
+                          key={level}
+                          onClick={() => setDifficultyAction(level)}
+                          className={cn(
+                            "flex-1 py-4 px-1 rounded-lg text-xs font-semibold transition-all duration-200",
+                            isActive
+                              ? "bg-gray-900 text-white shadow-sm"
+                              : "text-gray-500 hover:text-gray-900 hover:bg-white"
+                          )}
+                        >
+                          {config.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Reveal (Quiz) or Curve (Flashcards) - Direct segmented control */}
+                  {selectedFormat === "quiz" ? (
+                    <button
+                      onClick={() => setRevealEnabledAction(!revealEnabled)}
+                      className="relative overflow-hidden rounded-xl bg-gray-100 border-2 border-gray-200 transition-all duration-300"
+                    >
+                      <div
+                        className={cn(
+                          "absolute inset-y-1 w-[calc(50%-4px)] rounded-lg bg-gray-900 transition-all duration-300 ease-out shadow-sm",
+                          revealEnabled ? "left-1" : "left-[calc(50%+2px)]"
+                        )}
+                      />
+                      <div className="relative flex h-full">
+                        <div
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-1.5 py-3 transition-colors duration-200 z-10",
+                            revealEnabled ? "text-white" : "text-gray-500"
+                          )}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="text-xs font-semibold">Reveal Ans</span>
+                        </div>
+                        <div
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-1.5 py-3 transition-colors duration-200 z-10",
+                            !revealEnabled ? "text-white" : "text-gray-500"
+                          )}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="text-xs font-semibold">Hide Ans</span>
+                        </div>
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-200">
+                      {(["fixed", "progressive", "adaptive"] as DifficultyCurve[]).map((curve) => {
+                        const isActive = difficultyCurve === curve;
+                        return (
+                          <button
+                            key={curve}
+                            onClick={() => setDifficultyCurveAction(curve)}
+                            className={cn(
+                              "flex-1 py-2 px-1 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5",
+                              isActive
+                                ? "bg-gray-900 shadow-sm"
+                                : "hover:bg-white"
+                            )}
+                          >
+                            <svg
+                              viewBox="0 0 40 20"
+                              className={cn(
+                                "w-7 h-3.5",
+                                isActive ? "text-white" : "text-gray-400"
+                              )}
+                              fill="none"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              stroke="currentColor"
+                            >
+                              {curve === "fixed" && <path d="M2 14 L38 14" />}
+                              {curve === "progressive" && <path d="M2 16 Q10 16 20 10 T38 4" />}
+                              {curve === "adaptive" && <path d="M2 14 Q8 14 12 8 Q16 2 20 10 Q24 18 28 6 Q32 2 38 4" />}
+                            </svg>
+                            <span
+                              className={cn(
+                                "text-[10px] font-semibold capitalize",
+                                isActive ? "text-white" : "text-gray-500"
+                              )}
+                            >
+                              {curve}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 grid grid-cols-2 gap-3">
                   <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
                     <div className="flex justify-between mb-4 h-14 items-start pt-1">
                       <button
@@ -628,17 +751,19 @@ export function Format({
                     </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
-          <p className="text-red-700 text-sm text-center">{error}</p>
-        </div>
-      )}
+      {
+        error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+            <p className="text-red-700 text-sm text-center">{error}</p>
+          </div>
+        )
+      }
 
       <div className="flex justify-center">
         <Button
@@ -659,6 +784,6 @@ export function Format({
           )}
         </Button>
       </div>
-    </div>
+    </div >
   );
 }

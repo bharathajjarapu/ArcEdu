@@ -14,6 +14,7 @@ interface QuizProps {
   selectedAnswer: string | null;
   userAnswers: Record<number, string>;
   showFeedback: boolean;
+  revealEnabled: boolean;
   onAnswerSelectAction: (optionId: string) => void;
   onContinueAction: () => void;
   onNextAction: () => void;
@@ -30,6 +31,7 @@ export function QuizScreen({
   selectedAnswer,
   userAnswers,
   showFeedback,
+  revealEnabled,
   onAnswerSelectAction,
   onContinueAction,
   onNextAction,
@@ -197,7 +199,7 @@ export function QuizScreen({
         </div>
 
         <div className="mb-10">
-          {showFeedback && (
+          {showFeedback && revealEnabled && (
             <Card className="p-6 border-gray-200 bg-gray-50 rounded-xl">
               <div className="flex items-start gap-3">
                 <div>

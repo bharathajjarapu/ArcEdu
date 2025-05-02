@@ -310,13 +310,23 @@ export default function QuizApp() {
             setDifficultyAction={screen.setDifficulty}
             timeLimit={screen.timeLimit}
             setTimeLimitAction={screen.setTimeLimit}
+            revealEnabled={screen.revealEnabled}
+            setRevealEnabledAction={screen.setRevealEnabled}
+            difficultyCurve={screen.difficultyCurve}
+            setDifficultyCurveAction={screen.setDifficultyCurve}
             uploadedDocs={screen.uploadedDocs}
             promptText={screen.promptText}
             setPromptTextAction={screen.setPromptText}
             notesFormat={screen.notesFormat}
             setNotesFormatAction={screen.setNotesFormat}
-            contentDepth={screen.contentDepth}
-            setContentDepthAction={screen.setContentDepth}
+            codeEnabled={screen.codeEnabled}
+            setCodeEnabledAction={screen.setCodeEnabled}
+            formulasEnabled={screen.formulasEnabled}
+            setFormulasEnabledAction={screen.setFormulasEnabled}
+            diagramsEnabled={screen.diagramsEnabled}
+            setDiagramsEnabledAction={screen.setDiagramsEnabled}
+            tablesEnabled={screen.tablesEnabled}
+            setTablesEnabledAction={screen.setTablesEnabled}
             error={screen.error}
             isLoading={screen.isLoading}
             onSelectAction={handleFormatSelect}
@@ -330,6 +340,7 @@ export default function QuizApp() {
             selectedAnswer={quiz.selectedAnswer}
             userAnswers={quiz.userAnswers}
             showFeedback={quiz.showFeedback}
+            revealEnabled={screen.revealEnabled}
             onAnswerSelectAction={quiz.setSelectedAnswer}
             onContinueAction={quiz.submitAnswer}
             onNextAction={() => {
@@ -352,6 +363,8 @@ export default function QuizApp() {
             flashcardData={flash.flashcardData}
             currentFlashcard={flash.currentFlashcard}
             isFlashcardFlipped={flash.isFlashcardFlipped}
+            difficulty={screen.difficulty}
+            difficultyCurve={screen.difficultyCurve}
             onFlipAction={() => flash.setIsFlashcardFlipped(prev => !prev)}
             onScoreAction={(gotIt) => {
               const isLastCard = flash.currentFlashcard === flash.flashcardData.length - 1;

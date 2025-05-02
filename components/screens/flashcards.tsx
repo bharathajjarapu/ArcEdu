@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Flashcard } from "@/types";
+import type { Flashcard, Difficulty, DifficultyCurve } from "@/types";
 
 interface FlashcardsProps {
   flashcardData: Flashcard[];
   currentFlashcard: number;
   isFlashcardFlipped: boolean;
+  difficulty: Difficulty;
+  difficultyCurve: DifficultyCurve;
   onFlipAction: () => void;
   onScoreAction: (gotIt: boolean) => void;
   onNextAction: () => void;
@@ -26,6 +28,8 @@ export function Flashcards({
   flashcardData,
   currentFlashcard,
   isFlashcardFlipped,
+  difficulty,
+  difficultyCurve,
   onFlipAction,
   onScoreAction,
   onNextAction,

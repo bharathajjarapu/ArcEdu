@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
-import type { Screen, Format, InputType, Difficulty, NotesFormat, ContentDepth } from "@/types";
+import type { Screen, Format, InputType, Difficulty, NotesFormat, ContentDepth, DifficultyCurve } from "@/types";
 
 const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "results"];
 
@@ -69,10 +69,15 @@ export function useScreen() {
     const [topic, setTopic] = useState("");
     const [difficulty, setDifficulty] = useState<Difficulty>("medium");
     const [timeLimit, setTimeLimit] = useState(5); // minutes
+    const [revealEnabled, setRevealEnabled] = useState(true); // quiz reveal toggle
+    const [difficultyCurve, setDifficultyCurve] = useState<DifficultyCurve>("progressive"); // flashcard difficulty curve
 
     // Notes-specific State
     const [notesFormat, setNotesFormat] = useState<NotesFormat>("structured");
-    const [contentDepth, setContentDepth] = useState<ContentDepth>("medium");
+    const [codeEnabled, setCodeEnabled] = useState(true);
+    const [formulasEnabled, setFormulasEnabled] = useState(true);
+    const [diagramsEnabled, setDiagramsEnabled] = useState(true);
+    const [tablesEnabled, setTablesEnabled] = useState(true);
 
     const reset = useCallback(() => {
         setScreen("upload");
@@ -88,8 +93,13 @@ export function useScreen() {
         setNumQuestions(5);
         setDifficulty("medium");
         setTimeLimit(5);
+        setRevealEnabled(true);
+        setDifficultyCurve("progressive");
         setNotesFormat("structured");
-        setContentDepth("medium");
+        setCodeEnabled(true);
+        setFormulasEnabled(true);
+        setDiagramsEnabled(true);
+        setTablesEnabled(true);
     }, [setScreen]);
 
     return {
@@ -119,10 +129,20 @@ export function useScreen() {
         setDifficulty,
         timeLimit,
         setTimeLimit,
+        revealEnabled,
+        setRevealEnabled,
+        difficultyCurve,
+        setDifficultyCurve,
         notesFormat,
         setNotesFormat,
-        contentDepth,
-        setContentDepth,
+        codeEnabled,
+        setCodeEnabled,
+        formulasEnabled,
+        setFormulasEnabled,
+        diagramsEnabled,
+        setDiagramsEnabled,
+        tablesEnabled,
+        setTablesEnabled,
         reset
     };
 }
