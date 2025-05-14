@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
 import type { Screen, Format, InputType, Difficulty, NotesFormat, ContentDepth, DifficultyCurve } from "@/types";
 
-const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "results"];
+const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "notes", "results"];
 
 let listeners: (() => void)[] = [];
 let currentScreen: Screen = "upload";

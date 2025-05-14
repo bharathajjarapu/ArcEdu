@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import type { Quiz, Flashcard, Chunk, Difficulty } from "@/types";
+import type { Quiz, Flashcard, Chunk, Difficulty, NotesFormat } from "@/types";
 import * as sessions from "@/lib/storage/sessions";
 import * as docs from "@/lib/storage/docs";
 import { simple as simpleHash } from "@/lib/data/hash";
 import { group } from "@/lib/process/batch";
-import { embedBatch, generateQuiz, generateFlashcards } from "@/lib/api/client";
+import { embedBatch, generateQuiz, generateFlashcards, generateNotes } from "@/lib/api/client";
 
 interface GenerateOptions {
     sessionId: string;
@@ -14,6 +14,18 @@ interface GenerateOptions {
     prompt?: string;
     timeLimit?: number;
     onProgress?: (item: Quiz | Flashcard) => void;
+}
+
+interface NotesOptions {
+    sessionId: string;
+    topic: string;
+    notesFormat: NotesFormat;
+    codeEnabled: boolean;
+    formulasEnabled: boolean;
+    diagramsEnabled: boolean;
+    tablesEnabled: boolean;
+    prompt?: string;
+    onProgress?: (text: string) => void;
 }
 
 export function useContent() {
@@ -36,7 +48,6 @@ export function useContent() {
             }
         }
 
-        // Batch save all chunks at once instead of sequential saves
         await docs.saveChunks(needsEmbedding);
         return await sessions.getChunks(sessionId);
     }, []);
@@ -67,5 +78,18 @@ export function useContent() {
         [embedChunks]
     );
 
-    return { embedChunks, generateQuizContent, generateFlashcardContent };
+    const generateNotesContent = useCallback(
+        async (options: NotesOptions) => {
+            const chunks = await sessions.getChunks(options.sessionId);
+            if (!chunks || chunks.length === 0) {
+                throw new Error("No document content available");
+            }
+
+            const embedded = await embedChunks(options.sessionId, chunks);
+            return await generateNotes(options.topic, embedded, options.notesFormat, options.codeEnabled, options.formulasEnabled, options.diagramsEnabled, options.tablesEnabled, options.prompt, options.onProgress);
+        },
+        [embedChunks]
+    );
+
+    return { embedChunks, generateQuizContent, generateFlashcardContent, generateNotesContent };
 }

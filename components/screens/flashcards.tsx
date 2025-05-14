@@ -113,7 +113,7 @@ export function Flashcards({
           <ChevronLeft className="w-4 h-4" />
         </Button>
         <span className="text-gray-600 text-lg font-medium">
-          Card {currentFlashcard + 1} of {flashcardData.length}
+          Card {currentFlashcard + 1} of {flashcardData.length} · {difficulty} ({difficultyCurve})
         </span>
         <Button
           variant="ghost"

@@ -45,6 +45,10 @@ export interface Flashcard {
   back: string;
 }
 
+export interface Notes {
+  content: string;
+}
+
 export interface QuizAttempt {
   id: string;
   sessionId: string;
@@ -68,6 +72,7 @@ export type Screen =
   | "format"
   | "quiz"
   | "flashcards"
+  | "notes"
   | "results";
 export type InputType = "prompt" | "docs" | "links";
 export type Format = "quiz" | "flashcards" | "notes";

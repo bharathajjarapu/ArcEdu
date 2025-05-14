@@ -9,7 +9,8 @@ import * as worker from "@/lib/process/worker";
 import { generateTitle } from "@/lib/api/client";
 import { useQuiz } from "@/hooks/quiz";
 import { useFlash } from "@/hooks/flash";
-import { useScreen } from "@/hooks/screen"; // Renamed from useUI
+import { useNotes } from "@/hooks/notes";
+import { useScreen } from "@/hooks/screen";
 import { useContent } from "@/hooks/content";
 import { useUpload } from "@/hooks/upload";
 import type { Format, Quiz, Flashcard } from "@/types";
@@ -20,6 +21,7 @@ const Sessions = lazy(() => import("@/components/screens/sessions").then((m) => 
 const FormatScreen = lazy(() => import("@/components/screens/format").then((m) => ({ default: m.Format })));
 const QuizScreen = lazy(() => import("@/components/screens/quiz").then((m) => ({ default: m.QuizScreen })));
 const Flashcards = lazy(() => import("@/components/screens/flashcards").then((m) => ({ default: m.Flashcards })));
+const NotesScreen = lazy(() => import("@/components/screens/notes").then((m) => ({ default: m.NotesScreen })));
 const Results = lazy(() => import("@/components/screens/results").then((m) => ({ default: m.Results })));
 
 // Memoized components to prevent unnecessary re-renders
@@ -31,7 +33,8 @@ export default function QuizApp() {
   const screen = useScreen();
   const quiz = useQuiz();
   const flash = useFlash();
-  const { generateQuizContent, generateFlashcardContent } = useContent();
+  const notes = useNotes();
+  const { generateQuizContent, generateFlashcardContent, generateNotesContent } = useContent();
   const { validate, getTopicText } = useUpload();
 
   // Initialize workers once on mount
@@ -143,8 +146,25 @@ export default function QuizApp() {
             }
           },
         });
-      } else {
-        throw new Error("Notes format is not yet implemented");
+      } else if (format === "notes") {
+        notes.startNotes();
+        screen.setScreen("notes");
+
+        try {
+          await generateNotesContent({
+            sessionId: current.id,
+            topic: topicText,
+            notesFormat: screen.notesFormat,
+            codeEnabled: screen.codeEnabled,
+            formulasEnabled: screen.formulasEnabled,
+            diagramsEnabled: screen.diagramsEnabled,
+            tablesEnabled: screen.tablesEnabled,
+            prompt: screen.promptText.trim() || undefined,
+            onProgress: (text) => notes.setNotesContent(text),
+          });
+        } finally {
+          notes.finishNotes();
+        }
       }
     } catch (err) {
       screen.setError("Failed to generate content");
@@ -205,9 +225,28 @@ export default function QuizApp() {
             }
           },
         });
-      } else {
-        throw new Error("Notes format is not yet implemented");
+      } else if (screen.selectedFormat === "notes") {
+        notes.startNotes();
+        screen.setScreen("notes");
+
+        try {
+          await generateNotesContent({
+            sessionId: current.id,
+            topic: topicText,
+            notesFormat: screen.notesFormat,
+            codeEnabled: screen.codeEnabled,
+            formulasEnabled: screen.formulasEnabled,
+            diagramsEnabled: screen.diagramsEnabled,
+            tablesEnabled: screen.tablesEnabled,
+            prompt: screen.promptText.trim() || undefined,
+            onProgress: (text) => notes.setNotesContent(text),
+          });
+        } finally {
+          notes.finishNotes();
+        }
       }
+    } catch (err) {
+      screen.setError("Failed to generate content");
     } finally {
       screen.setIsLoading(false);
     }
@@ -379,6 +418,13 @@ export default function QuizApp() {
             startTime={flash.startTime}
             questionStartTime={flash.questionStartTime}
             timeLimit={screen.timeLimit}
+          />
+        )}
+
+        {screen.screen === "notes" && (
+          <NotesScreen
+            content={notes.notesContent}
+            isGenerating={notes.isGenerating}
           />
         )}
 

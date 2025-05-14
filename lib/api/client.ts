@@ -114,6 +114,51 @@ export async function generateFlashcards(
   return parseStream<Flashcard>(response, num, onProgress);
 }
 
+export async function generateNotes(
+  topic: string,
+  chunks: any[],
+  notesFormat: string,
+  codeEnabled: boolean,
+  formulasEnabled: boolean,
+  diagramsEnabled: boolean,
+  tablesEnabled: boolean,
+  prompt?: string,
+  onProgress?: (text: string) => void,
+): Promise<string> {
+  let context = "";
+
+  if (chunks.length > 0) {
+    const searchQuery = prompt?.trim() || topic;
+    const queryEmbedding = await embedText(searchQuery);
+    const relevant = await worker.findSimilar(queryEmbedding, chunks, 8);
+    context = relevant.map((r) => r.text).join("\n\n");
+  }
+
+  const response = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic, context, notesFormat, codeEnabled, formulasEnabled, diagramsEnabled, tablesEnabled, prompt }),
+  });
+
+  if (!response.ok) throw new Error("Failed to generate notes");
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No reader");
+
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const text = decoder.decode(value, { stream: true });
+    result += text;
+    onProgress?.(result);
+  }
+
+  return result;
+}
+
 export async function generateTitle(content: string | string[]): Promise<string> {
   if (Array.isArray(content)) {
     return makeTitleFromNames(content);
