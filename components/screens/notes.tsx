@@ -110,7 +110,7 @@ export function NotesScreen({ content, isGenerating }: NotesProps) {
                             [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-3 [&_ol]:space-y-1
                             [&_li]:my-1
                             [&_code]:font-mono [&_code]:text-sm [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-gray-800
-                            [&_pre]:bg-gray-900 [&_pre]:text-gray-100 [&_pre]:p-4 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-4 [&_pre]:border-2 [&_pre]:border-gray-700
+                            [&_pre]:bg-gray-100 [&_pre]:text-gray-800 [&_pre]:p-4 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-4 [&_pre]:border-2 [&_pre]:border-gray-300
                             [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit
                             [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:text-gray-600 [&_blockquote]:italic
                             [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_table]:border-2 [&_table]:border-gray-200 [&_table]:rounded-lg [&_table]:overflow-hidden
