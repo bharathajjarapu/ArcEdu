@@ -12,7 +12,7 @@ interface SessionsProps {
 }
 
 export function Sessions({ sessions, onSelect, onDelete, onBack }: SessionsProps) {
-  const completed = sessions.filter((s) => s.completed);
+  const completed = sessions.filter((s) => s.completed).reverse();
 
   return (
     <div className="max-w-7xl mx-auto py-10">
