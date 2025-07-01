@@ -29,10 +29,14 @@ export async function POST(request: NextRequest) {
 
     const formatGuide = formatInstructions[notesFormat] || formatInstructions.structured;
     const extras = [
-        codeEnabled && "Include code examples where relevant.",
-        formulasEnabled && MATH_INSTRUCTIONS,
-        diagramsEnabled && "Include ASCII diagrams where helpful.",
-        tablesEnabled && "Use markdown tables for comparisons.",
+        codeEnabled === true && "Include code examples where relevant.",
+        codeEnabled === false && "Avoid code blocks unless essential.",
+        formulasEnabled === true && MATH_INSTRUCTIONS,
+        formulasEnabled === false && "Avoid math formulas unless essential.",
+        diagramsEnabled === true && "Include simple mermaid diagrams (```mermaid) with few nodes for clarity.",
+        diagramsEnabled === false && "Avoid diagrams unless essential.",
+        tablesEnabled === true && "Use markdown tables for comparisons.",
+        tablesEnabled === false && "Avoid tables unless essential.",    
     ].filter(Boolean).join(" ");
 
     const notesPrompt = `Create study notes about "${topic}" in ${notesFormat} format.

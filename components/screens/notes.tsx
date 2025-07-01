@@ -1,10 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useCallback } from "react";
 import { marked } from "marked";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { Loader2 } from "lucide-react";
+
+declare global { interface Window { mermaid?: { initialize: (c: object) => void; render: (id: string, code: string) => Promise<{ svg: string }> } } }
+
+let mermaidPromise: Promise<typeof window.mermaid> | null = null;
+
+function loadMermaid(): Promise<typeof window.mermaid> {
+    if (window.mermaid) return Promise.resolve(window.mermaid);
+    if (mermaidPromise) return mermaidPromise;
+    mermaidPromise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+        script.onload = () => {
+            window.mermaid?.initialize({ startOnLoad: false, theme: "base", themeVariables: { background: "#fff", primaryColor: "#f3f4f6", primaryTextColor: "#111827", primaryBorderColor: "#d1d5db", lineColor: "#6b7280", secondaryColor: "#f9fafb", tertiaryColor: "#f3f4f6", nodeRadius: "8px" } });
+            resolve(window.mermaid);
+        };
+        script.onerror = () => { mermaidPromise = null; reject(); };
+        document.head.appendChild(script);
+    });
+    return mermaidPromise;
+}
 
 interface NotesProps {
     content: string;
@@ -75,11 +95,34 @@ export function NotesScreen({ content, isGenerating }: NotesProps) {
         return renderMath(html);
     }, [content]);
 
-    useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.innerHTML = renderedHtml;
+    const renderMermaid = useCallback(async () => {
+        if (!containerRef.current) return;
+        const blocks = containerRef.current.querySelectorAll('pre code[class*="mermaid"]');
+        if (blocks.length === 0) return;
+        const mermaid = await loadMermaid().catch(() => null);
+        if (!mermaid) return;
+        for (let i = 0; i < blocks.length; i++) {
+            const block = blocks[i], pre = block.parentElement;
+            if (!pre || pre.dataset.rendered) continue;
+            const code = (block.textContent || "").trim();
+            if (!code || code.length < 10) continue; // skip incomplete
+            pre.dataset.rendered = "1";
+            try {
+                const { svg } = await mermaid.render(`m-${i}-${Date.now()}`, code);
+                const div = document.createElement("div");
+                div.className = "mermaid-diagram";
+                div.innerHTML = svg;
+                div.querySelectorAll("rect").forEach(r => { r.setAttribute("rx", "8"); r.setAttribute("ry", "8"); });
+                pre.replaceWith(div);
+            } catch { /* invalid diagram */ }
         }
-    }, [renderedHtml]);
+    }, []);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        containerRef.current.innerHTML = renderedHtml;
+        requestAnimationFrame(() => renderMermaid());
+    }, [renderedHtml, renderMermaid]);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -120,7 +163,8 @@ export function NotesScreen({ content, isGenerating }: NotesProps) {
                             [&_hr]:border-0 [&_hr]:border-t-2 [&_hr]:border-gray-200 [&_hr]:my-6
                             [&_a]:text-blue-600 [&_a]:underline
                             [&_strong]:font-semibold [&_strong]:text-gray-900
-                            [&_.katex]:text-[1.1em]"
+                            [&_.katex]:text-[1.1em]
+                            [&_.mermaid-diagram]:my-4 [&_.mermaid-diagram]:flex [&_.mermaid-diagram]:justify-center [&_.mermaid-diagram_svg]:max-w-full"
                     >
                         {!content && !isGenerating && (
                             <p className="text-gray-400 italic text-center py-12">Your notes will appear here...</p>
