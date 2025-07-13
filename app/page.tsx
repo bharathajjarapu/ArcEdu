@@ -167,7 +167,7 @@ export default function QuizApp() {
         }
       }
     } catch (err) {
-      screen.setError("Failed to generate content");
+      // swallow error message to avoid showing on format page
     } finally {
       screen.setIsLoading(false);
     }
@@ -425,6 +425,7 @@ export default function QuizApp() {
           <NotesScreen
             content={notes.notesContent}
             isGenerating={notes.isGenerating}
+            onEnd={notes.finishNotes}
           />
         )}
 

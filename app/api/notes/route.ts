@@ -20,6 +20,14 @@ IMPORTANT - Math formatting rules:
 - In tables, each cell formula must be complete: | $E = mc^2$ |
 `;
 
+const DIAGRAM_INSTRUCTIONS =
+"Diagram rules:\\n" +
+"- Use ```mermaid ...``` fences\\n" +
+"- Keep small (few nodes/edges), top-down: graph TD\\n" +
+"- IDs simple (A,B,Node1); labels in quotes e.g., A[\\\"Label\\\"]\\n" +
+"- No braces/math in IDs; keep math as text\\n" +
+"- No extra styling/HTML";
+
 export async function POST(request: NextRequest) {
     const { topic, context, notesFormat = "structured", codeEnabled, formulasEnabled, diagramsEnabled, tablesEnabled, prompt } = await request.json();
 
@@ -33,7 +41,7 @@ export async function POST(request: NextRequest) {
         codeEnabled === false && "Avoid code blocks unless essential.",
         formulasEnabled === true && MATH_INSTRUCTIONS,
         formulasEnabled === false && "Avoid math formulas unless essential.",
-        diagramsEnabled === true && "Include simple mermaid diagrams (```mermaid) with few nodes for clarity.",
+        diagramsEnabled === true && `${DIAGRAM_INSTRUCTIONS} Include simple mermaid diagrams (\\\`\\\`\\\`mermaid) with few nodes for clarity.`,
         diagramsEnabled === false && "Avoid diagrams unless essential.",
         tablesEnabled === true && "Use markdown tables for comparisons.",
         tablesEnabled === false && "Avoid tables unless essential.",    

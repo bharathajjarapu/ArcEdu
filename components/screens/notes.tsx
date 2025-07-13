@@ -4,7 +4,8 @@ import { useEffect, useRef, useMemo, useCallback } from "react";
 import { marked } from "marked";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download, RefreshCw, X } from "lucide-react";
+import { useScreen } from "@/hooks/screen";
 
 declare global { interface Window { mermaid?: { initialize: (c: object) => void; render: (id: string, code: string) => Promise<{ svg: string }> } } }
 
@@ -29,6 +30,7 @@ function loadMermaid(): Promise<typeof window.mermaid> {
 interface NotesProps {
     content: string;
     isGenerating: boolean;
+    onEnd?: () => void;
 }
 
 function decodeHtmlEntities(text: string): string {
@@ -85,27 +87,55 @@ function renderMath(html: string): string {
     return html;
 }
 
-export function NotesScreen({ content, isGenerating }: NotesProps) {
+export function NotesScreen({ content, isGenerating, onEnd }: NotesProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const screen = useScreen();
+
+    const { title, body } = useMemo(() => {
+        if (!content) return { title: "", body: "" };
+        const lines = content.split(/\r?\n/);
+        let foundTitle = "";
+        let skippedTopHr = false;
+        const filtered: string[] = [];
+        for (const line of lines) {
+            if (!foundTitle) {
+                const m = line.match(/^#\s+(.+)/);
+                if (m) {
+                    foundTitle = m[1].trim();
+                    continue;
+                }
+            }
+            if (!skippedTopHr && /^(-{3,}|\*{3,})\s*$/.test(line)) {
+                skippedTopHr = true;
+                continue;
+            }
+            if (line.trim() !== "") skippedTopHr = true;
+            filtered.push(line);
+        }
+        return { title: foundTitle, body: filtered.join("\n") };
+    }, [content]);
 
     const renderedHtml = useMemo(() => {
-        if (!content) return "";
-        const normalized = normalizeMathDelimiters(content);
+        if (!body) return "";
+        const normalized = normalizeMathDelimiters(body);
         const html = marked.parse(normalized, { async: false, gfm: true, breaks: false }) as string;
         return renderMath(html);
-    }, [content]);
+    }, [body]);
 
     const renderMermaid = useCallback(async () => {
         if (!containerRef.current) return;
-        const blocks = containerRef.current.querySelectorAll('pre code[class*="mermaid"]');
+        const blocks = containerRef.current.querySelectorAll('pre code');
         if (blocks.length === 0) return;
         const mermaid = await loadMermaid().catch(() => null);
         if (!mermaid) return;
         for (let i = 0; i < blocks.length; i++) {
             const block = blocks[i], pre = block.parentElement;
             if (!pre || pre.dataset.rendered) continue;
+            const cls = block.className || "";
             const code = (block.textContent || "").trim();
-            if (!code || code.length < 10) continue; // skip incomplete
+            const looksMermaid = cls.includes("mermaid") || /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|erDiagram|gantt|pie|journey)\b/.test(code);
+            if (!looksMermaid || !code || code.length < 10) continue; // skip incomplete/non-mermaid
+            block.classList.add("language-mermaid", "mermaid");
             pre.dataset.rendered = "1";
             try {
                 const { svg } = await mermaid.render(`m-${i}-${Date.now()}`, code);
@@ -114,6 +144,7 @@ export function NotesScreen({ content, isGenerating }: NotesProps) {
                 div.innerHTML = svg;
                 div.querySelectorAll("rect").forEach(r => { r.setAttribute("rx", "8"); r.setAttribute("ry", "8"); });
                 pre.replaceWith(div);
+                await new Promise((r) => requestAnimationFrame(r)); // yield to keep UI smooth while streaming
             } catch { /* invalid diagram */ }
         }
     }, []);
@@ -122,7 +153,16 @@ export function NotesScreen({ content, isGenerating }: NotesProps) {
         if (!containerRef.current) return;
         containerRef.current.innerHTML = renderedHtml;
         requestAnimationFrame(() => renderMermaid());
+        setTimeout(() => renderMermaid(), 60);
     }, [renderedHtml, renderMermaid]);
+
+    // After streaming finishes, run a final render pass to catch late diagrams
+    useEffect(() => {
+        if (isGenerating) return;
+        requestAnimationFrame(() => renderMermaid());
+        setTimeout(() => renderMermaid(), 80);
+    }, [isGenerating, renderMermaid]);
+
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -131,21 +171,64 @@ export function NotesScreen({ content, isGenerating }: NotesProps) {
         };
     }, []);
 
+    const handleDownload = useCallback(() => {
+        if (!content) return;
+        const blob = new Blob([content], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${title || "notes"}.md`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }, [content, title]);
+
+    const handleRetry = useCallback(() => {
+        // Return to format screen with state intact
+        screen.setScreen("format");
+    }, [screen]);
+
+    const handleEnd = useCallback(() => {
+        onEnd?.();
+        window.stop();
+    }, [onEnd]);
+
     return (
         <div className="fixed inset-0 top-[72px] bg-gray-50 bg-dots overflow-hidden">
             <div className="max-w-4xl mx-auto px-4 py-6 h-full">
                 <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden h-full flex flex-col">
-                    {isGenerating && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500 px-6 py-3 border-b border-gray-100 bg-gray-50 flex-shrink-0">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Generating notes...</span>
+                    <div className="flex items-center justify-between text-sm text-gray-600 px-5 py-3 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+                        <div className="flex items-center gap-2">
+                            {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
+                            <span>{isGenerating ? "Generating notes..." : (title || "Notes")}</span>
                         </div>
-                    )}
+                        <div className="flex items-center gap-2">
+                            <button onClick={handleRetry} className="h-8 px-3 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                <RefreshCw className="w-4 h-4" />
+                                <span className="text-xs font-semibold">Retry</span>
+                            </button>
+                            {isGenerating && (
+                                <button onClick={handleEnd} className="h-8 px-3 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                    <X className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">End</span>
+                                </button>
+                            )}
+                            {!isGenerating && (
+                                <button onClick={handleDownload} className="h-8 px-3 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                    <Download className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Download</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {!isGenerating && title && null}
 
                     <div
                         ref={containerRef}
-                        className="p-6 overflow-y-auto flex-1 text-gray-700 leading-relaxed
-                            [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-6 [&_h1]:mb-4 [&_h1]:pb-2 [&_h1]:border-b-2 [&_h1]:border-gray-200 [&_h1:first-child]:mt-0
+                        className="px-6 pb-6 overflow-y-auto flex-1 text-gray-700 leading-relaxed
+                            [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-6 [&_h1]:mb-4 [&_h1:first-child]:mt-0
                             [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-gray-800 [&_h2]:mt-5 [&_h2]:mb-3
                             [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-700 [&_h3]:mt-4 [&_h3]:mb-2
                             [&_p]:my-3
