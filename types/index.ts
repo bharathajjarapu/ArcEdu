@@ -77,7 +77,8 @@ export type Screen =
 export type InputType = "prompt" | "docs" | "links";
 export type Format = "quiz" | "flashcards" | "notes";
 export type Difficulty = "easy" | "medium" | "hard" | "adaptive";
-export type NotesFormat = "summary" | "structured" | "exam" | "cheatsheet";
+export type NotesFormat = "summary" | "structured" | "exam" | "cheatsheet" | "prompt";
+export type NotesLength = "short" | "medium" | "long" | "adaptive";
 export type ContentDepth = "short" | "medium" | "long" | "auto";
 export type DifficultyCurve = "fixed" | "progressive" | "adaptive";
 

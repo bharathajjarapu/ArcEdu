@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
-import type { Screen, Format, InputType, Difficulty, NotesFormat, ContentDepth, DifficultyCurve } from "@/types";
+import type { Screen, Format, InputType, Difficulty, NotesFormat, NotesLength, ContentDepth, DifficultyCurve } from "@/types";
+
+export type { NotesLength };
 
 const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "notes", "results"];
 
@@ -74,6 +76,7 @@ export function useScreen() {
 
     // Notes-specific State
     const [notesFormat, setNotesFormat] = useState<NotesFormat>("structured");
+    const [notesLength, setNotesLength] = useState<NotesLength>("medium");
     const [codeEnabled, setCodeEnabled] = useState(true);
     const [formulasEnabled, setFormulasEnabled] = useState(true);
     const [diagramsEnabled, setDiagramsEnabled] = useState(true);
@@ -96,6 +99,7 @@ export function useScreen() {
         setRevealEnabled(true);
         setDifficultyCurve("progressive");
         setNotesFormat("structured");
+        setNotesLength("medium");
         setCodeEnabled(true);
         setFormulasEnabled(true);
         setDiagramsEnabled(true);
@@ -135,6 +139,8 @@ export function useScreen() {
         setDifficultyCurve,
         notesFormat,
         setNotesFormat,
+        notesLength,
+        setNotesLength,
         codeEnabled,
         setCodeEnabled,
         formulasEnabled,

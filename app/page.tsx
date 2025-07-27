@@ -155,6 +155,7 @@ export default function QuizApp() {
             sessionId: current.id,
             topic: topicText,
             notesFormat: screen.notesFormat,
+            notesLength: screen.notesLength,
             codeEnabled: screen.codeEnabled,
             formulasEnabled: screen.formulasEnabled,
             diagramsEnabled: screen.diagramsEnabled,
@@ -234,6 +235,7 @@ export default function QuizApp() {
             sessionId: current.id,
             topic: topicText,
             notesFormat: screen.notesFormat,
+            notesLength: screen.notesLength,
             codeEnabled: screen.codeEnabled,
             formulasEnabled: screen.formulasEnabled,
             diagramsEnabled: screen.diagramsEnabled,
@@ -366,6 +368,8 @@ export default function QuizApp() {
             setDiagramsEnabledAction={screen.setDiagramsEnabled}
             tablesEnabled={screen.tablesEnabled}
             setTablesEnabledAction={screen.setTablesEnabled}
+            notesLength={screen.notesLength}
+            setNotesLengthAction={screen.setNotesLength}
             error={screen.error}
             isLoading={screen.isLoading}
             onSelectAction={handleFormatSelect}

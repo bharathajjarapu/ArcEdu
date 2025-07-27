@@ -20,6 +20,7 @@ interface NotesOptions {
     sessionId: string;
     topic: string;
     notesFormat: NotesFormat;
+    notesLength: string;
     codeEnabled: boolean;
     formulasEnabled: boolean;
     diagramsEnabled: boolean;
@@ -86,7 +87,7 @@ export function useContent() {
             }
 
             const embedded = await embedChunks(options.sessionId, chunks);
-            return await generateNotes(options.topic, embedded, options.notesFormat, options.codeEnabled, options.formulasEnabled, options.diagramsEnabled, options.tablesEnabled, options.prompt, options.onProgress);
+            return await generateNotes(options.topic, embedded, options.notesFormat, options.notesLength, options.codeEnabled, options.formulasEnabled, options.diagramsEnabled, options.tablesEnabled, options.prompt, options.onProgress);
         },
         [embedChunks]
     );

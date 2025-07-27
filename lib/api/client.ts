@@ -118,6 +118,7 @@ export async function generateNotes(
   topic: string,
   chunks: any[],
   notesFormat: string,
+  notesLength: string,
   codeEnabled: boolean,
   formulasEnabled: boolean,
   diagramsEnabled: boolean,
@@ -137,7 +138,7 @@ export async function generateNotes(
   const response = await fetch("/api/notes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, context, notesFormat, codeEnabled, formulasEnabled, diagramsEnabled, tablesEnabled, prompt }),
+    body: JSON.stringify({ topic, context, notesFormat, notesLength, codeEnabled, formulasEnabled, diagramsEnabled, tablesEnabled, prompt }),
   });
 
   if (!response.ok) throw new Error("Failed to generate notes");

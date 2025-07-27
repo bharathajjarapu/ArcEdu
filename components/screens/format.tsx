@@ -19,9 +19,10 @@ import {
   GraduationCap,
   ScrollText,
   Eye,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Format, Difficulty, NotesFormat, DifficultyCurve } from "@/types";
+import type { Format, Difficulty, NotesFormat, NotesLength, DifficultyCurve } from "@/types";
 
 interface FormatProps {
   selectedFormat: Format;
@@ -49,6 +50,8 @@ interface FormatProps {
   setDiagramsEnabledAction: (enabled: boolean) => void;
   tablesEnabled: boolean;
   setTablesEnabledAction: (enabled: boolean) => void;
+  notesLength: NotesLength;
+  setNotesLengthAction: (length: NotesLength) => void;
   error: string | null;
   isLoading: boolean;
   onSelectAction: (format: Format) => void;
@@ -86,6 +89,11 @@ const difficultyConfig = {
 };
 
 const notesFormatConfig = {
+  prompt: {
+    label: "Prompt",
+    icon: MessageCircle,
+    description: "Custom prompt",
+  },
   summary: {
     label: "Summary",
     icon: FileSearch,
@@ -105,6 +113,25 @@ const notesFormatConfig = {
     label: "Cheatsheet",
     icon: ScrollText,
     description: "Quick reference",
+  },
+};
+
+const notesLengthConfig = {
+  short: {
+    label: "Short",
+    description: "Brief & concise",
+  },
+  medium: {
+    label: "Medium",
+    description: "Balanced depth",
+  },
+  long: {
+    label: "Long",
+    description: "Comprehensive",
+  },
+  adaptive: {
+    label: "Adaptive",
+    description: "Smart length",
   },
 };
 
@@ -137,6 +164,8 @@ export function Format({
   setDiagramsEnabledAction,
   tablesEnabled,
   setTablesEnabledAction,
+  notesLength,
+  setNotesLengthAction,
   error,
   isLoading,
   onSelectAction,
@@ -370,176 +399,146 @@ export function Format({
               placeholder="Focus your learning — describe what topics or concepts to emphasize..."
               value={promptText}
               onChange={(e) => setPromptTextAction(e.target.value)}
-              className={cn(
-                "w-full px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors resize-none",
-                selectedFormat === "notes" ? "h-24" : "flex-1"
-              )}
+              className="w-full flex-1 px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors resize-none"
             />
 
             {selectedFormat === "notes" ? (
-              <div className="flex-1 grid grid-cols-2 gap-3">
-                <div className="flex flex-col bg-white rounded-xl border-2 border-gray-200 p-2 gap-1">
-                  {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
-                    const config = notesFormatConfig[format];
-                    const isActive = notesFormat === format;
-                    const Icon = config.icon;
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-300">
+                    {(["short", "medium", "long", "adaptive"] as NotesLength[]).map((length) => {
+                      const isActive = notesLength === length;
+                      return (
+                        <button
+                          key={length}
+                          onClick={() => setNotesLengthAction(length)}
+                          className={cn(
+                            "flex-1 py-4 px-1 rounded-lg text-xs font-semibold transition-all duration-200 capitalize",
+                            isActive
+                              ? "bg-gray-900 text-white shadow-sm"
+                              : "text-gray-500 hover:text-gray-900 hover:bg-white"
+                          )}
+                        >
+                          {length}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                    return (
-                      <button
-                        key={format}
-                        onClick={() => setNotesFormatAction(format)}
-                        className={cn(
-                          "flex-1 px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-3",
-                          isActive
-                            ? "bg-gray-900"
-                            : "hover:bg-gray-50"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 transition-colors",
-                          isActive ? "bg-white/10" : "bg-gray-100"
-                        )}>
-                          <Icon
-                            className={cn(
-                              "w-4 h-4",
-                              isActive ? "text-white" : "text-gray-400"
-                            )}
-                          />
-                        </div>
-                        <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex bg-gray-100 rounded-xl gap-1 border-2 border-gray-300 p-1">
+                    <button
+                      onClick={() => setCodeEnabledAction(!codeEnabled)}
+                      className={cn(
+                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        codeEnabled
+                          ? "bg-gray-900 text-white shadow-sm border-gray-900"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
+                      )}
+                      onFocus={(e) => e.currentTarget.classList.add("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                      onBlur={(e) => e.currentTarget.classList.remove("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                    >
+                      <span className="font-mono text-base font-bold leading-none">{"</>"}</span>
+                      <span className="text-[10px] leading-none">Code</span>
+                    </button>
+                    <button
+                      onClick={() => setFormulasEnabledAction(!formulasEnabled)}
+                      className={cn(
+                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        formulasEnabled
+                          ? "bg-gray-900 text-white shadow-sm border-gray-900"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
+                      )}
+                      onFocus={(e) => e.currentTarget.classList.add("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                      onBlur={(e) => e.currentTarget.classList.remove("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                    >
+                      <span className="text-base font-serif leading-none">∑</span>
+                      <span className="text-[10px] leading-none">Formulas</span>
+                    </button>
+                    <button
+                      onClick={() => setDiagramsEnabledAction(!diagramsEnabled)}
+                      className={cn(
+                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        diagramsEnabled
+                          ? "bg-gray-900 text-white shadow-sm border-gray-900"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
+                      )}
+                      onFocus={(e) => e.currentTarget.classList.add("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                      onBlur={(e) => e.currentTarget.classList.remove("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                    >
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="6" cy="6" r="3" />
+                        <circle cx="18" cy="6" r="3" />
+                        <circle cx="12" cy="18" r="3" />
+                        <path d="M8.5 7.5L10.5 15.5M15.5 7.5L13.5 15.5" />
+                      </svg>
+                      <span className="text-[10px] leading-none">Diagrams</span>
+                    </button>
+                    <button
+                      onClick={() => setTablesEnabledAction(!tablesEnabled)}
+                      className={cn(
+                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        tablesEnabled
+                          ? "bg-gray-900 text-white shadow-sm border-gray-900"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
+                      )}
+                      onFocus={(e) => e.currentTarget.classList.add("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                      onBlur={(e) => e.currentTarget.classList.remove("ring-1", "ring-gray-200", "ring-offset-1", "ring-offset-gray-100")}
+                    >
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+                      </svg>
+                      <span className="text-[10px] leading-none">Tables</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-3 h-35">
+                  <div className="flex gap-2 h-full">
+                    {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
+                      const config = notesFormatConfig[format];
+                      const isActive = notesFormat === format;
+                      const Icon = config.icon;
+
+                      return (
+                        <button
+                          key={format}
+                          onClick={() => setNotesFormatAction(format)}
+                          className={cn(
+                            "flex-1 rounded-xl border-2 p-2 transition-all duration-200 flex flex-col items-center justify-center gap-1",
+                            isActive
+                              ? "bg-gray-900 border-gray-900"
+                              : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                            isActive ? "bg-white/10" : "bg-gray-100"
+                          )}>
+                            <Icon
+                              className={cn(
+                                "w-4 h-4",
+                                isActive ? "text-white" : "text-gray-400"
+                              )}
+                            />
+                          </div>
                           <span
                             className={cn(
-                              "text-sm font-semibold",
+                              "text-[11px] font-semibold",
                               isActive ? "text-white" : "text-gray-700"
                             )}
                           >
                             {config.label}
                           </span>
-                          <span
-                            className={cn(
-                              "text-[10px]",
-                              isActive ? "text-white/50" : "text-gray-400"
-                            )}
-                          >
-                            •
-                          </span>
-                          <span
-                            className={cn(
-                              "text-[10px] truncate",
-                              isActive ? "text-white/50" : "text-gray-400"
-                            )}
-                          >
-                            {config.description}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Content Toggles - Right side 2x2 grid with larger icons, no bg */}
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Code Toggle */}
-                  <button
-                    onClick={() => setCodeEnabledAction(!codeEnabled)}
-                    className={cn(
-                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
-                      codeEnabled
-                        ? "bg-gray-900 border-gray-900"
-                        : "bg-white border-gray-200 hover:border-gray-300"
-                    )}
-                  >
-                    <span className={cn(
-                      "font-mono text-3xl font-bold leading-none",
-                      codeEnabled ? "text-white" : "text-gray-400"
-                    )}>
-                      {"</>"}
-                    </span>
-                    <span className={cn(
-                      "text-xs font-semibold",
-                      codeEnabled ? "text-white" : "text-gray-500"
-                    )}>
-                      Code
-                    </span>
-                  </button>
-
-                  {/* Formulas Toggle */}
-                  <button
-                    onClick={() => setFormulasEnabledAction(!formulasEnabled)}
-                    className={cn(
-                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
-                      formulasEnabled
-                        ? "bg-gray-900 border-gray-900"
-                        : "bg-white border-gray-200 hover:border-gray-300"
-                    )}
-                  >
-                    <span className={cn(
-                      "text-3xl font-serif leading-none",
-                      formulasEnabled ? "text-white" : "text-gray-400"
-                    )}>
-                      ∑
-                    </span>
-                    <span className={cn(
-                      "text-xs font-semibold",
-                      formulasEnabled ? "text-white" : "text-gray-500"
-                    )}>
-                      Formulas
-                    </span>
-                  </button>
-
-                  {/* Diagrams Toggle */}
-                  <button
-                    onClick={() => setDiagramsEnabledAction(!diagramsEnabled)}
-                    className={cn(
-                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
-                      diagramsEnabled
-                        ? "bg-gray-900 border-gray-900"
-                        : "bg-white border-gray-200 hover:border-gray-300"
-                    )}
-                  >
-                    <svg viewBox="0 0 24 24" className={cn("w-7 h-7", diagramsEnabled ? "text-white" : "text-gray-400")} fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="6" cy="6" r="3" />
-                      <circle cx="18" cy="6" r="3" />
-                      <circle cx="12" cy="18" r="3" />
-                      <path d="M8.5 7.5L10.5 15.5M15.5 7.5L13.5 15.5" />
-                    </svg>
-                    <span className={cn(
-                      "text-xs font-semibold",
-                      diagramsEnabled ? "text-white" : "text-gray-500"
-                    )}>
-                      Diagrams
-                    </span>
-                  </button>
-
-                  {/* Tables Toggle */}
-                  <button
-                    onClick={() => setTablesEnabledAction(!tablesEnabled)}
-                    className={cn(
-                      "rounded-xl border-2 p-3 transition-all duration-200 flex flex-col items-center justify-center gap-1.5",
-                      tablesEnabled
-                        ? "bg-gray-900 border-gray-900"
-                        : "bg-white border-gray-200 hover:border-gray-300"
-                    )}
-                  >
-                    <svg viewBox="0 0 24 24" className={cn("w-7 h-7", tablesEnabled ? "text-white" : "text-gray-400")} fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
-                    </svg>
-                    <span className={cn(
-                      "text-xs font-semibold",
-                      tablesEnabled ? "text-white" : "text-gray-500"
-                    )}>
-                      Tables
-                    </span>
-                  </button>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ) : (
-              /* Quiz and Flashcards options: Difficulty, Questions, Time */
               <div className="flex-1 flex flex-col gap-3">
-                {/* Difficulty + Reveal/Curve: Compact segmented controls */}
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Difficulty - Direct segmented control */}
                   <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-300">
                     {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
                       const config = difficultyConfig[level];
@@ -561,7 +560,6 @@ export function Format({
                     })}
                   </div>
 
-                  {/* Reveal (Quiz) or Curve (Flashcards) - Direct segmented control */}
                   {selectedFormat === "quiz" ? (
                     <button
                       onClick={() => setRevealEnabledAction(!revealEnabled)}
