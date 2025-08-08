@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ChevronRight,
+  ChevronLeft,
   HelpCircle,
-  BookOpen,
   Loader2,
   Zap,
   Target,
@@ -20,9 +20,10 @@ import {
   ScrollText,
   Eye,
   MessageCircle,
+  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Format, Difficulty, NotesFormat, NotesLength, DifficultyCurve } from "@/types";
+import type { Format, Difficulty, NotesFormat, NotesLength, DifficultyCurve, SlideColorPalette } from "@/types";
 
 interface FormatProps {
   selectedFormat: Format;
@@ -35,8 +36,6 @@ interface FormatProps {
   setTimeLimitAction: (minutes: number) => void;
   revealEnabled: boolean;
   setRevealEnabledAction: (enabled: boolean) => void;
-  difficultyCurve: DifficultyCurve;
-  setDifficultyCurveAction: (curve: DifficultyCurve) => void;
   uploadedDocs: Array<{ id: string; name: string; size: string }>;
   promptText: string;
   setPromptTextAction: (text: string) => void;
@@ -52,6 +51,12 @@ interface FormatProps {
   setTablesEnabledAction: (enabled: boolean) => void;
   notesLength: NotesLength;
   setNotesLengthAction: (length: NotesLength) => void;
+  numSlides: number;
+  setNumSlidesAction: (num: number) => void;
+  slideDesign: string;
+  setSlideDesignAction: (design: string) => void;
+  slideColorPalette: SlideColorPalette;
+  setSlideColorPaletteAction: (palette: SlideColorPalette) => void;
   error: string | null;
   isLoading: boolean;
   onSelectAction: (format: Format) => void;
@@ -135,8 +140,27 @@ const notesLengthConfig = {
   },
 };
 
+const slideDesignConfig = [
+  { id: "professional", name: "Professional" },
+  { id: "academic", name: "Academic" },
+  { id: "creative", name: "Creative" },
+  { id: "technical", name: "Technical" },
+  { id: "visual", name: "Visual" },
+];
+
+const colorPaletteConfig: { id: SlideColorPalette; name: string; dot: string; preview: string }[] = [
+  { id: "minimal", name: "Minimal", dot: "bg-gray-200", preview: "bg-gradient-to-br from-gray-100 to-gray-200" },
+  { id: "dark", name: "Dark", dot: "bg-zinc-800", preview: "bg-gradient-to-br from-zinc-900 to-zinc-700" },
+  { id: "colorful", name: "Colorful", dot: "bg-gradient-to-br from-violet-500 via-pink-500 to-amber-400", preview: "bg-gradient-to-br from-violet-500 via-pink-500 to-amber-400" },
+  { id: "ocean", name: "Ocean", dot: "bg-gradient-to-br from-blue-600 to-cyan-500", preview: "bg-gradient-to-br from-blue-600 to-cyan-500" },
+  { id: "forest", name: "Forest", dot: "bg-gradient-to-br from-emerald-700 to-green-500", preview: "bg-gradient-to-br from-emerald-700 to-green-500" },
+  { id: "sunset", name: "Sunset", dot: "bg-gradient-to-br from-orange-500 to-rose-500", preview: "bg-gradient-to-br from-orange-500 to-rose-500" },
+  { id: "purple", name: "Purple", dot: "bg-gradient-to-br from-purple-700 to-indigo-600", preview: "bg-gradient-to-br from-purple-700 to-indigo-600" },
+];
+
 const questionPresets = [3, 5, 10, 15, 20, 25, 30];
 const timePresets = [0, 3, 5, 10, 20];
+const slidesPresets = [5, 10, 15, 20, 25, 30];
 
 export function Format({
   selectedFormat,
@@ -149,8 +173,6 @@ export function Format({
   setTimeLimitAction,
   revealEnabled,
   setRevealEnabledAction,
-  difficultyCurve,
-  setDifficultyCurveAction,
   uploadedDocs,
   promptText,
   setPromptTextAction,
@@ -166,6 +188,12 @@ export function Format({
   setTablesEnabledAction,
   notesLength,
   setNotesLengthAction,
+  numSlides,
+  setNumSlidesAction,
+  slideDesign,
+  setSlideDesignAction,
+  slideColorPalette,
+  setSlideColorPaletteAction,
   error,
   isLoading,
   onSelectAction,
@@ -178,6 +206,21 @@ export function Format({
 
   const timeMinutes = Math.floor(totalSeconds / 60);
   const timeSeconds = totalSeconds % 60;
+
+  // Slide design carousel state
+  const currentDesignIndex = slideDesignConfig.findIndex((d) => d.id === slideDesign);
+  const currentDesign = slideDesignConfig[currentDesignIndex] || slideDesignConfig[0];
+  const currentPalette = colorPaletteConfig.find((p) => p.id === slideColorPalette) || colorPaletteConfig[2];
+
+  const handlePrevDesign = () => {
+    const newIndex = currentDesignIndex <= 0 ? slideDesignConfig.length - 1 : currentDesignIndex - 1;
+    setSlideDesignAction(slideDesignConfig[newIndex].id);
+  };
+
+  const handleNextDesign = () => {
+    const newIndex = currentDesignIndex >= slideDesignConfig.length - 1 ? 0 : currentDesignIndex + 1;
+    setSlideDesignAction(slideDesignConfig[newIndex].id);
+  };
 
   // Sync inputs when totalSeconds changes externally (presets, +/-)
   useEffect(() => {
@@ -306,11 +349,13 @@ export function Format({
             )}
           </button>
 
+
+
           <button
-            onClick={() => setSelectedFormatAction("flashcards")}
+            onClick={() => setSelectedFormatAction("slides")}
             className={cn(
               "group relative p-5 rounded-2xl border-2 transition-all duration-200 text-left",
-              selectedFormat === "flashcards"
+              selectedFormat === "slides"
                 ? "bg-gray-900 border-gray-900 text-white"
                 : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
             )}
@@ -318,30 +363,26 @@ export function Format({
             <div
               className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
-                selectedFormat === "flashcards" ? "bg-white/10" : "bg-gray-100"
+                selectedFormat === "slides" ? "bg-white/10" : "bg-gray-100"
               )}
             >
-              <BookOpen
+              <Presentation
                 className={cn(
                   "w-5 h-5",
-                  selectedFormat === "flashcards"
-                    ? "text-white"
-                    : "text-gray-600"
+                  selectedFormat === "slides" ? "text-white" : "text-gray-600"
                 )}
               />
             </div>
-            <h3 className="text-lg font-semibold mb-1">Flashcards</h3>
+            <h3 className="text-lg font-semibold mb-1">Slides</h3>
             <p
               className={cn(
                 "text-sm leading-relaxed",
-                selectedFormat === "flashcards"
-                  ? "text-gray-300"
-                  : "text-gray-500"
+                selectedFormat === "slides" ? "text-gray-300" : "text-gray-500"
               )}
             >
-              Flip cards for memorization
+              Presentation slides
             </p>
-            {selectedFormat === "flashcards" && (
+            {selectedFormat === "slides" && (
               <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-white" />
             )}
           </button>
@@ -351,7 +392,7 @@ export function Format({
       <div className="mb-6">
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden flex flex-col">
-            <div className="px-4 pt-3 pb-2 border-gray-100 flex-shrink-0">
+            <div className="px-4 pt-3 pb-2 border-gray-100 shrink-0">
               <div className="flex items-center ">
                 <span className="text-sm font-bold text-gray-600 tracking-wider">Documents</span>
               </div>
@@ -373,10 +414,10 @@ export function Format({
                             <p className="text-xs font-semibold text-gray-500 truncate">
                               {fileName}
                             </p>
-                            <span className="text-xs text-gray-400 flex-shrink-0">•</span>
-                            <span className="text-xs font-semibold text-gray-400 flex-shrink-0">{doc.size}</span>
+                            <span className="text-xs text-gray-400 shrink-0">•</span>
+                            <span className="text-xs font-semibold text-gray-400 shrink-0">{doc.size}</span>
                           </div>
-                          <span className="text-xs font-semibold text-gray-400 uppercase flex-shrink-0">{fileExt}</span>
+                          <span className="text-xs font-semibold text-gray-400 uppercase shrink-0">{fileExt}</span>
                         </div>
                       </div>
                     );
@@ -536,6 +577,198 @@ export function Format({
                   </div>
                 </div>
               </div>
+            ) : selectedFormat === "slides" ? (
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                {/* Left Column - Color Palette + Slide Counter */}
+                <div className="flex flex-col gap-3">
+                  {/* Color Palette */}
+                  <div className="flex bg-gray-100 rounded-xl gap-2 border-2 border-gray-300 py-4 px-3 items-center justify-center">
+                    {colorPaletteConfig.map((palette) => (
+                      <button
+                        key={palette.id}
+                        onClick={() => setSlideColorPaletteAction(palette.id)}
+                        className="p-0.5 px-2 rounded-full transition-all duration-200 hover:scale-105"
+                      >
+                        <div
+                          className={cn(
+                            "w-5 h-5 rounded-full transition-all duration-200",
+                            palette.dot,
+                            slideColorPalette === palette.id
+                              ? "ring-2 ring-offset-2 ring-gray-900"
+                              : "hover:ring-2 hover:ring-offset-1 hover:ring-gray-300"
+                          )}
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Slide Counter */}
+                  <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 flex-1">
+                    <div className="flex justify-between mb-4 h-14 items-start pt-1">
+                      <button
+                        onClick={() => setNumSlidesAction(Math.max(1, numSlides - 1))}
+                        disabled={numSlides <= 1}
+                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center transition-colors"
+                      >
+                        <Minus className="w-4 h-4 text-gray-600" />
+                      </button>
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-4xl font-bold text-gray-900 tabular-nums leading-none">{numSlides}</span>
+                        <span className="text-xs text-gray-400 uppercase tracking-wider">slides</span>
+                      </div>
+                      <button
+                        onClick={() => setNumSlidesAction(Math.min(50, numSlides + 1))}
+                        disabled={numSlides >= 50}
+                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center transition-colors"
+                      >
+                        <Plus className="w-4 h-4 text-gray-600" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {slidesPresets.map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => setNumSlidesAction(preset)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            numSlides === preset ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          )}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Slide Design */}
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 flex flex-col">
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      onClick={handlePrevDesign}
+                      className="w-9 h-9 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <h4 className="text-sm font-bold text-gray-900">{currentDesign.name}</h4>
+                    <button
+                      onClick={handleNextDesign}
+                      className="w-9 h-9 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4 text-gray-600" />
+                    </button>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className={cn("w-full h-32 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden", currentPalette.preview)}>
+                      {/* Slide illustration - unique per format */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {currentDesign.id === "professional" && (
+                          <div className={cn(
+                            "w-36 h-20 rounded-lg flex flex-col p-2.5",
+                            slideColorPalette === "minimal" ? "bg-white/90" : "bg-white/20"
+                          )}>
+                            {/* Professional: Clean header + bullet points + chart */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className={cn("w-4 h-4 rounded", slideColorPalette === "minimal" ? "bg-gray-800" : "bg-white/60")} />
+                              <div className={cn("flex-1 h-2 rounded-full", slideColorPalette === "minimal" ? "bg-gray-700" : "bg-white/50")} />
+                            </div>
+                            <div className="flex flex-1 gap-2">
+                              <div className="flex-1 flex flex-col gap-1">
+                                <div className={cn("w-full h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-400" : "bg-white/40")} />
+                                <div className={cn("w-4/5 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                                <div className={cn("w-3/5 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                              </div>
+                              <div className="w-10 flex items-end gap-0.5">
+                                <div className={cn("w-2 h-4 rounded-t", slideColorPalette === "minimal" ? "bg-gray-400" : "bg-white/40")} />
+                                <div className={cn("w-2 h-6 rounded-t", slideColorPalette === "minimal" ? "bg-gray-500" : "bg-white/50")} />
+                                <div className={cn("w-2 h-5 rounded-t", slideColorPalette === "minimal" ? "bg-gray-400" : "bg-white/40")} />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {currentDesign.id === "academic" && (
+                          <div className={cn(
+                            "w-36 h-20 rounded-lg flex flex-col p-2.5",
+                            slideColorPalette === "minimal" ? "bg-white/90" : "bg-white/20"
+                          )}>
+                            {/* Academic: Title + numbered list + formula */}
+                            <div className={cn("w-3/4 h-2 rounded-full mb-2", slideColorPalette === "minimal" ? "bg-gray-800" : "bg-white/60")} />
+                            <div className="flex-1 flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <span className={cn("text-[6px] font-bold", slideColorPalette === "minimal" ? "text-gray-600" : "text-white/60")}>1.</span>
+                                <div className={cn("flex-1 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className={cn("text-[6px] font-bold", slideColorPalette === "minimal" ? "text-gray-600" : "text-white/60")}>2.</span>
+                                <div className={cn("flex-1 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                              </div>
+                            </div>
+                            <div className={cn("self-center px-2 py-0.5 rounded text-[7px] font-serif italic", slideColorPalette === "minimal" ? "bg-gray-100 text-gray-600" : "bg-white/10 text-white/70")}>
+                              E = mc²
+                            </div>
+                          </div>
+                        )}
+                        {currentDesign.id === "creative" && (
+                          <div className={cn(
+                            "w-36 h-20 rounded-lg flex p-2.5 gap-2",
+                            slideColorPalette === "minimal" ? "bg-white/90" : "bg-white/20"
+                          )}>
+                            {/* Creative: Asymmetric layout with shapes */}
+                            <div className="flex-1 flex flex-col justify-center gap-1">
+                              <div className={cn("w-full h-2.5 rounded-full", slideColorPalette === "minimal" ? "bg-gray-800" : "bg-white/60")} />
+                              <div className={cn("w-2/3 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-400" : "bg-white/40")} />
+                              <div className={cn("w-1/2 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                            </div>
+                            <div className="flex flex-col gap-1 items-center justify-center">
+                              <div className={cn("w-6 h-6 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                              <div className={cn("w-4 h-4 rotate-45", slideColorPalette === "minimal" ? "bg-gray-400" : "bg-white/40")} />
+                            </div>
+                          </div>
+                        )}
+                        {currentDesign.id === "technical" && (
+                          <div className={cn(
+                            "w-36 h-20 rounded-lg flex flex-col p-2.5",
+                            slideColorPalette === "minimal" ? "bg-white/90" : "bg-white/20"
+                          )}>
+                            {/* Technical: Code block + diagram */}
+                            <div className={cn("w-1/2 h-1.5 rounded-full mb-1.5", slideColorPalette === "minimal" ? "bg-gray-700" : "bg-white/50")} />
+                            <div className={cn("flex-1 rounded p-1 font-mono text-[5px] leading-tight", slideColorPalette === "minimal" ? "bg-gray-900 text-green-400" : "bg-black/30 text-green-300")}>
+                              <div>{"function() {"}</div>
+                              <div className="pl-1">{"return x;"}</div>
+                              <div>{"}"}</div>
+                            </div>
+                            <div className="flex items-center justify-center gap-1 mt-1">
+                              <div className={cn("w-3 h-3 rounded border", slideColorPalette === "minimal" ? "border-gray-400" : "border-white/40")} />
+                              <div className={cn("w-2 h-0.5", slideColorPalette === "minimal" ? "bg-gray-400" : "bg-white/40")} />
+                              <div className={cn("w-3 h-3 rounded border", slideColorPalette === "minimal" ? "border-gray-400" : "border-white/40")} />
+                            </div>
+                          </div>
+                        )}
+                        {currentDesign.id === "visual" && (
+                          <div className={cn(
+                            "w-36 h-20 rounded-lg flex p-2 gap-2",
+                            slideColorPalette === "minimal" ? "bg-white/90" : "bg-white/20"
+                          )}>
+                            {/* Visual: Large image placeholder + minimal text */}
+                            <div className={cn("w-16 h-full rounded flex items-center justify-center", slideColorPalette === "minimal" ? "bg-gray-200" : "bg-white/20")}>
+                              <svg viewBox="0 0 24 24" className={cn("w-6 h-6", slideColorPalette === "minimal" ? "text-gray-400" : "text-white/40")} fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <path d="M21 15l-5-5L5 21" />
+                              </svg>
+                            </div>
+                            <div className="flex-1 flex flex-col justify-center gap-1">
+                              <div className={cn("w-full h-1.5 rounded-full", slideColorPalette === "minimal" ? "bg-gray-700" : "bg-white/50")} />
+                              <div className={cn("w-4/5 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                              <div className={cn("w-3/5 h-1 rounded-full", slideColorPalette === "minimal" ? "bg-gray-300" : "bg-white/30")} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="flex-1 flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -560,7 +793,7 @@ export function Format({
                     })}
                   </div>
 
-                  {selectedFormat === "quiz" ? (
+                  {selectedFormat === "quiz" && (
                     <button
                       onClick={() => setRevealEnabledAction(!revealEnabled)}
                       className="relative overflow-hidden rounded-xl bg-gray-100 border-2 border-gray-200 transition-all duration-300"
@@ -592,48 +825,6 @@ export function Format({
                         </div>
                       </div>
                     </button>
-                  ) : (
-                    <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-200">
-                      {(["fixed", "progressive", "adaptive"] as DifficultyCurve[]).map((curve) => {
-                        const isActive = difficultyCurve === curve;
-                        return (
-                          <button
-                            key={curve}
-                            onClick={() => setDifficultyCurveAction(curve)}
-                            className={cn(
-                              "flex-1 py-2 px-1 rounded-lg transition-all duration-200 flex flex-col items-center gap-0.5",
-                              isActive
-                                ? "bg-gray-900 shadow-sm"
-                                : "hover:bg-white"
-                            )}
-                          >
-                            <svg
-                              viewBox="0 0 40 20"
-                              className={cn(
-                                "w-7 h-3.5",
-                                isActive ? "text-white" : "text-gray-400"
-                              )}
-                              fill="none"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              stroke="currentColor"
-                            >
-                              {curve === "fixed" && <path d="M2 14 L38 14" />}
-                              {curve === "progressive" && <path d="M2 16 Q10 16 20 10 T38 4" />}
-                              {curve === "adaptive" && <path d="M2 14 Q8 14 12 8 Q16 2 20 10 Q24 18 28 6 Q32 2 38 4" />}
-                            </svg>
-                            <span
-                              className={cn(
-                                "text-[10px] font-semibold capitalize",
-                                isActive ? "text-white" : "text-gray-500"
-                              )}
-                            >
-                              {curve}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
                   )}
                 </div>
 

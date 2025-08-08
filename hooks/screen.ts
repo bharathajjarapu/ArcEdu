@@ -1,154 +1,166 @@
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
-import type { Screen, Format, InputType, Difficulty, NotesFormat, NotesLength, ContentDepth, DifficultyCurve } from "@/types";
+import type { Screen, Format, InputType, Difficulty, NotesFormat, NotesLength, ContentDepth, DifficultyCurve, SlideColorPalette } from "@/types";
 
 export type { NotesLength };
 
-const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "flashcards", "notes", "results"];
+export type SlideDesign = "minimal" | "professional" | "colorful" | "academic" | "creative" | "dark" | "technical" | "visual";
+
+const validScreens: Screen[] = ["sessions", "upload", "format", "quiz", "notes", "slides", "results"];
 
 let listeners: (() => void)[] = [];
 let currentScreen: Screen = "upload";
 let popstateAttached = false;
 
 const handlePopState = (event: PopStateEvent) => {
-    const stateScreen = (event.state?.screen || "upload") as Screen;
-    currentScreen = validScreens.includes(stateScreen) ? stateScreen : "upload";
-    emitChange();
+  const stateScreen = (event.state?.screen || "upload") as Screen;
+  currentScreen = validScreens.includes(stateScreen) ? stateScreen : "upload";
+  emitChange();
 };
 
 function subscribe(callback: () => void) {
-    if (typeof window === "undefined") return () => { };
-    listeners.push(callback);
-    if (!popstateAttached) {
-        window.addEventListener("popstate", handlePopState);
-        popstateAttached = true;
+  if (typeof window === "undefined") return () => { };
+  listeners.push(callback);
+  if (!popstateAttached) {
+    window.addEventListener("popstate", handlePopState);
+    popstateAttached = true;
+  }
+  return () => {
+    listeners = listeners.filter(l => l !== callback);
+    if (popstateAttached && listeners.length === 0) {
+      window.removeEventListener("popstate", handlePopState);
+      popstateAttached = false;
     }
-    return () => {
-        listeners = listeners.filter(l => l !== callback);
-        if (popstateAttached && listeners.length === 0) {
-            window.removeEventListener("popstate", handlePopState);
-            popstateAttached = false;
-        }
-    };
+  };
 }
 
 function emitChange() {
-    listeners.forEach(l => l());
+  listeners.forEach(l => l());
 }
 
 export function useScreen() {
-    const getCurrentScreen = useCallback(() => currentScreen, []);
-    const screen = useSyncExternalStore(subscribe, getCurrentScreen, () => "upload" as Screen);
+  const getCurrentScreen = useCallback(() => currentScreen, []);
+  const screen = useSyncExternalStore(subscribe, getCurrentScreen, () => "upload" as Screen);
 
-    const setScreen = useCallback((newScreen: Screen) => {
-        if (typeof window === "undefined") return;
-        currentScreen = newScreen;
-        window.history.pushState({ screen: newScreen }, "", `/${newScreen}`);
-        emitChange();
-    }, []);
+  const setScreen = useCallback((newScreen: Screen) => {
+    if (typeof window === "undefined") return;
+    currentScreen = newScreen;
+    window.history.pushState({ screen: newScreen }, "", `/${newScreen}`);
+    emitChange();
+  }, []);
 
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        const path = window.location.pathname.slice(1) || "upload";
-        const pathScreen = validScreens.includes(path as Screen) ? (path as Screen) : "upload";
-        // Sync the in-memory screen to the URL without adding a history entry
-        currentScreen = pathScreen;
-        window.history.replaceState({ screen: pathScreen }, "", `/${pathScreen}`);
-        emitChange();
-    }, []);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname.slice(1) || "upload";
+    const pathScreen = validScreens.includes(path as Screen) ? (path as Screen) : "upload";
+    // Sync the in-memory screen to the URL without adding a history entry
+    currentScreen = pathScreen;
+    window.history.replaceState({ screen: pathScreen }, "", `/${pathScreen}`);
+    emitChange();
+  }, []);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    // Input State
-    const [inputType, setInputType] = useState<InputType>("docs");
-    const [promptText, setPromptText] = useState("");
-    const [links, setLinks] = useState<string[]>([]);
-    const [currentLink, setCurrentLink] = useState("");
-    const [uploadedDocs, setUploadedDocs] = useState<Array<{ id: string; name: string; size: string }>>([]);
+  // Input State
+  const [inputType, setInputType] = useState<InputType>("docs");
+  const [promptText, setPromptText] = useState("");
+  const [links, setLinks] = useState<string[]>([]);
+  const [currentLink, setCurrentLink] = useState("");
+  const [uploadedDocs, setUploadedDocs] = useState<Array<{ id: string; name: string; size: string }>>([]);
 
-    // Format State
-    const [selectedFormat, setSelectedFormat] = useState<Format>("quiz");
-    const [numQuestions, setNumQuestions] = useState(5);
-    const [topic, setTopic] = useState("");
-    const [difficulty, setDifficulty] = useState<Difficulty>("medium");
-    const [timeLimit, setTimeLimit] = useState(5); // minutes
-    const [revealEnabled, setRevealEnabled] = useState(true); // quiz reveal toggle
-    const [difficultyCurve, setDifficultyCurve] = useState<DifficultyCurve>("progressive"); // flashcard difficulty curve
+  // Format State
+  const [selectedFormat, setSelectedFormat] = useState<Format>("quiz");
+  const [numQuestions, setNumQuestions] = useState(5);
+  const [topic, setTopic] = useState("");
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [timeLimit, setTimeLimit] = useState(5); // minutes
+  const [revealEnabled, setRevealEnabled] = useState(true); // quiz reveal toggle
 
-    // Notes-specific State
-    const [notesFormat, setNotesFormat] = useState<NotesFormat>("structured");
-    const [notesLength, setNotesLength] = useState<NotesLength>("medium");
-    const [codeEnabled, setCodeEnabled] = useState(true);
-    const [formulasEnabled, setFormulasEnabled] = useState(true);
-    const [diagramsEnabled, setDiagramsEnabled] = useState(true);
-    const [tablesEnabled, setTablesEnabled] = useState(true);
+  // Notes-specific State
+  const [notesFormat, setNotesFormat] = useState<NotesFormat>("structured");
+  const [notesLength, setNotesLength] = useState<NotesLength>("medium");
+  const [codeEnabled, setCodeEnabled] = useState(true);
+  const [formulasEnabled, setFormulasEnabled] = useState(true);
+  const [diagramsEnabled, setDiagramsEnabled] = useState(true);
+  const [tablesEnabled, setTablesEnabled] = useState(true);
 
-    const reset = useCallback(() => {
-        setScreen("upload");
-        setIsLoading(false);
-        setError(null);
-        setInputType("docs");
-        setPromptText("");
-        setLinks([]);
-        setCurrentLink("");
-        setUploadedDocs([]);
-        setSelectedFormat("quiz");
-        setTopic("");
-        setNumQuestions(5);
-        setDifficulty("medium");
-        setTimeLimit(5);
-        setRevealEnabled(true);
-        setDifficultyCurve("progressive");
-        setNotesFormat("structured");
-        setNotesLength("medium");
-        setCodeEnabled(true);
-        setFormulasEnabled(true);
-        setDiagramsEnabled(true);
-        setTablesEnabled(true);
-    }, [setScreen]);
+  // Slides-specific State
+  const [numSlides, setNumSlides] = useState(10);
+  const [slideDesign, setSlideDesign] = useState<string>("professional");
+  const [slideColorPalette, setSlideColorPalette] = useState<SlideColorPalette>("colorful");
 
-    return {
-        screen,
-        setScreen,
-        isLoading,
-        setIsLoading,
-        error,
-        setError,
-        inputType,
-        setInputType,
-        promptText,
-        setPromptText,
-        links,
-        setLinks,
-        currentLink,
-        setCurrentLink,
-        uploadedDocs,
-        setUploadedDocs,
-        selectedFormat,
-        setSelectedFormat,
-        numQuestions,
-        setNumQuestions,
-        topic,
-        setTopic,
-        difficulty,
-        setDifficulty,
-        timeLimit,
-        setTimeLimit,
-        revealEnabled,
-        setRevealEnabled,
-        difficultyCurve,
-        setDifficultyCurve,
-        notesFormat,
-        setNotesFormat,
-        notesLength,
-        setNotesLength,
-        codeEnabled,
-        setCodeEnabled,
-        formulasEnabled,
-        setFormulasEnabled,
-        diagramsEnabled,
-        setDiagramsEnabled,
-        tablesEnabled,
-        setTablesEnabled,
-        reset
-    };
+  const reset = useCallback(() => {
+    setScreen("upload");
+    setIsLoading(false);
+    setError(null);
+    setInputType("docs");
+    setPromptText("");
+    setLinks([]);
+    setCurrentLink("");
+    setUploadedDocs([]);
+    setSelectedFormat("quiz");
+    setTopic("");
+    setNumQuestions(5);
+    setDifficulty("medium");
+    setTimeLimit(5);
+    setRevealEnabled(true);
+    setNotesFormat("structured");
+    setNotesLength("medium");
+    setCodeEnabled(true);
+    setFormulasEnabled(true);
+    setDiagramsEnabled(true);
+    setTablesEnabled(true);
+    setNumSlides(10);
+    setSlideDesign("professional");
+    setSlideColorPalette("colorful");
+  }, [setScreen]);
+
+  return {
+    screen,
+    setScreen,
+    isLoading,
+    setIsLoading,
+    error,
+    setError,
+    inputType,
+    setInputType,
+    promptText,
+    setPromptText,
+    links,
+    setLinks,
+    currentLink,
+    setCurrentLink,
+    uploadedDocs,
+    setUploadedDocs,
+    selectedFormat,
+    setSelectedFormat,
+    numQuestions,
+    setNumQuestions,
+    topic,
+    setTopic,
+    difficulty,
+    setDifficulty,
+    timeLimit,
+    setTimeLimit,
+    revealEnabled,
+    setRevealEnabled,
+    notesFormat,
+    setNotesFormat,
+    notesLength,
+    setNotesLength,
+    codeEnabled,
+    setCodeEnabled,
+    formulasEnabled,
+    setFormulasEnabled,
+    diagramsEnabled,
+    setDiagramsEnabled,
+    tablesEnabled,
+    setTablesEnabled,
+    numSlides,
+    setNumSlides,
+    slideDesign,
+    setSlideDesign,
+    slideColorPalette,
+    setSlideColorPalette,
+    reset
+  };
 }

@@ -8,33 +8,32 @@ import * as sessions from "@/lib/storage/sessions";
 import * as worker from "@/lib/process/worker";
 import { generateTitle } from "@/lib/api/client";
 import { useQuiz } from "@/hooks/quiz";
-import { useFlash } from "@/hooks/flash";
 import { useNotes } from "@/hooks/notes";
+import { useSlides } from "@/hooks/slides";
 import { useScreen } from "@/hooks/screen";
 import { useContent } from "@/hooks/content";
 import { useUpload } from "@/hooks/upload";
-import type { Format, Quiz, Flashcard } from "@/types";
+import type { Format, Quiz } from "@/types";
 
 // Eager load initial screen to avoid suspense flash on first paint
 import { Upload } from "@/components/screens/upload";
 const Sessions = lazy(() => import("@/components/screens/sessions").then((m) => ({ default: m.Sessions })));
 const FormatScreen = lazy(() => import("@/components/screens/format").then((m) => ({ default: m.Format })));
 const QuizScreen = lazy(() => import("@/components/screens/quiz").then((m) => ({ default: m.QuizScreen })));
-const Flashcards = lazy(() => import("@/components/screens/flashcards").then((m) => ({ default: m.Flashcards })));
 const NotesScreen = lazy(() => import("@/components/screens/notes").then((m) => ({ default: m.NotesScreen })));
+const SlidesScreen = lazy(() => import("@/components/screens/slides").then((m) => ({ default: m.SlidesScreen })));
 const Results = lazy(() => import("@/components/screens/results").then((m) => ({ default: m.Results })));
 
 // Memoized components to prevent unnecessary re-renders
 const MemoizedQuizScreen = memo(QuizScreen);
-const MemoizedFlashcards = memo(Flashcards);
 
 export default function QuizApp() {
   const { current, all, setCurrent, create, remove, update, refresh } = useSession();
   const screen = useScreen();
   const quiz = useQuiz();
-  const flash = useFlash();
   const notes = useNotes();
-  const { generateQuizContent, generateFlashcardContent, generateNotesContent } = useContent();
+  const slides = useSlides();
+  const { generateQuizContent, generateNotesContent, generateSlidesContent } = useContent();
   const { validate, getTopicText } = useUpload();
 
   // Initialize workers once on mount
@@ -127,25 +126,6 @@ export default function QuizApp() {
             }
           },
         });
-      } else if (format === "flashcards") {
-        flash.startFlashcards();
-        let first = true;
-
-        await generateFlashcardContent({
-          sessionId: current.id,
-          topic: topicText,
-          numQuestions: screen.numQuestions,
-          difficulty: screen.difficulty,
-          prompt: screen.promptText.trim() || undefined,
-          timeLimit: screen.timeLimit,
-          onProgress: (item) => {
-            flash.setFlashcardData(prev => [...prev, item as Flashcard]);
-            if (first) {
-              screen.setScreen("flashcards");
-              first = false;
-            }
-          },
-        });
       } else if (format === "notes") {
         notes.startNotes();
         screen.setScreen("notes");
@@ -165,6 +145,25 @@ export default function QuizApp() {
           });
         } finally {
           notes.finishNotes();
+        }
+      } else if (format === "slides") {
+        slides.startSlides();
+        screen.setScreen("slides");
+
+        try {
+          await generateSlidesContent({
+            sessionId: current.id,
+            topic: topicText,
+            numSlides: screen.numSlides,
+            slideDesign: screen.slideDesign,
+            codeEnabled: screen.codeEnabled,
+            formulasEnabled: screen.formulasEnabled,
+            tablesEnabled: screen.tablesEnabled,
+            prompt: screen.promptText.trim() || undefined,
+            onProgress: (text) => slides.setSlidesContent(text),
+          });
+        } finally {
+          slides.finishSlides();
         }
       }
     } catch (err) {
@@ -207,25 +206,6 @@ export default function QuizApp() {
             }
           },
         });
-      } else if (screen.selectedFormat === "flashcards") {
-        flash.startFlashcards();
-        let first = true;
-
-        await generateFlashcardContent({
-          sessionId: current.id,
-          topic: topicText,
-          numQuestions: screen.numQuestions,
-          difficulty: screen.difficulty,
-          prompt: screen.promptText.trim() || undefined,
-          timeLimit: screen.timeLimit,
-          onProgress: (item) => {
-            flash.setFlashcardData(prev => [...prev, item as Flashcard]);
-            if (first) {
-              screen.setScreen("flashcards");
-              first = false;
-            }
-          },
-        });
       } else if (screen.selectedFormat === "notes") {
         notes.startNotes();
         screen.setScreen("notes");
@@ -246,6 +226,25 @@ export default function QuizApp() {
         } finally {
           notes.finishNotes();
         }
+      } else if (screen.selectedFormat === "slides") {
+        slides.startSlides();
+        screen.setScreen("slides");
+
+        try {
+          await generateSlidesContent({
+            sessionId: current.id,
+            topic: topicText,
+            numSlides: screen.numSlides,
+            slideDesign: screen.slideDesign,
+            codeEnabled: screen.codeEnabled,
+            formulasEnabled: screen.formulasEnabled,
+            tablesEnabled: screen.tablesEnabled,
+            prompt: screen.promptText.trim() || undefined,
+            onProgress: (text) => slides.setSlidesContent(text),
+          });
+        } finally {
+          slides.finishSlides();
+        }
       }
     } catch (err) {
       screen.setError("Failed to generate content");
@@ -261,7 +260,6 @@ export default function QuizApp() {
     setCurrent(null);
     screen.reset();
     quiz.startQuiz();
-    flash.startFlashcards();
     await refresh();
   };
 
@@ -353,8 +351,6 @@ export default function QuizApp() {
             setTimeLimitAction={screen.setTimeLimit}
             revealEnabled={screen.revealEnabled}
             setRevealEnabledAction={screen.setRevealEnabled}
-            difficultyCurve={screen.difficultyCurve}
-            setDifficultyCurveAction={screen.setDifficultyCurve}
             uploadedDocs={screen.uploadedDocs}
             promptText={screen.promptText}
             setPromptTextAction={screen.setPromptText}
@@ -370,6 +366,12 @@ export default function QuizApp() {
             setTablesEnabledAction={screen.setTablesEnabled}
             notesLength={screen.notesLength}
             setNotesLengthAction={screen.setNotesLength}
+            numSlides={screen.numSlides}
+            setNumSlidesAction={screen.setNumSlides}
+            slideDesign={screen.slideDesign}
+            setSlideDesignAction={screen.setSlideDesign}
+            slideColorPalette={screen.slideColorPalette}
+            setSlideColorPaletteAction={screen.setSlideColorPalette}
             error={screen.error}
             isLoading={screen.isLoading}
             onSelectAction={handleFormatSelect}
@@ -401,30 +403,6 @@ export default function QuizApp() {
           />
         )}
 
-        {screen.screen === "flashcards" && flash.flashcardData.length > 0 && (
-          <MemoizedFlashcards
-            flashcardData={flash.flashcardData}
-            currentFlashcard={flash.currentFlashcard}
-            isFlashcardFlipped={flash.isFlashcardFlipped}
-            difficulty={screen.difficulty}
-            difficultyCurve={screen.difficultyCurve}
-            onFlipAction={() => flash.setIsFlashcardFlipped(prev => !prev)}
-            onScoreAction={(gotIt) => {
-              const isLastCard = flash.currentFlashcard === flash.flashcardData.length - 1;
-              flash.scoreFlashcard(gotIt);
-              if (isLastCard) {
-                screen.setScreen("results");
-              }
-            }}
-            onNextAction={flash.nextFlashcard}
-            onPreviousAction={flash.prevFlashcard}
-            onTimeoutAction={() => screen.setScreen("results")}
-            startTime={flash.startTime}
-            questionStartTime={flash.questionStartTime}
-            timeLimit={screen.timeLimit}
-          />
-        )}
-
         {screen.screen === "notes" && (
           <NotesScreen
             content={notes.notesContent}
@@ -433,13 +411,23 @@ export default function QuizApp() {
           />
         )}
 
+        {screen.screen === "slides" && (
+          <SlidesScreen
+            content={slides.slidesContent}
+            isGenerating={slides.isGenerating}
+            currentSlide={slides.currentSlide}
+            slideDesign={screen.slideDesign}
+            slideColorPalette={screen.slideColorPalette}
+            onSlideChange={slides.goToSlide}
+            onEnd={slides.finishSlides}
+          />
+        )}
+
         {screen.screen === "results" && (
           <Results
             selectedFormat={screen.selectedFormat}
             quizData={quiz.quizData}
-            flashcardData={flash.flashcardData}
             userAnswers={quiz.userAnswers}
-            flashcardAnswers={flash.flashcardAnswers}
             totalTime={quiz.startTime > 0 ? Date.now() - quiz.startTime : 0}
             fastestAnswer={quiz.questionTimes.length > 0 ? Math.min(...quiz.questionTimes) : 0}
             maxStreak={quiz.maxStreak}

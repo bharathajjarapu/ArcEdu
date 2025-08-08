@@ -40,11 +40,6 @@ export interface Quiz {
   explanation: string;
 }
 
-export interface Flashcard {
-  front: string;
-  back: string;
-}
-
 export interface Notes {
   content: string;
 }
@@ -58,29 +53,23 @@ export interface QuizAttempt {
   completedAt: number;
 }
 
-export interface FlashcardSession {
-  id: string;
-  sessionId: string;
-  flashcards: Flashcard[];
-  answers: Record<number, boolean>;
-  completedAt: number;
-}
-
 export type Screen =
   | "sessions"
   | "upload"
   | "format"
   | "quiz"
-  | "flashcards"
   | "notes"
+  | "slides"
   | "results";
 export type InputType = "prompt" | "docs" | "links";
-export type Format = "quiz" | "flashcards" | "notes";
+export type Format = "quiz" | "notes" | "slides";
 export type Difficulty = "easy" | "medium" | "hard" | "adaptive";
 export type NotesFormat = "summary" | "structured" | "exam" | "cheatsheet" | "prompt";
 export type NotesLength = "short" | "medium" | "long" | "adaptive";
 export type ContentDepth = "short" | "medium" | "long" | "auto";
 export type DifficultyCurve = "fixed" | "progressive" | "adaptive";
+export type SlideDesign = "minimal" | "professional" | "colorful" | "academic" | "creative" | "dark" | "technical" | "visual";
+export type SlideColorPalette = "minimal" | "dark" | "colorful" | "ocean" | "forest" | "sunset" | "purple";
 
 export interface AppState {
   screen: Screen;
@@ -106,13 +95,6 @@ export interface QuizState {
   times: number[];
   streak: number;
   maxStreak: number;
-}
-
-export interface FlashcardState {
-  data: Flashcard[];
-  current: number;
-  flipped: boolean;
-  answers: Record<number, boolean>;
 }
 
 export interface Progress {

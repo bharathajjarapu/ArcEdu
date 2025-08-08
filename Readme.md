@@ -6,7 +6,6 @@ AI-powered learning app that transforms your documents into interactive study ma
 
 Upload PDFs or text files and generate:
 - **Notes** – Structured summaries from your content
-- **Flashcards** – Question/answer cards for memorization
 - **Quizzes** – Multiple-choice tests with instant feedback
 
 All processing happens locally with session-based management.
@@ -16,7 +15,7 @@ All processing happens locally with session-based management.
 ### Core
 - Multi-document upload (PDF, TXT)
 - Session-based organization
-- Format selection (Notes, Flashcards, Quiz)
+- Format selection (Notes, Quiz)
 - Real-time generation with OpenAI
 - Persistent local storage
 
@@ -66,7 +65,7 @@ All processing happens locally with session-based management.
 
 ### 5. Generation
 - Send retrieved chunks to OpenAI
-- Format-specific prompts (notes/cards/quiz)
+- Format-specific prompts (notes/quiz)
 - Streaming response support
 - Store results in session
 
@@ -120,7 +119,7 @@ bun run dev
 ## Usage
 
 1. Upload documents (PDF/TXT)
-2. Select format (Notes/Flashcards/Quiz)
+2. Select format (Notes/Quiz)
 3. Generate content
 4. Review and interact
 5. Access past sessions anytime

@@ -1,12 +1,11 @@
 const DB_NAME = "arcedu";
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 interface Store {
   sessions: "id";
   documents: "id";
   chunks: "id";
   quizzes: "id";
-  flashcards: "id";
   cache: "hash";
 }
 
@@ -32,7 +31,6 @@ export async function init(): Promise<IDBDatabase> {
         "documents",
         "chunks",
         "quizzes",
-        "flashcards",
         "cache",
       ];
       for (const store of stores) {
@@ -58,11 +56,6 @@ export async function init(): Promise<IDBDatabase> {
         keyPath: "id",
       });
       quizStore.createIndex("sessionId", "sessionId", { unique: false });
-
-      const flashStore = database.createObjectStore("flashcards", {
-        keyPath: "id",
-      });
-      flashStore.createIndex("sessionId", "sessionId", { unique: false });
 
       const cacheStore = database.createObjectStore("cache", {
         keyPath: "hash",

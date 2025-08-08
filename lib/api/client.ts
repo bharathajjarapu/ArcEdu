@@ -1,4 +1,4 @@
-import type { Quiz, Flashcard, Difficulty } from "@/types";
+import type { Quiz, Difficulty } from "@/types";
 import * as cache from "@/lib/data/cache";
 import * as dedup from "@/lib/data/dedup";
 import * as worker from "@/lib/process/worker";
@@ -84,36 +84,6 @@ export async function generateQuiz(
   return parseStream<Quiz>(response, num, onProgress);
 }
 
-export async function generateFlashcards(
-  topic: string,
-  num: number,
-  chunks?: any[],
-  difficulty: Difficulty = "medium",
-  prompt?: string,
-  timeLimit?: number,
-  onProgress?: (flashcard: Flashcard) => void,
-): Promise<Flashcard[]> {
-  let context = "";
-
-  if (chunks && chunks.length > 0) {
-    const searchQuery = prompt?.trim() || topic;
-    const queryEmbedding = await embedText(searchQuery);
-    const relevant = await worker.findSimilar(queryEmbedding, chunks, 5);
-    context = relevant.map((r) => r.text).join("\n\n");
-  }
-
-  const response = await fetch("/api/flashcards", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ topic, num, context, difficulty, prompt, timeLimit }),
-  });
-
-  if (!response.ok) throw new Error("Failed to generate flashcards");
-
-  const { parseStream } = await import("@/lib/api/parser");
-  return parseStream<Flashcard>(response, num, onProgress);
-}
-
 export async function generateNotes(
   topic: string,
   chunks: any[],
@@ -142,6 +112,51 @@ export async function generateNotes(
   });
 
   if (!response.ok) throw new Error("Failed to generate notes");
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No reader");
+
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const text = decoder.decode(value, { stream: true });
+    result += text;
+    onProgress?.(result);
+  }
+
+  return result;
+}
+
+export async function generateSlides(
+  topic: string,
+  chunks: any[],
+  numSlides: number,
+  slideDesign: string,
+  codeEnabled: boolean,
+  formulasEnabled: boolean,
+  tablesEnabled: boolean,
+  prompt?: string,
+  onProgress?: (text: string) => void,
+): Promise<string> {
+  let context = "";
+
+  if (chunks.length > 0) {
+    const searchQuery = prompt?.trim() || topic;
+    const queryEmbedding = await embedText(searchQuery);
+    const relevant = await worker.findSimilar(queryEmbedding, chunks, 8);
+    context = relevant.map((r) => r.text).join("\n\n");
+  }
+
+  const response = await fetch("/api/slides", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic, context, numSlides, slideDesign, codeEnabled, formulasEnabled, tablesEnabled, prompt }),
+  });
+
+  if (!response.ok) throw new Error("Failed to generate slides");
 
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No reader");

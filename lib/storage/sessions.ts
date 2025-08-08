@@ -5,7 +5,6 @@ import type {
   Document,
   Chunk,
   QuizAttempt,
-  FlashcardSession,
 } from "@/types";
 
 export async function create(title: string): Promise<Session> {
@@ -73,19 +72,4 @@ export async function getQuiz(sessionId: string): Promise<QuizAttempt | null> {
     sessionId,
   );
   return attempts.length > 0 ? attempts[0] : null;
-}
-
-export async function saveFlashcards(session: FlashcardSession): Promise<void> {
-  await store.put("flashcards", session);
-}
-
-export async function getFlashcards(
-  sessionId: string,
-): Promise<FlashcardSession | null> {
-  const sessions = await store.getByIndex<FlashcardSession>(
-    "flashcards",
-    "sessionId",
-    sessionId,
-  );
-  return sessions.length > 0 ? sessions[0] : null;
 }

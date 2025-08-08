@@ -9,7 +9,7 @@ const nextConfig = {
       { source: "/upload", destination: "/" },
       { source: "/format", destination: "/" },
       { source: "/quiz", destination: "/" },
-      { source: "/flashcards", destination: "/" },
+      { source: "/slides", destination: "/" },
       { source: "/results", destination: "/" },
     ];
   },
