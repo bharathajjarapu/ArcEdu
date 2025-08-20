@@ -40,12 +40,14 @@ export async function POST(request: NextRequest) {
 CRITICAL FORMAT RULES:
 1. Each slide MUST start with "---" on its own line
 2. Immediately after ---, put the slide title as "# Title"
-3. Use ONLY bullet points (- item), NO paragraphs
-4. Maximum 5 bullet points per slide
-5. Each bullet should be ONE short line (under 15 words)
-6. NO sub-bullets or nested lists
-7. First slide = Title slide with topic name and 2-3 key points
-8. Last slide = Summary/Conclusion with key takeaways
+
+SLIDE FORMAT RULES
+1. Use ONLY bullet points (- item), NO paragraphs
+2. Maximum 5 bullet points per slide
+3. Each bullet should be ONE short line (under 15 words)
+4. NO sub-bullets or nested lists
+5. First slide = Title slide with topic name and 2-3 key points
+6. Last slide = Summary/Conclusion with key takeaways
 
 Style: ${slideDesign}
 ${designGuide}
