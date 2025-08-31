@@ -43,11 +43,15 @@ CRITICAL FORMAT RULES:
 
 SLIDE FORMAT RULES
 1. Use ONLY bullet points (- item), NO paragraphs
-2. Maximum 5 bullet points per slide
-3. Each bullet should be ONE short line (under 15 words)
-4. NO sub-bullets or nested lists
-5. First slide = Title slide with topic name and 2-3 key points
-6. Last slide = Summary/Conclusion with key takeaways
+2. Maximum 5 bullet points per slide, If needed use small sentences
+3. Use Bold, Italic, Headings, Blockquotes When Needed
+4. Use Code Blocks for Code Snippets and Information Snippets
+5. Use Latex for formulas and equations
+6. Use tables for comparisons, timelines, and data
+7. No sub-bullets or nested lists or emojis or emoticons
+8. Each bullet should be ONE short line (under 15 words) 
+9. First slide = Title slide with topic name and 2-3 key points
+10. Last slide = Summary/Conclusion with key takeaways 
 
 Style: ${slideDesign}
 ${designGuide}
