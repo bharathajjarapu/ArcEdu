@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/contexts/session";
-import { AppProvider } from "@/contexts/app";
+import { StateProvider } from "@/contexts/state";
+import { AppShell } from "@/components/app-shell";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={plusJakarta.className}>
         <SessionProvider>
-          <AppProvider>{children}</AppProvider>
+          <StateProvider>
+            <AppShell>{children}</AppShell>
+          </StateProvider>
         </SessionProvider>
       </body>
     </html>

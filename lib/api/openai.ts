@@ -1,13 +1,19 @@
 import "server-only";
 import OpenAI from 'openai';
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _client: OpenAI | null = null;
+
+function getClient(): OpenAI {
+  if (!_client) {
+    _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _client;
+}
+
 
 export async function embed(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
-  const response = await client.embeddings.create({
+  const response = await getClient().embeddings.create({
     model: 'text-embedding-3-small',
     input: texts,
   });
@@ -19,7 +25,7 @@ export async function generate(prompt: string, system?: string): Promise<string>
   if (system) messages.push({ role: 'system', content: system });
   messages.push({ role: 'user', content: prompt });
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: 'gpt-4.1-mini',
     messages,
     temperature: 0.7,
@@ -33,7 +39,7 @@ export async function stream(prompt: string, system?: string) {
   if (system) messages.push({ role: 'system', content: system });
   messages.push({ role: 'user', content: prompt });
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: 'gpt-4.1-nano',
     messages,
     temperature: 0.7,
@@ -43,4 +49,4 @@ export async function stream(prompt: string, system?: string) {
   return response;
 }
 
-export default client;
+export default getClient;

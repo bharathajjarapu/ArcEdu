@@ -23,7 +23,7 @@ import {
   Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Format, Difficulty, NotesFormat, NotesLength, DifficultyCurve, SlideColorPalette } from "@/types";
+import type { Format, Difficulty, NotesFormat, NotesLength, SlideColorPalette } from "@/types";
 
 interface FormatProps {
   selectedFormat: Format;

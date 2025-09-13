@@ -53,36 +53,15 @@ export interface QuizAttempt {
   completedAt: number;
 }
 
-export type Screen =
-  | "sessions"
-  | "upload"
-  | "format"
-  | "quiz"
-  | "notes"
-  | "slides"
-  | "results";
 export type InputType = "prompt" | "docs" | "links";
 export type Format = "quiz" | "notes" | "slides";
 export type Difficulty = "easy" | "medium" | "hard" | "adaptive";
 export type NotesFormat = "summary" | "structured" | "exam" | "cheatsheet" | "prompt";
 export type NotesLength = "short" | "medium" | "long" | "adaptive";
-export type ContentDepth = "short" | "medium" | "long" | "auto";
-export type DifficultyCurve = "fixed" | "progressive" | "adaptive";
 export type SlideDesign = "minimal" | "professional" | "colorful" | "academic" | "creative" | "dark" | "technical" | "visual";
 export type SlideColorPalette = "minimal" | "dark" | "colorful" | "ocean" | "forest" | "sunset" | "purple";
 
-export interface AppState {
-  screen: Screen;
-  loading: boolean;
-  error: string | null;
-}
 
-export interface UploadState {
-  inputType: InputType;
-  promptText: string;
-  links: string[];
-  currentLink: string;
-}
 
 export interface QuizState {
   data: Quiz[];

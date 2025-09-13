@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useMemo, useCallback, useState } from "react";
 import { marked } from "marked";
-import katex from "katex";
 import "katex/dist/katex.min.css";
 import { Loader2, Download, RefreshCw, X, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
-import { useScreen } from "@/hooks/screen";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { normalizeMathDelimiters, renderMath } from "@/lib/markdown";
 
 import type { SlideColorPalette } from "@/types";
 
@@ -20,50 +20,7 @@ interface SlidesProps {
   onEnd?: () => void;
 }
 
-function decodeEntities(text: string): string {
-  return text
-    .replace(/&#39;/g, "'")
-    .replace(/&#x27;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
-}
-
-function normalizeMath(input: string): string {
-  const parts = input.split(/(```[\s\S]*?```)/g);
-  return parts
-    .map((seg) => {
-      if (seg.startsWith("```")) return seg;
-      let replaced = seg.replace(/\\\[([\s\S]*?)\\\]/g, (_, p1) => `$$${p1}$$`);
-      replaced = replaced.replace(/\\\(([^]*?)\\\)/g, (_, p1) => `$${p1}$`);
-      return replaced;
-    })
-    .join("");
-}
-
-function renderMath(html: string): string {
-  html = decodeEntities(html);
-  html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
-    try {
-      const clean = tex.replace(/<br\s*\/?>/gi, " ").trim();
-      return `<div class="math-block">${katex.renderToString(clean, { displayMode: true, throwOnError: false })}</div>`;
-    } catch {
-      return `<code>${tex}</code>`;
-    }
-  });
-  html = html.replace(/\$([^$]+?)\$/g, (match, tex) => {
-    if (!tex?.trim()) return match;
-    try {
-      const clean = tex.replace(/<br\s*\/?>/gi, " ").trim();
-      return katex.renderToString(clean, { displayMode: false, throwOnError: false });
-    } catch {
-      return `<code>${tex}</code>`;
-    }
-  });
-  return html;
-}
+// Utility functions now imported from @/lib/markdown
 
 const colorPaletteThemes: Record<SlideColorPalette, { bg: string; text: string; accent: string }> = {
   minimal: { bg: "bg-white", text: "text-gray-900", accent: "text-gray-500" },
@@ -76,7 +33,7 @@ const colorPaletteThemes: Record<SlideColorPalette, { bg: string; text: string; 
 };
 
 export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign, slideColorPalette, onSlideChange, onEnd }: SlidesProps) {
-  const screen = useScreen();
+  const router = useRouter();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +41,7 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
     if (!content) return [];
     const parts = content.split(/^---+$/m).filter((s) => s.trim());
     return parts.map((slide) => {
-      const normalized = normalizeMath(slide.trim());
+      const normalized = normalizeMathDelimiters(slide.trim());
       const html = marked.parse(normalized, { async: false, gfm: true, breaks: false }) as string;
       return renderMath(html);
     });
@@ -151,8 +108,8 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
   }, [content]);
 
   const handleRetry = useCallback(() => {
-    screen.setScreen("format");
-  }, [screen]);
+    router.push("/format");
+  }, [router]);
 
   return (
     <div ref={containerRef} className={cn("fixed inset-0 bg-gray-50 bg-dots overflow-hidden flex flex-col", isFullscreen ? "top-0" : "top-[72px]")}>
