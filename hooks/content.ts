@@ -62,15 +62,12 @@ export function useContent() {
     }
 
     await docs.saveChunks(needsEmbedding);
-    return await sessions.getChunks(sessionId);
+    return chunks;
   }, []);
 
   const generateQuizContent = useCallback(
     async (options: GenerateOptions) => {
-      const chunks = await sessions.getChunks(options.sessionId);
-      if (!chunks || chunks.length === 0) {
-        throw new Error("No document content available");
-      }
+      const chunks = await sessions.getChunks(options.sessionId) || [];
 
       const embedded = await embedChunks(options.sessionId, chunks);
       return await generateQuiz(options.topic, options.numQuestions, embedded, options.difficulty, options.prompt, options.timeLimit, options.onProgress as (quiz: Quiz) => void);
@@ -80,10 +77,7 @@ export function useContent() {
 
   const generateNotesContent = useCallback(
     async (options: NotesOptions) => {
-      const chunks = await sessions.getChunks(options.sessionId);
-      if (!chunks || chunks.length === 0) {
-        throw new Error("No document content available");
-      }
+      const chunks = await sessions.getChunks(options.sessionId) || [];
 
       const embedded = await embedChunks(options.sessionId, chunks);
       return await generateNotes(options.topic, embedded, options.notesFormat, options.notesLength, options.codeEnabled, options.formulasEnabled, options.diagramsEnabled, options.tablesEnabled, options.prompt, options.onProgress);
@@ -93,10 +87,7 @@ export function useContent() {
 
   const generateSlidesContent = useCallback(
     async (options: SlidesOptions) => {
-      const chunks = await sessions.getChunks(options.sessionId);
-      if (!chunks || chunks.length === 0) {
-        throw new Error("No document content available");
-      }
+      const chunks = await sessions.getChunks(options.sessionId) || [];
 
       const embedded = await embedChunks(options.sessionId, chunks);
       return await generateSlides(options.topic, embedded, options.numSlides, options.slideDesign, options.codeEnabled, options.formulasEnabled, options.tablesEnabled, options.prompt, options.onProgress);

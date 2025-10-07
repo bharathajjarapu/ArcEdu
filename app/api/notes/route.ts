@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { stream } from "@/lib/api/openai";
+import { asBoolean, asEnum, asString, readJsonBody } from "@/lib/api/request";
 import { streamHeaders } from "@/lib/api/stream";
 
 const formatInstructions: Record<string, string> = {
@@ -36,109 +37,110 @@ const lengthInstructions: Record<string, string> = {
     adaptive: "Adjust length based on topic complexity.",
 };
 
+const NOTE_FORMATS = ["prompt", "summary", "structured", "exam", "cheatsheet"] as const;
+const NOTE_LENGTHS = ["short", "medium", "long", "adaptive"] as const;
+
 export async function POST(request: NextRequest) {
-    const { topic, context, notesFormat = "structured", notesLength = "medium", codeEnabled, formulasEnabled, diagramsEnabled, tablesEnabled, prompt } = await request.json();
+    try {
+        const body = await readJsonBody(request, 80_000);
+        const topic = asString(body?.topic, 200, "topic");
+        const context = asString(body?.context, 20_000, "context");
+        const notesFormat = asEnum(body?.notesFormat, NOTE_FORMATS, "structured", "notesFormat");
+        const notesLength = asEnum(body?.notesLength, NOTE_LENGTHS, "medium", "notesLength");
+        const prompt = asString(body?.prompt, 2_000, "prompt", { optional: true });
+        const codeEnabled = asBoolean(body?.codeEnabled);
+        const formulasEnabled = asBoolean(body?.formulasEnabled);
+        const diagramsEnabled = asBoolean(body?.diagramsEnabled);
+        const tablesEnabled = asBoolean(body?.tablesEnabled);
 
-    if (!topic || !context?.trim()) {
-        return Response.json({ error: "Topic and context required" }, { status: 400 });
-    }
+        const buildReadable = async (promptText: string) => {
+            const response = await stream(
+                promptText,
+                "You are a study notes generator. Return clean markdown with properly formatted LaTeX math.",
+                request.signal,
+            );
+            const encoder = new TextEncoder();
+            return new ReadableStream({
+                async start(controller) {
+                    try {
+                        for await (const chunk of response) {
+                            if (request.signal.aborted) break;
+                            const text = chunk.choices[0]?.delta?.content || "";
+                            if (text) controller.enqueue(encoder.encode(text));
+                        }
+                        controller.close();
+                    } catch {
+                        if (!request.signal.aborted) controller.error(new Error("Failed to stream notes"));
+                    }
+                },
+            });
+        };
 
-    // Handle prompt-only mode - requires user's prompt, falls back to structured if empty
-    if (notesFormat === "prompt") {
-        if (!prompt?.trim()) {
-            // Fall back to structured format if no prompt provided
-            const fallbackPrompt = `Create study notes about "${topic}" in structured format.
+        if (!topic || !context) {
+            return Response.json({ error: "Topic and context required" }, { status: 400 });
+        }
+
+        // Handle prompt-only mode - requires user's prompt, falls back to structured if empty
+        if (notesFormat === "prompt") {
+            if (!prompt) {
+                const fallbackPrompt = `Create study notes about "${topic}" in structured format.
 Use clear headings, bullet points, and organized sections.
 
 Context:
 ${context}
 
 Return well-formatted markdown notes.`;
-            try {
-                const response = await stream(fallbackPrompt, "You are a study notes generator. Return clean markdown with properly formatted LaTeX math.");
-                const encoder = new TextEncoder();
-                const readable = new ReadableStream({
-                    async start(controller) {
-                        for await (const chunk of response) {
-                            const text = chunk.choices[0]?.delta?.content || "";
-                            if (text) controller.enqueue(encoder.encode(text));
-                        }
-                        controller.close();
-                    },
-                });
+
+                const readable = await buildReadable(fallbackPrompt);
                 return new Response(readable, { headers: streamHeaders });
-            } catch (error: any) {
-                return Response.json({ error: error.message }, { status: 500 });
             }
-        }
-        const promptOnlyNotes = `${prompt.trim()}
+
+            const promptOnlyNotes = `${prompt}
 
 Context:
 ${context}
 
 Return well-formatted markdown notes.`;
 
-        try {
-            const response = await stream(promptOnlyNotes, "You are a study notes generator. Return clean markdown with properly formatted LaTeX math.");
-            const encoder = new TextEncoder();
-
-            const readable = new ReadableStream({
-                async start(controller) {
-                    for await (const chunk of response) {
-                        const text = chunk.choices[0]?.delta?.content || "";
-                        if (text) controller.enqueue(encoder.encode(text));
-                    }
-                    controller.close();
-                },
-            });
-
+            const readable = await buildReadable(promptOnlyNotes);
             return new Response(readable, { headers: streamHeaders });
-        } catch (error: any) {
-            return Response.json({ error: error.message }, { status: 500 });
         }
-    }
 
-    const formatGuide = formatInstructions[notesFormat] || formatInstructions.structured;
-    const extras = [
-        codeEnabled === true && "Include code examples where relevant.",
-        codeEnabled === false && "Avoid code blocks unless essential.",
-        formulasEnabled === true && MATH_INSTRUCTIONS,
-        formulasEnabled === false && "Avoid math formulas unless essential.",
-        diagramsEnabled === true && `${DIAGRAM_INSTRUCTIONS} Include simple mermaid diagrams (\`\`\`mermaid) with few nodes for clarity.`,
-        diagramsEnabled === false && "Avoid diagrams unless essential.",
-        tablesEnabled === true && "Use markdown tables for comparisons.",
-        tablesEnabled === false && "Avoid tables unless essential.",
-    ].filter(Boolean).join(" ");
+        const formatGuide = formatInstructions[notesFormat] || formatInstructions.structured;
+        const extras = [
+            codeEnabled === true && "Include code examples where relevant.",
+            codeEnabled === false && "Avoid code blocks unless essential.",
+            formulasEnabled === true && MATH_INSTRUCTIONS,
+            formulasEnabled === false && "Avoid math formulas unless essential.",
+            diagramsEnabled === true && `${DIAGRAM_INSTRUCTIONS} Include simple mermaid diagrams (\`\`\`mermaid) with few nodes for clarity.`,
+            diagramsEnabled === false && "Avoid diagrams unless essential.",
+            tablesEnabled === true && "Use markdown tables for comparisons.",
+            tablesEnabled === false && "Avoid tables unless essential.",
+        ].filter(Boolean).join(" ");
 
-    const lengthGuide = lengthInstructions[notesLength] || lengthInstructions.medium;
-    const notesPrompt = `Create study notes about "${topic}" in ${notesFormat} format.
+        const lengthGuide = lengthInstructions[notesLength] || lengthInstructions.medium;
+        const notesPrompt = `Create study notes about "${topic}" in ${notesFormat} format.
 
 ${formatGuide}
 ${lengthGuide}
 ${extras}
-${prompt?.trim() ? `\nFocus: ${prompt}` : ""}
+${prompt ? `\nFocus: ${prompt}` : ""}
 
 Context:
 ${context}
 
 Return well-formatted markdown notes.`;
 
-    try {
-        const response = await stream(notesPrompt, "You are a study notes generator. Return clean markdown with properly formatted LaTeX math.");
-        const encoder = new TextEncoder();
-
-        const readable = new ReadableStream({
-            async start(controller) {
-                for await (const chunk of response) {
-                    const text = chunk.choices[0]?.delta?.content || "";
-                    if (text) controller.enqueue(encoder.encode(text));
-                }
-                controller.close();
-            },
-        });
-
+        const readable = await buildReadable(notesPrompt);
         return new Response(readable, { headers: streamHeaders });
-    } catch (error: any) {
-        return Response.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to generate notes";
+        const status = message.includes("required") || message.includes("invalid") || message.includes("Invalid") || message.includes("must") || message.includes("large")
+            ? 400
+            : 500;
+        return Response.json(
+            { error: status === 400 ? message : "Failed to generate notes" },
+            { status },
+        );
     }
 }

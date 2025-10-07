@@ -4,7 +4,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbo",
-    "lint": "next lint",
+    "lint": "tsc --noEmit",
     "start": "next start"
   },
   "dependencies": {
@@ -15,12 +15,8 @@
     "marked": "^17.0.1",
     "next": "^16.0.7",
     "openai": "^6.9.1",
-    "pdfjs-dist": "^4.9.155",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "rehype-katex": "^7.0.1",
-    "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0",
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {

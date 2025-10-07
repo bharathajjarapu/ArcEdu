@@ -1,9 +1,13 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import {
+  clearSessionStorageKey,
+  useSessionStorageState,
+} from "@/lib/storage";
 
 export function useSlides() {
-  const [slidesContent, setSlidesContent] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slidesContent, setSlidesContent] = useSessionStorageState("slides-content", "");
+  const [isGenerating, setIsGenerating] = useSessionStorageState("slides-generating", false);
+  const [currentSlide, setCurrentSlide] = useSessionStorageState("slides-current-slide", 0);
 
   const startSlides = useCallback(() => {
     setSlidesContent("");
@@ -27,6 +31,21 @@ export function useSlides() {
     setCurrentSlide(index);
   }, []);
 
+  const hydrateSlides = useCallback((content: string, slideIndex: number = 0) => {
+    setSlidesContent(content);
+    setCurrentSlide(slideIndex);
+    setIsGenerating(false);
+  }, [setCurrentSlide, setIsGenerating, setSlidesContent]);
+
+  const clearSlides = useCallback(() => {
+    setSlidesContent("");
+    setIsGenerating(false);
+    setCurrentSlide(0);
+    clearSessionStorageKey("slides-content");
+    clearSessionStorageKey("slides-generating");
+    clearSessionStorageKey("slides-current-slide");
+  }, [setCurrentSlide, setIsGenerating, setSlidesContent]);
+
   return {
     slidesContent,
     setSlidesContent,
@@ -38,5 +57,7 @@ export function useSlides() {
     nextSlide,
     prevSlide,
     goToSlide,
+    hydrateSlides,
+    clearSlides,
   };
 }

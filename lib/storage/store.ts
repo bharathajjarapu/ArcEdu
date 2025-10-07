@@ -1,15 +1,28 @@
 const DB_NAME = "arcedu";
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 
 interface Store {
   sessions: "id";
   documents: "id";
   chunks: "id";
   quizzes: "id";
+  notes: "id";
+  slides: "id";
   cache: "hash";
 }
 
 let db: IDBDatabase | null = null;
+
+function ensureIndex(
+  store: IDBObjectStore,
+  name: string,
+  keyPath: string,
+  options: IDBIndexParameters = { unique: false },
+) {
+  if (!store.indexNames.contains(name)) {
+    store.createIndex(name, keyPath, options);
+  }
+}
 
 export async function init(): Promise<IDBDatabase> {
   if (db) return db;
@@ -26,41 +39,40 @@ export async function init(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const database = (event.target as IDBOpenDBRequest).result;
 
-      const stores = [
-        "sessions",
-        "documents",
-        "chunks",
-        "quizzes",
-        "cache",
-      ];
-      for (const store of stores) {
-        if (database.objectStoreNames.contains(store)) {
-          database.deleteObjectStore(store);
-        }
+      if (!database.objectStoreNames.contains("sessions")) {
+        database.createObjectStore("sessions", { keyPath: "id" });
       }
 
-      database.createObjectStore("sessions", { keyPath: "id" });
+      const docStore = database.objectStoreNames.contains("documents")
+        ? request.transaction!.objectStore("documents")
+        : database.createObjectStore("documents", { keyPath: "id" });
+      ensureIndex(docStore, "sessionId", "sessionId");
 
-      const docStore = database.createObjectStore("documents", {
-        keyPath: "id",
-      });
-      docStore.createIndex("sessionId", "sessionId", { unique: false });
+      const chunkStore = database.objectStoreNames.contains("chunks")
+        ? request.transaction!.objectStore("chunks")
+        : database.createObjectStore("chunks", { keyPath: "id" });
+      ensureIndex(chunkStore, "sessionId", "sessionId");
+      ensureIndex(chunkStore, "documentId", "documentId");
 
-      const chunkStore = database.createObjectStore("chunks", {
-        keyPath: "id",
-      });
-      chunkStore.createIndex("sessionId", "sessionId", { unique: false });
-      chunkStore.createIndex("documentId", "documentId", { unique: false });
+      const quizStore = database.objectStoreNames.contains("quizzes")
+        ? request.transaction!.objectStore("quizzes")
+        : database.createObjectStore("quizzes", { keyPath: "id" });
+      ensureIndex(quizStore, "sessionId", "sessionId");
 
-      const quizStore = database.createObjectStore("quizzes", {
-        keyPath: "id",
-      });
-      quizStore.createIndex("sessionId", "sessionId", { unique: false });
+      const notesStore = database.objectStoreNames.contains("notes")
+        ? request.transaction!.objectStore("notes")
+        : database.createObjectStore("notes", { keyPath: "id" });
+      ensureIndex(notesStore, "sessionId", "sessionId");
 
-      const cacheStore = database.createObjectStore("cache", {
-        keyPath: "hash",
-      });
-      cacheStore.createIndex("sessionId", "sessionId", { unique: false });
+      const slidesStore = database.objectStoreNames.contains("slides")
+        ? request.transaction!.objectStore("slides")
+        : database.createObjectStore("slides", { keyPath: "id" });
+      ensureIndex(slidesStore, "sessionId", "sessionId");
+
+      const cacheStore = database.objectStoreNames.contains("cache")
+        ? request.transaction!.objectStore("cache")
+        : database.createObjectStore("cache", { keyPath: "hash" });
+      ensureIndex(cacheStore, "sessionId", "sessionId");
     };
   });
 }

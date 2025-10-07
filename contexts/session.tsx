@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   type ReactNode,
 } from "react";
 import type { Session } from "@/types";
@@ -24,21 +25,29 @@ interface SessionContextValue {
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
+const CURRENT_SESSION_KEY = "current-session-id";
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<Session | null>(null);
   const [all, setAll] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const list = await sessions.getAll();
       setAll(list);
+      if (typeof window !== "undefined") {
+        const currentId = window.sessionStorage.getItem(CURRENT_SESSION_KEY);
+        if (currentId) {
+          const savedCurrent = list.find((session) => session.id === currentId) || null;
+          setCurrent(savedCurrent);
+        }
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const create = async (title: string) => {
     const session = await sessions.create(title);
@@ -66,7 +75,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (current?.id) {
+      window.sessionStorage.setItem(CURRENT_SESSION_KEY, current.id);
+      return;
+    }
+
+    window.sessionStorage.removeItem(CURRENT_SESSION_KEY);
+  }, [current]);
 
   return (
     <SessionContext.Provider

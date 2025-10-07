@@ -1,43 +1,13 @@
-"use client";
+import ResultsPageClient from "./page-client";
 
-import { Results } from "@/components/screens/results";
-import { useAppState } from "@/contexts/state";
-import { useSession } from "@/contexts/session";
-import { useGenerate } from "@/hooks/generate";
-import { useRouter } from "next/navigation";
+type ResultsPageProps = {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default function ResultsPage() {
-    const router = useRouter();
-    const state = useAppState();
-    const { current, update, setCurrent, refresh } = useSession();
-    const { generate } = useGenerate();
+export default async function ResultsPage({ searchParams }: ResultsPageProps) {
+    const resolvedSearchParams = await searchParams;
+    const rawSessionId = resolvedSearchParams?.sessionId;
+    const sessionId = Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId;
 
-    const handleNewSession = async () => {
-        if (current) {
-            await update(current.id, { completed: true });
-        }
-        setCurrent(null);
-        state.reset();
-        await refresh();
-        router.push("/upload");
-    };
-
-    const handleRetry = async () => {
-        await generate(state.selectedFormat, (route) => router.push(route));
-    };
-
-    return (
-        <Results
-            selectedFormat={state.selectedFormat}
-            quizData={state.quiz.quizData}
-            userAnswers={state.quiz.userAnswers}
-            totalTime={state.quiz.startTime > 0 ? Date.now() - state.quiz.startTime : 0}
-            fastestAnswer={state.quiz.questionTimes.length > 0 ? Math.min(...state.quiz.questionTimes) : 0}
-            maxStreak={state.quiz.maxStreak}
-            onGoBackAction={() => router.push("/format")}
-            onNewSessionAction={handleNewSession}
-            onRetryAction={handleRetry}
-            isLoading={state.isLoading}
-        />
-    );
+    return <ResultsPageClient sessionId={sessionId} />;
 }

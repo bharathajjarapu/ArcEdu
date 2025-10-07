@@ -5,14 +5,14 @@ export async function create(
   sessionId: string,
   name: string,
   size: string,
-  content: string,
+  _content: string,
 ): Promise<Document> {
   const doc: Document = {
     id: crypto.randomUUID(),
     sessionId,
     name,
     size,
-    content,
+    content: "",
     createdAt: Date.now(),
   };
   await store.put("documents", doc);

@@ -5,6 +5,26 @@ export interface Session {
   updatedAt: number;
   color?: string;
   completed?: boolean;
+  lastFormat?: Format;
+  notesContent?: string;
+  slidesContent?: string;
+  slideIndex?: number;
+}
+
+export interface SavedNotes {
+  id: string;
+  sessionId: string;
+  title: string;
+  content: string;
+  createdAt: number;
+}
+
+export interface SavedSlides {
+  id: string;
+  sessionId: string;
+  title: string;
+  content: string;
+  createdAt: number;
 }
 
 export interface Document {
@@ -33,6 +53,23 @@ export interface Cache {
   createdAt: number;
 }
 
+export interface ChatSource {
+  sessionId: string;
+  sessionTitle: string;
+  documentId: string;
+  documentName: string;
+  chunkId: string;
+  score?: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: number;
+  sources?: ChatSource[];
+}
+
 export interface Quiz {
   question: string;
   options: string[];
@@ -51,6 +88,9 @@ export interface QuizAttempt {
   answers: Record<number, string>;
   score: number;
   completedAt: number;
+  totalTime?: number;
+  questionTimes?: number[];
+  maxStreak?: number;
 }
 
 export type InputType = "prompt" | "docs" | "links";

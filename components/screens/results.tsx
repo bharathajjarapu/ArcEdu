@@ -23,6 +23,7 @@ interface ResultsProps {
   onGoBackAction: () => void;
   onNewSessionAction: () => void;
   onRetryAction: () => void;
+  onReviewAction: () => void;
   isLoading: boolean;
 }
 
@@ -36,6 +37,7 @@ export function Results({
   onGoBackAction,
   onNewSessionAction,
   onRetryAction,
+  onReviewAction,
   isLoading,
 }: ResultsProps) {
   const calcResults = () => {
@@ -66,9 +68,9 @@ export function Results({
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-12">
-        <div className="text-8xl font-bold tracking-tight text-gray-900 mb-4">
+        <div className="text-6xl md:text-8xl font-bold tracking-tight text-gray-900 mb-4">
           {results.correctAnswers}
-          <span className="text-5xl text-gray-500">
+          <span className="text-3xl md:text-5xl text-gray-500">
             /{results.totalQuestions}
           </span>
         </div>
@@ -78,7 +80,7 @@ export function Results({
           {results.accuracy}% accuracy!
         </p>
 
-        <div className="flex justify-center gap-6 mb-8">
+        <div className="flex flex-wrap justify-center gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
             <div className="text-sm text-gray-500 mb-2">Time taken</div>
             <div className="text-3xl font-bold text-gray-900">
@@ -92,7 +94,7 @@ export function Results({
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
-            <div className="text-sm text-gray-500 mb-2">Hotstreak</div>
+            <div className="text-sm text-gray-500 mb-2">Hot streak</div>
             <div className="text-3xl font-bold text-gray-900">
               {maxStreak}
             </div>
@@ -127,14 +129,14 @@ export function Results({
         </div>
       </div>
 
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         <Button
           variant="ghost"
           className="text-gray-700 hover:bg-gray-100 border border-gray-200"
           onClick={onGoBackAction}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
-          Go Back
+          Back to Format
         </Button>
         <Button
           variant="ghost"
@@ -143,6 +145,15 @@ export function Results({
         >
           <Plus className="w-4 h-4 mr-2" />
           New Session
+        </Button>
+        <Button
+          variant="outline"
+          className="border border-gray-200 text-gray-700 hover:bg-gray-100"
+          disabled={isLoading}
+          onClick={onReviewAction}
+        >
+          <Check className="w-4 h-4 mr-2" />
+          Review Answers
         </Button>
         <Button
           className="bg-gray-900 hover:bg-gray-800 text-white"
@@ -157,7 +168,7 @@ export function Results({
           ) : (
             <>
               <RotateCcw className="w-4 h-4 mr-2" />
-              Retry
+              Generate New
             </>
           )}
         </Button>

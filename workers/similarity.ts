@@ -9,7 +9,8 @@ function cosine(a: number[], b: number[]): number {
     magB += b[i] * b[i];
   }
 
-  return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+  const denominator = Math.sqrt(magA) * Math.sqrt(magB);
+  return denominator > 0 ? dot / denominator : -1;
 }
 
 function topK(
@@ -17,14 +18,27 @@ function topK(
   items: Array<{ embedding: number[]; text: string; id?: string }>,
   k: number
 ): Array<{ text: string; score: number; id?: string }> {
-  const scored = items.map((item) => ({
-    text: item.text,
-    id: item.id,
-    score: cosine(query, item.embedding),
-  }));
+  const best: Array<{ text: string; score: number; id?: string }> = [];
 
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, k);
+  for (const item of items) {
+    const scored = {
+      text: item.text,
+      id: item.id,
+      score: cosine(query, item.embedding),
+    };
+
+    let insertAt = best.findIndex((entry) => scored.score > entry.score);
+    if (insertAt === -1) insertAt = best.length;
+
+    if (insertAt < k) {
+      best.splice(insertAt, 0, scored);
+      if (best.length > k) best.pop();
+    } else if (best.length < k) {
+      best.push(scored);
+    }
+  }
+
+  return best;
 }
 
 self.onmessage = (e: MessageEvent) => {

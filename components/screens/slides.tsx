@@ -6,18 +6,22 @@ import "katex/dist/katex.min.css";
 import { Loader2, Download, RefreshCw, X, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { normalizeMathDelimiters, renderMath } from "@/lib/markdown";
+import { normalizeMathDelimiters, renderMath, sanitizeHtml } from "@/lib/markdown";
+import { cancelSlidesGeneration } from "@/lib/api/client";
+import { PageBackButton } from "@/components/page-back-button";
 
 import type { SlideColorPalette } from "@/types";
 
 interface SlidesProps {
   content: string;
   isGenerating: boolean;
+  error?: string | null;
   currentSlide: number;
   slideDesign: string;
   slideColorPalette: SlideColorPalette;
   onSlideChange: (index: number) => void;
   onEnd?: () => void;
+  onBackAction: () => void;
 }
 
 // Utility functions now imported from @/lib/markdown
@@ -32,7 +36,7 @@ const colorPaletteThemes: Record<SlideColorPalette, { bg: string; text: string; 
   purple: { bg: "bg-gradient-to-br from-purple-700 to-indigo-600", text: "text-white", accent: "text-purple-100" },
 };
 
-export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign, slideColorPalette, onSlideChange, onEnd }: SlidesProps) {
+export function SlidesScreen({ content, isGenerating, error, currentSlide, slideDesign, slideColorPalette, onSlideChange, onEnd, onBackAction }: SlidesProps) {
   const router = useRouter();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,7 +47,7 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
     return parts.map((slide) => {
       const normalized = normalizeMathDelimiters(slide.trim());
       const html = marked.parse(normalized, { async: false, gfm: true, breaks: false }) as string;
-      return renderMath(html);
+      return renderMath(sanitizeHtml(html));
     });
   }, [content]);
 
@@ -89,10 +93,7 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
     return () => document.removeEventListener("fullscreenchange", handleChange);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
+
 
   const handleDownload = useCallback(() => {
     if (!content) return;
@@ -111,22 +112,27 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
     router.push("/format");
   }, [router]);
 
-  return (
-    <div ref={containerRef} className={cn("fixed inset-0 bg-gray-50 bg-dots overflow-hidden flex flex-col", isFullscreen ? "top-0" : "top-[72px]")}>
+  const handleEnd = useCallback(() => {
+    cancelSlidesGeneration();
+    onEnd?.();
+  }, [onEnd]);
 
+  return (
+    <div ref={containerRef} className={cn("bg-gray-50 bg-dots overflow-hidden flex flex-col", isFullscreen ? "fixed inset-0" : "h-full")}>
       {/* Slide Area with Arrows */}
       <div className="flex-1 flex items-center justify-center px-4 min-h-0">
         {/* Left Arrow */}
         <button
           onClick={goPrev}
           disabled={safeIndex === 0 || total === 0}
-          className="shrink-0 w-12 h-12 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition mr-4"
+          aria-label="Previous slide"
+          className="shrink-0 w-12 h-12 rounded-[14px] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition mr-4"
         >
           <ChevronLeft className="w-6 h-6 text-gray-700" />
         </button>
 
         {/* Slide */}
-        <div className={cn("relative flex-1 max-w-7xl h-full max-h-[75vh] rounded-2xl border-2 border-gray-200 shadow-2xl overflow-hidden", theme.bg)}>
+        <div className={cn("relative flex-1 max-w-7xl h-full max-h-[75vh] rounded-[14px] border-2 border-gray-200 shadow-2xl overflow-hidden", theme.bg)}>
           {slides.length > 0 ? (
             <div
               className={cn(
@@ -157,6 +163,10 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
                 <p className="text-xl font-medium text-gray-500">Generating Slides...</p>
               </div>
             </div>
+          ) : error ? (
+            <div className={cn("absolute inset-0 flex items-center justify-center px-6 text-center", theme.accent)}>
+              <p className="text-xl text-red-500">{error}</p>
+            </div>
           ) : (
             <div className={cn("absolute inset-0 flex items-center justify-center", theme.accent)}>
               <p className="text-2xl italic">Your slides will appear here...</p>
@@ -168,7 +178,8 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
         <button
           onClick={goNext}
           disabled={safeIndex >= total - 1 || total === 0}
-          className="shrink-0 w-12 h-12 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition ml-4"
+          aria-label="Next slide"
+          className="shrink-0 w-12 h-12 rounded-[14px] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition ml-4"
         >
           <ChevronRight className="w-6 h-6 text-gray-700" />
         </button>
@@ -178,19 +189,20 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
       {!isFullscreen && (
         <div className="shrink-0 py-5 flex flex-col items-center gap-3">
           <div className="flex items-center gap-2">
-            <button onClick={handleRetry} className="h-10 px-5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+            <PageBackButton label="Back to Format" onClick={onBackAction} />
+            <button aria-label="Retry slide generation" onClick={handleRetry} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
               <RefreshCw className="w-4 h-4" /> Retry
             </button>
             {isGenerating ? (
-              <button onClick={onEnd} className="h-10 px-5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+              <button aria-label="Stop slide generation" onClick={handleEnd} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
                 <X className="w-4 h-4" /> End
               </button>
             ) : (
-              <button onClick={handleDownload} className="h-10 px-5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+              <button aria-label="Download slides" onClick={handleDownload} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
                 <Download className="w-4 h-4" /> Download
               </button>
             )}
-            <button onClick={toggleFullscreen} className="h-10 px-5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+            <button aria-label="Present slides" onClick={toggleFullscreen} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
               <Maximize2 className="w-4 h-4" /> Present
             </button>
           </div>
@@ -228,18 +240,18 @@ export function SlidesScreen({ content, isGenerating, currentSlide, slideDesign,
               )}
             </div>
           </div>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-md rounded-full px-6 py-3">
-            <button onClick={goPrev} disabled={safeIndex === 0} className="text-white disabled:opacity-30 transition">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/40 backdrop-blur-md rounded-[14px] px-4 py-3 border border-white/10">
+            <button aria-label="Previous slide" onClick={goPrev} disabled={safeIndex === 0} className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition hover:bg-white/10 disabled:opacity-30">
               <ChevronLeft className="w-6 h-6" />
             </button>
             <span className="text-white text-sm font-medium min-w-20 text-center">
               {safeIndex + 1} / {total}
             </span>
-            <button onClick={goNext} disabled={safeIndex >= total - 1} className="text-white disabled:opacity-30 transition">
+            <button aria-label="Next slide" onClick={goNext} disabled={safeIndex >= total - 1} className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition hover:bg-white/10 disabled:opacity-30">
               <ChevronRight className="w-6 h-6" />
             </button>
             <div className="w-px h-5 bg-white/30" />
-            <button onClick={toggleFullscreen} className="text-white transition hover:opacity-80">
+            <button aria-label="Exit fullscreen" onClick={toggleFullscreen} className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition hover:bg-white/10">
               <Minimize2 className="w-5 h-5" />
             </button>
           </div>

@@ -23,6 +23,7 @@ import {
   Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageBackButton } from "@/components/page-back-button";
 import type { Format, Difficulty, NotesFormat, NotesLength, SlideColorPalette } from "@/types";
 
 interface FormatProps {
@@ -60,6 +61,7 @@ interface FormatProps {
   error: string | null;
   isLoading: boolean;
   onSelectAction: (format: Format) => void;
+  onBackAction: () => void;
 }
 
 const difficultyConfig = {
@@ -197,6 +199,7 @@ export function Format({
   error,
   isLoading,
   onSelectAction,
+  onBackAction,
 }: FormatProps) {
   const [totalSeconds, setTotalSeconds] = useState<number>(timeLimit * 60);
   const [minInput, setMinInput] = useState(String(Math.floor(timeLimit)).padStart(2, "0"));
@@ -265,22 +268,25 @@ export function Format({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-
-      <div className="mb-10 text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-gray-900">
-          Setup your Learning
-        </h1>
-        <p className="mt-2 text-gray-700 text-xl font-medium leading-relaxed">
-          How would you like to study ?
-        </p>
+      <div className="grid grid-cols-[auto,1fr,auto] items-center gap-3 mb-10">
+        <PageBackButton label="Back to Session" onClick={onBackAction} className="-ml-3" />
+        <div className="text-center">
+          <h1 className="text-5xl font-bold tracking-tight text-gray-900">
+            Setup your Learning
+          </h1>
+          <p className="mt-2 text-gray-700 text-xl font-medium leading-relaxed">
+            How would you like to study ?
+          </p>
+        </div>
+        <div className="w-[140px]" aria-hidden="true" />
       </div>
 
       <div className="mb-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <button
             onClick={() => setSelectedFormatAction("notes")}
             className={cn(
-              "group relative p-5 rounded-2xl border-2 transition-all duration-200 text-left",
+              "group relative p-5 rounded-[14px] border-2 transition-all duration-200 text-left",
               selectedFormat === "notes"
                 ? "bg-gray-900 border-gray-900 text-white"
                 : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -288,7 +294,7 @@ export function Format({
           >
             <div
               className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
+                "w-10 h-10 rounded-[14px] flex items-center justify-center mb-3",
                 selectedFormat === "notes" ? "bg-white/10" : "bg-gray-100"
               )}
             >
@@ -316,7 +322,7 @@ export function Format({
           <button
             onClick={() => setSelectedFormatAction("quiz")}
             className={cn(
-              "group relative p-5 rounded-2xl border-2 transition-all duration-200 text-left",
+              "group relative p-5 rounded-[14px] border-2 transition-all duration-200 text-left",
               selectedFormat === "quiz"
                 ? "bg-gray-900 border-gray-900 text-white"
                 : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -324,7 +330,7 @@ export function Format({
           >
             <div
               className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
+                "w-10 h-10 rounded-[14px] flex items-center justify-center mb-3",
                 selectedFormat === "quiz" ? "bg-white/10" : "bg-gray-100"
               )}
             >
@@ -354,7 +360,7 @@ export function Format({
           <button
             onClick={() => setSelectedFormatAction("slides")}
             className={cn(
-              "group relative p-5 rounded-2xl border-2 transition-all duration-200 text-left",
+              "group relative p-5 rounded-[14px] border-2 transition-all duration-200 text-left",
               selectedFormat === "slides"
                 ? "bg-gray-900 border-gray-900 text-white"
                 : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -362,7 +368,7 @@ export function Format({
           >
             <div
               className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
+                "w-10 h-10 rounded-[14px] flex items-center justify-center mb-3",
                 selectedFormat === "slides" ? "bg-white/10" : "bg-gray-100"
               )}
             >
@@ -390,8 +396,8 @@ export function Format({
       </div>
 
       <div className="mb-6">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden flex flex-col">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-white border-2 border-gray-200 rounded-[14px] overflow-hidden flex flex-col">
             <div className="px-4 pt-3 pb-2 border-gray-100 shrink-0">
               <div className="flex items-center ">
                 <span className="text-sm font-bold text-gray-600 tracking-wider">Documents</span>
@@ -407,7 +413,7 @@ export function Format({
                     return (
                       <div
                         key={doc.id}
-                        className="group relative bg-white hover:bg-gray-50 rounded-md px-2.5 py-1.5 transition-all duration-200 border-2 border-gray-200 hover:border-gray-300"
+                        className="group relative bg-white hover:bg-gray-50 rounded-[12px] px-2.5 py-1.5 transition-all duration-200 border-2 border-gray-200 hover:border-gray-300"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1 flex-1 min-w-0">
@@ -437,16 +443,17 @@ export function Format({
 
           <div className="col-span-2 flex flex-col gap-3 h-[350px]">
             <textarea
+              aria-label="Focus topics"
               placeholder="Focus your learning — describe what topics or concepts to emphasize..."
               value={promptText}
               onChange={(e) => setPromptTextAction(e.target.value)}
-              className="w-full flex-1 px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-xl transition-colors resize-none"
+              className="w-full flex-1 px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-[14px] transition-colors resize-none"
             />
 
             {selectedFormat === "notes" ? (
               <div className="flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-300">
+                  <div className="flex bg-gray-100 rounded-[14px] p-1 gap-1 border-2 border-gray-300">
                     {(["short", "medium", "long", "adaptive"] as NotesLength[]).map((length) => {
                       const isActive = notesLength === length;
                       return (
@@ -454,7 +461,7 @@ export function Format({
                           key={length}
                           onClick={() => setNotesLengthAction(length)}
                           className={cn(
-                            "flex-1 py-4 px-1 rounded-lg text-xs font-semibold transition-all duration-200 capitalize",
+                            "flex-1 py-4 px-1 rounded-[14px] text-xs font-semibold transition-all duration-200 capitalize",
                             isActive
                               ? "bg-gray-900 text-white shadow-sm"
                               : "text-gray-500 hover:text-gray-900 hover:bg-white"
@@ -466,11 +473,11 @@ export function Format({
                     })}
                   </div>
 
-                  <div className="flex bg-gray-100 rounded-xl gap-1 border-2 border-gray-300 p-1">
+                  <div className="flex bg-gray-100 rounded-[14px] gap-1 border-2 border-gray-300 p-1">
                     <button
                       onClick={() => setCodeEnabledAction(!codeEnabled)}
                       className={cn(
-                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        "flex-1 py-1.5 px-2 rounded-[14px] text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
                         codeEnabled
                           ? "bg-gray-900 text-white shadow-sm border-gray-900"
                           : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
@@ -484,7 +491,7 @@ export function Format({
                     <button
                       onClick={() => setFormulasEnabledAction(!formulasEnabled)}
                       className={cn(
-                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        "flex-1 py-1.5 px-2 rounded-[14px] text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
                         formulasEnabled
                           ? "bg-gray-900 text-white shadow-sm border-gray-900"
                           : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
@@ -498,7 +505,7 @@ export function Format({
                     <button
                       onClick={() => setDiagramsEnabledAction(!diagramsEnabled)}
                       className={cn(
-                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        "flex-1 py-1.5 px-2 rounded-[14px] text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
                         diagramsEnabled
                           ? "bg-gray-900 text-white shadow-sm border-gray-900"
                           : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
@@ -517,7 +524,7 @@ export function Format({
                     <button
                       onClick={() => setTablesEnabledAction(!tablesEnabled)}
                       className={cn(
-                        "flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
+                        "flex-1 py-1.5 px-2 rounded-[14px] text-xs font-semibold transition-all duration-200 flex flex-col items-center justify-center gap-1 leading-none",
                         tablesEnabled
                           ? "bg-gray-900 text-white shadow-sm border-gray-900"
                           : "bg-gray-100 text-gray-600 border-gray-200 hover:text-gray-900 hover:bg-white"
@@ -534,7 +541,7 @@ export function Format({
                   </div>
                 </div>
 
-                <div className="bg-white border-2 border-gray-200 rounded-2xl p-3 h-35">
+                <div className="bg-white border-2 border-gray-200 rounded-[14px] p-3 h-35">
                   <div className="flex gap-2 h-full">
                     {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
                       const config = notesFormatConfig[format];
@@ -546,14 +553,14 @@ export function Format({
                           key={format}
                           onClick={() => setNotesFormatAction(format)}
                           className={cn(
-                            "flex-1 rounded-xl border-2 p-2 transition-all duration-200 flex flex-col items-center justify-center gap-1",
+                            "flex-1 rounded-[14px] border-2 p-2 transition-all duration-200 flex flex-col items-center justify-center gap-1",
                             isActive
                               ? "bg-gray-900 border-gray-900"
                               : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                           )}
                         >
                           <div className={cn(
-                            "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                            "w-9 h-9 rounded-[14px] flex items-center justify-center transition-colors",
                             isActive ? "bg-white/10" : "bg-gray-100"
                           )}>
                             <Icon
@@ -582,12 +589,13 @@ export function Format({
                 {/* Left Column - Color Palette + Slide Counter */}
                 <div className="flex flex-col gap-3">
                   {/* Color Palette */}
-                  <div className="flex bg-gray-100 rounded-xl gap-2 border-2 border-gray-300 py-4 px-3 items-center justify-center">
+                  <div className="flex bg-gray-100 rounded-[14px] gap-2 border-2 border-gray-300 py-4 px-3 items-center justify-center">
                     {colorPaletteConfig.map((palette) => (
                       <button
                         key={palette.id}
                         onClick={() => setSlideColorPaletteAction(palette.id)}
-                        className="p-0.5 px-2 rounded-full transition-all duration-200 hover:scale-105"
+                        aria-label={`Use ${palette.id} slide palette`}
+                        className="rounded-[12px] p-1 transition-all duration-200 hover:scale-105"
                       >
                         <div
                           className={cn(
@@ -603,12 +611,12 @@ export function Format({
                   </div>
 
                   {/* Slide Counter */}
-                  <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 flex-1">
+                  <div className="bg-white border-2 border-gray-200 rounded-[14px] p-4 flex-1">
                     <div className="flex justify-between mb-4 h-14 items-start pt-1">
                       <button
                         onClick={() => setNumSlidesAction(Math.max(1, numSlides - 1))}
                         disabled={numSlides <= 1}
-                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-[14px] border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center transition-colors"
                       >
                         <Minus className="w-4 h-4 text-gray-600" />
                       </button>
@@ -619,7 +627,7 @@ export function Format({
                       <button
                         onClick={() => setNumSlidesAction(Math.min(50, numSlides + 1))}
                         disabled={numSlides >= 50}
-                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-[14px] border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 flex items-center justify-center transition-colors"
                       >
                         <Plus className="w-4 h-4 text-gray-600" />
                       </button>
@@ -630,7 +638,7 @@ export function Format({
                           key={preset}
                           onClick={() => setNumSlidesAction(preset)}
                           className={cn(
-                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            "px-3 py-1.5 rounded-[14px] text-sm font-medium transition-all",
                             numSlides === preset ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           )}
                         >
@@ -642,24 +650,24 @@ export function Format({
                 </div>
 
                 {/* Right Column - Slide Design */}
-                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 flex flex-col">
+                <div className="bg-white border-2 border-gray-200 rounded-[14px] p-4 flex flex-col">
                   <div className="flex items-center justify-between mb-3">
                     <button
                       onClick={handlePrevDesign}
-                      className="w-9 h-9 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors"
+                      className="w-9 h-9 rounded-[14px] border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4 text-gray-600" />
                     </button>
                     <h4 className="text-sm font-bold text-gray-900">{currentDesign.name}</h4>
                     <button
                       onClick={handleNextDesign}
-                      className="w-9 h-9 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors"
+                      className="w-9 h-9 rounded-[14px] border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors"
                     >
                       <ChevronRight className="w-4 h-4 text-gray-600" />
                     </button>
                   </div>
                   <div className="flex-1 flex items-center justify-center">
-                    <div className={cn("w-full h-32 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden", currentPalette.preview)}>
+                    <div className={cn("w-full h-32 rounded-[14px] flex items-center justify-center shadow-lg relative overflow-hidden", currentPalette.preview)}>
                       {/* Slide illustration - unique per format */}
                       <div className="absolute inset-0 flex items-center justify-center">
                         {currentDesign.id === "professional" && (
@@ -772,7 +780,7 @@ export function Format({
             ) : (
               <div className="flex-1 flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex bg-gray-100 rounded-xl p-1 gap-1 border-2 border-gray-300">
+                  <div className="flex bg-gray-100 rounded-[14px] p-1 gap-1 border-2 border-gray-300">
                     {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
                       const config = difficultyConfig[level];
                       const isActive = difficulty === level;
@@ -781,7 +789,7 @@ export function Format({
                           key={level}
                           onClick={() => setDifficultyAction(level)}
                           className={cn(
-                            "flex-1 py-4 px-1 rounded-lg text-xs font-semibold transition-all duration-200",
+                            "flex-1 py-4 px-1 rounded-[14px] text-xs font-semibold transition-all duration-200",
                             isActive
                               ? "bg-gray-900 text-white shadow-sm"
                               : "text-gray-500 hover:text-gray-900 hover:bg-white"
@@ -796,11 +804,11 @@ export function Format({
                   {selectedFormat === "quiz" && (
                     <button
                       onClick={() => setRevealEnabledAction(!revealEnabled)}
-                      className="relative overflow-hidden rounded-xl bg-gray-100 border-2 border-gray-200 transition-all duration-300"
+                      className="relative overflow-hidden rounded-[14px] bg-gray-100 border-2 border-gray-200 transition-all duration-300"
                     >
                       <div
                         className={cn(
-                          "absolute inset-y-1 w-[calc(50%-4px)] rounded-lg bg-gray-900 transition-all duration-300 ease-out shadow-sm",
+                          "absolute inset-y-1 w-[calc(50%-4px)] rounded-[12px] bg-gray-900 transition-all duration-300 ease-out shadow-sm",
                           revealEnabled ? "left-1" : "left-[calc(50%+2px)]"
                         )}
                       />
@@ -829,12 +837,12 @@ export function Format({
                 </div>
 
                 <div className="flex-1 grid grid-cols-2 gap-3">
-                  <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+                  <div className="bg-white border-2 border-gray-200 rounded-[14px] p-4">
                     <div className="flex justify-between mb-4 h-14 items-start pt-1">
                       <button
                         onClick={() => setNumQuestionsAction(Math.max(1, numQuestions - 1))}
                         disabled={numQuestions <= 1}
-                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-[14px] border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
                       >
                         <Minus className="w-4 h-4 text-gray-600" />
                       </button>
@@ -849,7 +857,7 @@ export function Format({
                       <button
                         onClick={() => setNumQuestionsAction(Math.min(30, numQuestions + 1))}
                         disabled={numQuestions >= 30}
-                        className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-[14px] border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-gray-50 flex items-center justify-center transition-colors"
                       >
                         <Plus className="w-4 h-4 text-gray-600" />
                       </button>
@@ -860,7 +868,7 @@ export function Format({
                           key={preset}
                           onClick={() => setNumQuestionsAction(preset)}
                           className={cn(
-                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            "px-3 py-1.5 rounded-[14px] text-sm font-medium transition-all",
                             numQuestions === preset
                               ? "bg-gray-900 text-white"
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -872,17 +880,17 @@ export function Format({
                     </div>
                   </div>
 
-                  <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 relative">
+                  <div className="bg-white border-2 border-gray-200 rounded-[14px] p-4 relative">
                     <div className="absolute top-0 right-0 flex flex-col h-full">
                       <button
                         onClick={incrementTime}
-                        className="flex-1 w-12 rounded-tr-2xl border-l border-b border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
+                        className="flex-1 w-12 rounded-tr-[14px] border-l border-b border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
                       >
                         <Plus className="w-5 h-5" />
                       </button>
                       <button
                         onClick={decrementTime}
-                        className="flex-1 w-12 rounded-br-2xl border-l border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
+                        className="flex-1 w-12 rounded-br-[14px] border-l border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
                       >
                         <Minus className="w-5 h-5" />
                       </button>
@@ -895,26 +903,28 @@ export function Format({
                           <span className="text-5xl font-bold text-gray-800 tabular-nums leading-none">∞</span>
                         ) : (
                           <div className="flex items-center">
-                            <div className="bg-gray-100 rounded-lg px-2">
+                            <div className="bg-gray-100 rounded-[14px] px-2">
                               <input
                                 type="text"
+                                aria-label="Minutes"
                                 value={minInput}
                                 onChange={(e) => setMinInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
                                 onFocus={() => setIsEditingMin(true)}
                                 onBlur={handleMinutesBlur}
-                                className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
+                                className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 rounded-[14px] cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
                                 maxLength={2}
                               />
                             </div>
                             <span className="text-3xl font-bold text-gray-300 mx-0.5 leading-none">:</span>
-                            <div className="bg-gray-100 rounded-lg px-2">
+                            <div className="bg-gray-100 rounded-[14px] px-2">
                               <input
                                 type="text"
+                                aria-label="Seconds"
                                 value={secInput}
                                 onChange={(e) => setSecInput(e.target.value.replace(/\D/g, "").slice(0, 2))}
                                 onFocus={() => setIsEditingSec(true)}
                                 onBlur={handleSecondsBlur}
-                                className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
+                                className="w-14 text-center text-5xl font-bold text-gray-800 tabular-nums bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 rounded-[14px] cursor-text caret-gray-400 selection:bg-gray-200 leading-none py-1"
                                 maxLength={2}
                               />
                             </div>
@@ -927,7 +937,7 @@ export function Format({
                             key={preset}
                             onClick={() => setPresetTime(preset)}
                             className={cn(
-                              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            "px-3 py-1.5 rounded-[14px] text-sm font-medium transition-all",
                               totalSeconds === preset * 60
                                 ? "bg-gray-900 text-white"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -948,7 +958,7 @@ export function Format({
 
       {
         error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-[14px]">
             <p className="text-red-700 text-sm text-center">{error}</p>
           </div>
         )
@@ -958,7 +968,7 @@ export function Format({
         <Button
           onClick={() => onSelectAction(selectedFormat)}
           disabled={isLoading}
-          className="bg-gray-900 hover:bg-gray-800 text-white h-14 px-10 text-base font-medium rounded-2xl shadow-lg shadow-gray-900/10 transition-all hover:shadow-xl hover:shadow-gray-900/15"
+          className="bg-gray-900 hover:bg-gray-800 text-white h-14 px-10 text-base font-medium shadow-lg shadow-gray-900/10 transition-all hover:shadow-xl hover:shadow-gray-900/15"
         >
           {isLoading ? (
             <>

@@ -1,24 +1,29 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import type { Quiz } from "@/types";
+import {
+    clearSessionStorageKey,
+    useSessionStorageState,
+} from "@/lib/storage";
 
 interface UseQuizProps {
     initialQuizData?: Quiz[];
 }
 
 export function useQuiz({ initialQuizData = [] }: UseQuizProps = {}) {
-    const [quizData, setQuizData] = useState<Quiz[]>(initialQuizData);
+    const [quizData, setQuizData] = useSessionStorageState<Quiz[]>("quiz-data", initialQuizData);
 
-    const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
-    const [showFeedback, setShowFeedback] = useState(false);
+    const [currentQuestion, setCurrentQuestion] = useSessionStorageState("quiz-current-question", 0);
+    const [selectedAnswer, setSelectedAnswer] = useSessionStorageState<string | null>("quiz-selected-answer", null);
+    const [userAnswers, setUserAnswers] = useSessionStorageState<Record<number, string>>("quiz-user-answers", {});
+    const [showFeedback, setShowFeedback] = useSessionStorageState("quiz-show-feedback", false);
 
     // Stats
-    const [startTime, setStartTime] = useState(0);
-    const [questionStartTime, setQuestionStartTime] = useState(0);
-    const [questionTimes, setQuestionTimes] = useState<number[]>([]);
-    const [currentStreak, setCurrentStreak] = useState(0);
-    const [maxStreak, setMaxStreak] = useState(0);
+    const [startTime, setStartTime] = useSessionStorageState("quiz-start-time", 0);
+    const [questionStartTime, setQuestionStartTime] = useSessionStorageState("quiz-question-start-time", 0);
+    const [questionTimes, setQuestionTimes] = useSessionStorageState<number[]>("quiz-question-times", []);
+    const [currentStreak, setCurrentStreak] = useSessionStorageState("quiz-current-streak", 0);
+    const [maxStreak, setMaxStreak] = useSessionStorageState("quiz-max-streak", 0);
+    const [isSaved, setIsSaved] = useSessionStorageState("quiz-is-saved", false);
 
     const startQuiz = useCallback(() => {
         setQuizData([]);
@@ -31,6 +36,7 @@ export function useQuiz({ initialQuizData = [] }: UseQuizProps = {}) {
         setQuestionTimes([]);
         setCurrentStreak(0);
         setMaxStreak(0);
+        setIsSaved(false);
     }, []);
 
     const submitAnswer = useCallback(() => {
@@ -74,6 +80,79 @@ export function useQuiz({ initialQuizData = [] }: UseQuizProps = {}) {
         }
     }, [currentQuestion, userAnswers]);
 
+    const hydrateQuiz = useCallback((data: {
+        quizData: Quiz[];
+        userAnswers?: Record<number, string>;
+        currentQuestion?: number;
+        showFeedback?: boolean;
+        startTime?: number;
+        questionTimes?: number[];
+        maxStreak?: number;
+        isSaved?: boolean;
+    }) => {
+        setQuizData(data.quizData);
+        setUserAnswers(data.userAnswers || {});
+        setCurrentQuestion(data.currentQuestion || 0);
+        const restoredAnswer = (data.userAnswers || {})[data.currentQuestion || 0] || null;
+        setSelectedAnswer(restoredAnswer);
+        setShowFeedback(Boolean(data.showFeedback));
+        setStartTime(data.startTime || 0);
+        setQuestionStartTime(Date.now());
+        setQuestionTimes(data.questionTimes || []);
+        setCurrentStreak(0);
+        setMaxStreak(data.maxStreak || 0);
+        setIsSaved(data.isSaved || false);
+    }, [
+        setCurrentQuestion,
+        setCurrentStreak,
+        setMaxStreak,
+        setIsSaved,
+        setQuestionStartTime,
+        setQuestionTimes,
+        setQuizData,
+        setSelectedAnswer,
+        setShowFeedback,
+        setStartTime,
+        setUserAnswers,
+    ]);
+
+    const clearQuiz = useCallback(() => {
+        setQuizData([]);
+        setCurrentQuestion(0);
+        setSelectedAnswer(null);
+        setUserAnswers({});
+        setShowFeedback(false);
+        setStartTime(0);
+        setQuestionStartTime(0);
+        setQuestionTimes([]);
+        setCurrentStreak(0);
+        setMaxStreak(0);
+        setIsSaved(false);
+        clearSessionStorageKey("quiz-data");
+        clearSessionStorageKey("quiz-current-question");
+        clearSessionStorageKey("quiz-selected-answer");
+        clearSessionStorageKey("quiz-user-answers");
+        clearSessionStorageKey("quiz-show-feedback");
+        clearSessionStorageKey("quiz-start-time");
+        clearSessionStorageKey("quiz-question-start-time");
+        clearSessionStorageKey("quiz-question-times");
+        clearSessionStorageKey("quiz-current-streak");
+        clearSessionStorageKey("quiz-max-streak");
+        clearSessionStorageKey("quiz-is-saved");
+    }, [
+        setCurrentQuestion,
+        setCurrentStreak,
+        setMaxStreak,
+        setIsSaved,
+        setQuestionStartTime,
+        setQuestionTimes,
+        setQuizData,
+        setSelectedAnswer,
+        setShowFeedback,
+        setStartTime,
+        setUserAnswers,
+    ]);
+
     return {
         // Data
         quizData,
@@ -97,8 +176,13 @@ export function useQuiz({ initialQuizData = [] }: UseQuizProps = {}) {
         submitAnswer,
         nextQuestion,
         prevQuestion,
+        hydrateQuiz,
+        clearQuiz,
+        reviewAnswers: useCallback(() => setCurrentQuestion(0), [setCurrentQuestion]),
 
         // Helpers
+        isSaved,
+        setIsSaved,
         isQuizComplete: currentQuestion === quizData.length - 1 && showFeedback,
     };
 }

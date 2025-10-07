@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { stream } from "@/lib/api/openai";
+import { asBoolean, asEnum, asNumber, asString, readJsonBody } from "@/lib/api/request";
 import { streamHeaders } from "@/lib/api/stream";
 
 const designStyles: Record<string, string> = {
@@ -21,21 +22,31 @@ Math formatting:
 `;
 
 export async function POST(request: NextRequest) {
-  const { topic, context, numSlides = 10, slideDesign = "professional", codeEnabled, formulasEnabled, tablesEnabled, prompt } = await request.json();
+  try {
+    const body = await readJsonBody(request, 80_000);
+    const topic = asString(body?.topic, 200, "topic");
+    const context = asString(body?.context, 20_000, "context");
+    const numSlides = asNumber(body?.numSlides, "numSlides", { fallback: 10, min: 1, max: 50 });
+    const slideDesign = asEnum(
+      body?.slideDesign,
+      ["minimal", "professional", "colorful", "academic", "creative", "dark", "technical", "visual"] as const,
+      "professional",
+      "slideDesign",
+    );
+    const prompt = asString(body?.prompt, 2_000, "prompt", { optional: true });
+    const codeEnabled = asBoolean(body?.codeEnabled);
+    const formulasEnabled = asBoolean(body?.formulasEnabled);
+    const tablesEnabled = asBoolean(body?.tablesEnabled);
 
-  if (!topic || !context?.trim()) {
-    return Response.json({ error: "Topic and context required" }, { status: 400 });
-  }
+    const designGuide = designStyles[slideDesign] || designStyles.professional;
 
-  const designGuide = designStyles[slideDesign] || designStyles.professional;
+    const extras = [
+      codeEnabled === true && "Include short code snippets where relevant.",
+      formulasEnabled === true && MATH_INSTRUCTIONS,
+      tablesEnabled === true && "Use simple markdown tables when comparing items.",
+    ].filter(Boolean).join("\n");
 
-  const extras = [
-    codeEnabled === true && "Include short code snippets where relevant.",
-    formulasEnabled === true && MATH_INSTRUCTIONS,
-    tablesEnabled === true && "Use simple markdown tables when comparing items.",
-  ].filter(Boolean).join("\n");
-
-  const slidesPrompt = `Create exactly ${numSlides} presentation slides about "${topic}".
+    const slidesPrompt = `Create exactly ${numSlides} presentation slides about "${topic}".
 
 CRITICAL FORMAT RULES:
 1. Each slide MUST start with "---" on its own line
@@ -57,7 +68,7 @@ Style: ${slideDesign}
 ${designGuide}
 
 ${extras}
-${prompt?.trim() ? `Focus on: ${prompt}` : ""}
+${prompt ? `Focus on: ${prompt}` : ""}
 
 Reference content:
 ${context}
@@ -79,22 +90,34 @@ Example format:
 
 Generate ${numSlides} slides now:`;
 
-  try {
-    const response = await stream(slidesPrompt, "You are a presentation designer. Create slides with ONLY bullet points, no paragraphs. Each slide starts with --- then # Title then bullets. Keep bullets under 15 words each.");
+    const response = await stream(
+      slidesPrompt,
+      "You are a presentation designer. Create slides with ONLY bullet points, no paragraphs. Each slide starts with --- then # Title then bullets. Keep bullets under 15 words each.",
+      request.signal,
+    );
     const encoder = new TextEncoder();
 
     const readable = new ReadableStream({
       async start(controller) {
-        for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content || "";
-          if (text) controller.enqueue(encoder.encode(text));
+        try {
+          for await (const chunk of response) {
+            if (request.signal.aborted) break;
+            const text = chunk.choices[0]?.delta?.content || "";
+            if (text) controller.enqueue(encoder.encode(text));
+          }
+          controller.close();
+        } catch {
+          if (!request.signal.aborted) controller.error(new Error("Failed to stream slides"));
         }
-        controller.close();
       },
     });
 
     return new Response(readable, { headers: streamHeaders });
-  } catch (error: any) {
-    return Response.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to generate slides";
+    const status = message.includes("required") || message.includes("invalid") || message.includes("Invalid") || message.includes("must") || message.includes("large")
+      ? 400
+      : 500;
+    return Response.json({ error: status === 400 ? message : "Failed to generate slides" }, { status });
   }
 }

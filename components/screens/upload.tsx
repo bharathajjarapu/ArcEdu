@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, X, Loader2, UploadIcon, ArrowRight, FolderOpen } from "lucide-react";
+import { FileText, X, Loader2, UploadIcon, ArrowRight } from "lucide-react";
 import { generateTitle } from "@/lib/api/client";
 import { parse } from "@/lib/parse";
 import * as docs from "@/lib/storage/docs";
@@ -22,8 +22,6 @@ interface UploadProps {
   onCreateAction: (title: string) => Promise<any>;
   onUpdateSessionAction: (id: string, data: { title: string }) => Promise<void>;
   onContinueAction: () => void;
-  all: any[];
-  onSessionsClick: () => void;
 }
 
 export function Upload({
@@ -37,9 +35,19 @@ export function Upload({
   onCreateAction,
   onUpdateSessionAction,
   onContinueAction,
-  all,
-  onSessionsClick,
 }: UploadProps) {
+  const handleRemoveDoc = async (id: string) => {
+    try {
+      await docs.remove(id);
+    } catch (err) {
+      console.error("Error removing file:", err);
+      setErrorAction("Failed to remove file");
+      return;
+    }
+
+    setUploadedDocsAction(uploadedDocs.filter((doc) => doc.id !== id));
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -55,17 +63,19 @@ export function Upload({
       }
 
       const fileNames: string[] = [];
-      const pdfQueue = queue.create(3);
+      const pdfQueue = queue.create(2);
 
       const newDocs = await pdfQueue.all(
         Array.from(files).map((file) => async () => {
           fileNames.push(file.name);
           const size = `${(file.size / 1024 / 1024).toFixed(1)} MB`;
+          let storedId = crypto.randomUUID();
 
           try {
             const content = await parse(file);
             if (sessionId && content) {
               const doc = await docs.create(sessionId, file.name, size, content);
+              storedId = doc.id;
               const textChunks = await worker.chunkText(content);
               const chunks: Chunk[] = textChunks.map((text, index) => ({
                 id: crypto.randomUUID(),
@@ -76,15 +86,13 @@ export function Upload({
                 index,
                 hash: simpleHash(text),
               }));
-              for (const chunk of chunks) {
-                await docs.saveChunks([chunk]);
-              }
+              await docs.saveChunks(chunks);
             }
           } catch (err) {
             console.error("Error processing file:", err);
           }
 
-          return { id: crypto.randomUUID(), name: file.name, size };
+          return { id: storedId, name: file.name, size };
         })
       );
 
@@ -122,9 +130,9 @@ export function Upload({
 
   return (
     <div className="px-4 flex items-center justify-center">
-      <div className="w-full max-w-3xl py-12">
+      <div className="w-full max-w-3xl pt-16 pb-12">
         <div className="text-center mb-6">
-          <h1 className="text-8xl font-bold tracking-tight text-gray-900 mb-9">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-900 mb-9">
             Ready to Quiz<br />anything ?
           </h1>
           <p className="text-gray-700 text-lg font-medium leading-relaxed">
@@ -132,11 +140,10 @@ export function Upload({
           </p>
         </div>
 
-        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+        <Card className="bg-white border-gray-200 rounded-[14px] overflow-hidden">
           <div
-            className={`border-2 border-dashed rounded-xl h-75 px-10 flex flex-col items-center justify-center transition-colors ${
-              error ? "border-red-300 bg-red-50/50" : "border-gray-300 bg-gray-100 hover:bg-gray-200/60 hover:border-gray-400"
-            }`}
+            className={`border-2 border-dashed rounded-[14px] h-75 px-10 flex flex-col items-center justify-center transition-colors ${error ? "border-red-300 bg-red-50/50" : "border-gray-300 bg-gray-100 hover:bg-gray-200/60 hover:border-gray-400"
+              }`}
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
@@ -177,12 +184,13 @@ export function Upload({
             {uploadedDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-sm text-gray-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-[14px] border border-gray-200 text-sm text-gray-700"
               >
                 <FileText className="w-3.5 h-3.5 text-gray-400" />
                 <span className="max-w-[140px] truncate">{doc.name}</span>
                 <button
-                  onClick={() => setUploadedDocsAction(uploadedDocs.filter((d) => d.id !== doc.id))}
+                  onClick={() => void handleRemoveDoc(doc.id)}
+                  aria-label={`Remove ${doc.name}`}
                   className="text-gray-400 hover:text-red-500"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -203,18 +211,7 @@ export function Upload({
           </Button>
         </div>
 
-        {all.filter((s) => s.completed).length > 0 && (
-          <div className="mt-6 flex justify-center">
-            <Button
-              variant="ghost"
-              onClick={onSessionsClick}
-              className="text-gray-600 hover:text-gray-900 border border-gray-200"
-            >
-              <FolderOpen className="w-4 h-4 mr-2" />
-              My Sessions
-            </Button>
-          </div>
-        )}
+
       </div>
     </div>
   );

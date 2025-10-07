@@ -32,15 +32,6 @@ export async function set(
   hash: string,
   embedding: number[],
 ): Promise<void> {
-  const cacheKey = `${sessionId}_${hash}`;
-  const cache: Cache = {
-    hash: cacheKey,
-    sessionId,
-    embedding,
-    createdAt: Date.now(),
-  };
-  await store.put("cache", cache);
-
   const globalKey = `global_${hash}`;
   const global = await store.get<Cache>("cache", globalKey);
   if (!global) {
@@ -73,16 +64,6 @@ export async function setMany(
 ): Promise<void> {
   if (items.length === 0) return;
   const now = Date.now();
-  const entries: Cache[] = [];
-
-  for (const item of items) {
-    entries.push({
-      hash: `${sessionId}_${item.hash}`,
-      sessionId,
-      embedding: item.embedding,
-      createdAt: now,
-    });
-  }
 
   const globalKeys = items.map((item) => `global_${item.hash}`);
   const existingGlobals = await Promise.all(
@@ -101,7 +82,7 @@ export async function setMany(
     }
   });
 
-  await store.putMany("cache", [...entries, ...newGlobals]);
+  await store.putMany("cache", newGlobals);
 }
 
 export async function has(sessionId: string, hash: string): Promise<boolean> {

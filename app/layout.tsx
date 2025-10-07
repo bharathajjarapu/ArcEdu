@@ -4,7 +4,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/contexts/session";
 import { StateProvider } from "@/contexts/state";
-import { AppShell } from "@/components/app-shell";
+import { Frame } from "@/components/frame";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
@@ -23,10 +23,11 @@ export default function RootLayout({
       <body className={plusJakarta.className}>
         <SessionProvider>
           <StateProvider>
-            <AppShell>{children}</AppShell>
+            <Frame>{children}</Frame>
           </StateProvider>
         </SessionProvider>
       </body>
     </html>
   );
 }
+

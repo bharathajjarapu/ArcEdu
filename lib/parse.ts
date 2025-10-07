@@ -13,9 +13,7 @@ export async function parse(file: File): Promise<string> {
 }
 
 async function parsePDF(buffer: ArrayBuffer): Promise<string> {
-  const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdfworker.mjs";
-
+  const pdfjsLib = await loadPdfjs();
   const doc = await pdfjsLib.getDocument({ data: buffer }).promise;
   const texts: string[] = [];
 
@@ -26,6 +24,31 @@ async function parsePDF(buffer: ArrayBuffer): Promise<string> {
   }
 
   return texts.join("\n");
+}
+
+let pdfjsPromise: Promise<any> | null = null;
+
+function loadPdfjs(): Promise<any> {
+  if ((window as any).pdfjsLib) return Promise.resolve((window as any).pdfjsLib);
+  if (pdfjsPromise) return pdfjsPromise;
+  pdfjsPromise = new Promise((resolve, reject) => {
+    const loader = document.createElement("script");
+    loader.type = "module";
+    loader.textContent = `
+      import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.9.155/pdf.min.mjs";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.9.155/pdf.worker.min.mjs";
+      window.pdfjsLib = pdfjsLib;
+      window.dispatchEvent(new Event("pdfjs-ready"));
+    `;
+    window.addEventListener("pdfjs-ready", () => {
+      const lib = (window as any).pdfjsLib;
+      if (lib) resolve(lib);
+      else reject(new Error("pdfjsLib not found"));
+    }, { once: true });
+    loader.onerror = () => { pdfjsPromise = null; reject(new Error("Failed to load pdf.js")); };
+    document.head.appendChild(loader);
+  });
+  return pdfjsPromise;
 }
 
 async function parseDOCX(buffer: ArrayBuffer): Promise<string> {

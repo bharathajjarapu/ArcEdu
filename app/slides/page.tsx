@@ -1,20 +1,13 @@
-"use client";
+import SlidesPageClient from "./page-client";
 
-import { SlidesScreen } from "@/components/screens/slides";
-import { useAppState } from "@/contexts/state";
+type SlidesPageProps = {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default function SlidesPage() {
-    const state = useAppState();
+export default async function SlidesPage({ searchParams }: SlidesPageProps) {
+    const resolvedSearchParams = await searchParams;
+    const rawSessionId = resolvedSearchParams?.sessionId;
+    const sessionId = Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId;
 
-    return (
-        <SlidesScreen
-            content={state.slides.slidesContent}
-            isGenerating={state.slides.isGenerating}
-            currentSlide={state.slides.currentSlide}
-            slideDesign={state.slideDesign}
-            slideColorPalette={state.slideColorPalette}
-            onSlideChange={state.slides.goToSlide}
-            onEnd={state.slides.finishSlides}
-        />
-    );
+    return <SlidesPageClient sessionId={sessionId} />;
 }

@@ -1,15 +1,37 @@
 "use client";
 
+import { useEffect } from "react";
 import { Format } from "@/components/screens/format";
 import { useAppState } from "@/contexts/state";
+import { useSession } from "@/contexts/session";
 import { useGenerate } from "@/hooks/generate";
 import { useRouter } from "next/navigation";
 import type { Format as FormatType } from "@/types";
+import * as sessions from "@/lib/storage/sessions";
 
 export default function FormatPage() {
     const router = useRouter();
     const state = useAppState();
+    const { current } = useSession();
     const { generate } = useGenerate();
+
+    useEffect(() => {
+        if (!current?.id || state.uploadedDocs.length > 0) return;
+
+        let cancelled = false;
+        void sessions.getDocs(current.id).then((docs) => {
+            if (cancelled || docs.length === 0) return;
+            state.setUploadedDocs(docs.map((doc) => ({
+                id: doc.id,
+                name: doc.name,
+                size: doc.size,
+            })));
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [current?.id, state.setUploadedDocs, state.uploadedDocs.length]);
 
     const handleFormatSelect = async (format: FormatType) => {
         await generate(format, (route) => router.push(route));
@@ -51,6 +73,7 @@ export default function FormatPage() {
             error={state.error}
             isLoading={state.isLoading}
             onSelectAction={handleFormatSelect}
+            onBackAction={() => router.push("/sessions")}
         />
     );
 }

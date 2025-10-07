@@ -1,17 +1,37 @@
 "use client";
 
+import { useEffect } from "react";
 import { Upload } from "@/components/screens/upload";
 import { useAppState } from "@/contexts/state";
 import { useSession } from "@/contexts/session";
 import { useUpload } from "@/hooks/upload";
 import { useRouter } from "next/navigation";
 import { generateTitle } from "@/lib/api/client";
+import * as sessions from "@/lib/storage/sessions";
 
 export default function UploadPage() {
     const router = useRouter();
     const state = useAppState();
-    const { current, all, setCurrent, create, update } = useSession();
+    const { current, setCurrent, create, update } = useSession();
     const { validate } = useUpload();
+
+    useEffect(() => {
+        if (!current?.id || state.uploadedDocs.length > 0) return;
+
+        let cancelled = false;
+        void sessions.getDocs(current.id).then((docs) => {
+            if (cancelled || docs.length === 0) return;
+            state.setUploadedDocs(docs.map((doc) => ({
+                id: doc.id,
+                name: doc.name,
+                size: doc.size,
+            })));
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [current?.id, state.setUploadedDocs, state.uploadedDocs.length]);
 
     const handleContinue = async () => {
         state.setError(null);
@@ -74,8 +94,6 @@ export default function UploadPage() {
             }}
             onUpdateSessionAction={update}
             onContinueAction={handleContinue}
-            all={all}
-            onSessionsClick={() => router.push("/sessions")}
         />
     );
 }

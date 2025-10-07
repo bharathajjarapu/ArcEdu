@@ -1,16 +1,13 @@
-"use client";
+import NotesPageClient from "./page-client";
 
-import { NotesScreen } from "@/components/screens/notes";
-import { useAppState } from "@/contexts/state";
+type NotesPageProps = {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default function NotesPage() {
-    const state = useAppState();
+export default async function NotesPage({ searchParams }: NotesPageProps) {
+    const resolvedSearchParams = await searchParams;
+    const rawSessionId = resolvedSearchParams?.sessionId;
+    const sessionId = Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId;
 
-    return (
-        <NotesScreen
-            content={state.notes.notesContent}
-            isGenerating={state.notes.isGenerating}
-            onEnd={state.notes.finishNotes}
-        />
-    );
+    return <NotesPageClient sessionId={sessionId} />;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
+import { PageBackButton } from "@/components/page-back-button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ interface QuizProps {
   startTime: number;
   questionStartTime: number;
   timeLimit?: number;
+  onBackAction: () => void;
 }
 
 export function QuizScreen({
@@ -40,6 +42,7 @@ export function QuizScreen({
   startTime,
   questionStartTime,
   timeLimit,
+  onBackAction,
 }: QuizProps) {
   const [now, setNow] = useState(Date.now());
   const timeoutFired = useRef(false);
@@ -85,22 +88,26 @@ export function QuizScreen({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-center gap-3 mb-6">
-        <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-sm">
-          <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Q</span>
-          <span className="text-sm tabular-nums text-gray-600">
-            {formatTime(questionElapsed)}
-          </span>
+      <div className="grid grid-cols-[auto,1fr,auto] items-center gap-3 mb-6">
+        <PageBackButton label="Back to Format" onClick={onBackAction} className="-ml-3" />
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[14px]">
+            <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Q</span>
+            <span className="text-sm tabular-nums text-gray-600">
+              {formatTime(questionElapsed)}
+            </span>
+          </div>
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[14px] transition-all",
+            isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-300"
+          )}>
+            <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">T</span>
+            <span className={cn("text-sm tabular-nums font-medium", isLowTime ? "text-gray-900" : "text-gray-600")}>
+              {remainingTime === Infinity ? "∞" : formatTime(remainingTime)}
+            </span>
+          </div>
         </div>
-        <div className={cn(
-          "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-sm transition-all",
-          isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-300"
-        )}>
-          <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">T</span>
-          <span className={cn("text-sm tabular-nums font-medium", isLowTime ? "text-gray-900" : "text-gray-600")}>
-            {remainingTime === Infinity ? "∞" : formatTime(remainingTime)}
-          </span>
-        </div>
+        <div className="w-[140px]" aria-hidden="true" />
       </div>
 
       <div className="flex items-center justify-center gap-4 mb-8">
@@ -109,7 +116,8 @@ export function QuizScreen({
           size="sm"
           onClick={onPreviousAction}
           disabled={currentQuestion === 0}
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
+          aria-label="Previous question"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[14px] w-8 h-8 p-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
@@ -121,7 +129,8 @@ export function QuizScreen({
           size="sm"
           onClick={onNextAction}
           disabled={currentQuestion === quizData.length - 1}
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-lg w-8 h-8 p-0"
+          aria-label="Next question"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[14px] w-8 h-8 p-0"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -146,7 +155,7 @@ export function QuizScreen({
                 onClick={() => !showFeedback && onAnswerSelectAction(optionId)}
                 disabled={showFeedback}
                 className={cn(
-                  "w-full p-4 rounded-xl border-2 text-left transition-all duration-200",
+                  "w-full p-4 rounded-[14px] border-2 text-left transition-all duration-200",
                   "flex items-center gap-4",
                   !showFeedback &&
                   !isSelected &&
@@ -164,7 +173,7 @@ export function QuizScreen({
               >
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-medium shrink-0",
+                    "w-8 h-8 rounded-[14px] border-2 flex items-center justify-center text-sm font-medium shrink-0",
                     !showFeedback &&
                     !isSelected &&
                     "border-gray-300 text-gray-600",
@@ -220,7 +229,7 @@ export function QuizScreen({
             onClick={onPreviousAction}
             disabled={currentQuestion === 0}
             className={cn(
-              "text-gray-600 border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300",
+              "text-gray-600 border-gray-200 rounded-[14px] hover:bg-gray-50 hover:border-gray-300",
               "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200"
             )}
           >

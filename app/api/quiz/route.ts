@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { stream } from "@/lib/api/openai";
+import { asEnum, asNumber, asString, readJsonBody } from "@/lib/api/request";
 import { createJsonStream, streamHeaders } from "@/lib/api/stream";
 
 const difficultyInstructions = {
@@ -10,27 +11,31 @@ const difficultyInstructions = {
 };
 
 export async function POST(request: NextRequest) {
-  const { topic, num = 5, context, difficulty = "medium", prompt, timeLimit } = await request.json();
+  try {
+    const body = await readJsonBody(request, 80_000);
+    const topic = asString(body?.topic, 200, "topic");
+    const context = asString(body?.context, 20_000, "context");
+    const num = asNumber(body?.num, "num", { fallback: 5, min: 1, max: 30 });
+    const difficulty = asEnum(
+      body?.difficulty,
+      ["easy", "medium", "hard", "adaptive"] as const,
+      "medium",
+      "difficulty",
+    );
+    const prompt = asString(body?.prompt, 2_000, "prompt", { optional: true });
+    const timeLimit = asNumber(body?.timeLimit, "timeLimit", { fallback: 0, min: 0, max: 120 });
 
-  if (!topic) {
-    return Response.json({ error: "No topic provided" }, { status: 400 });
-  }
+    const difficultyGuide = difficultyInstructions[difficulty as keyof typeof difficultyInstructions] || difficultyInstructions.medium;
 
-  if (!context || context.trim().length === 0) {
-    return Response.json({ error: "No context provided" }, { status: 400 });
-  }
+    const focusInstruction = prompt
+      ? `\n\nFOCUS: ${prompt}\nGenerate questions that specifically address these topics/concepts.`
+      : '';
 
-  const difficultyGuide = difficultyInstructions[difficulty as keyof typeof difficultyInstructions] || difficultyInstructions.medium;
+    const timeLimitInstruction = timeLimit
+      ? `\n\nTIME CONSTRAINT: ${timeLimit} minutes total for ${num} questions (approx ${Math.max(1, Math.floor(timeLimit / num))} min per question). Adjust question complexity accordingly.`
+      : '';
 
-  const focusInstruction = prompt?.trim()
-    ? `\n\nFOCUS: ${prompt}\nGenerate questions that specifically address these topics/concepts.`
-    : '';
-
-  const timeLimitInstruction = timeLimit
-    ? `\n\nTIME CONSTRAINT: ${timeLimit} minutes total for ${num} questions (approx ${Math.floor(timeLimit / num)} min per question). Adjust question complexity accordingly.`
-    : '';
-
-  const questionPrompt = `Based on the following context, generate ${num} multiple choice questions about "${topic}".
+    const questionPrompt = `Based on the following context, generate ${num} multiple choice questions about "${topic}".
 
 Difficulty: ${difficulty.toUpperCase()}
 ${difficultyGuide}${focusInstruction}${timeLimitInstruction}
@@ -41,10 +46,10 @@ ${context}
 IMPORTANT: Return each question as a single line of valid JSON. Do not use markdown formatting.
 Format: {"question": "...", "options": ["A", "B", "C", "D"], "answer": 0, "explanation": "..."}`;
 
-  try {
     const response = await stream(
       questionPrompt,
       "You are a quiz generator. Return one JSON object per line.",
+      request.signal,
     );
 
     const readable = createJsonStream(
@@ -53,7 +58,11 @@ Format: {"question": "...", "options": ["A", "B", "C", "D"], "answer": 0, "expla
     );
 
     return new Response(readable, { headers: streamHeaders });
-  } catch (error: any) {
-    return Response.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to generate quiz";
+    const status = message.includes("required") || message.includes("invalid") || message.includes("Invalid") || message.includes("must") || message.includes("large")
+      ? 400
+      : 500;
+    return Response.json({ error: status === 400 ? message : "Failed to generate quiz" }, { status });
   }
 }

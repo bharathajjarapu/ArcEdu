@@ -112,8 +112,10 @@ export function StateProvider({ children }: { children: ReactNode }) {
         setNumSlides(10);
         setSlideDesign("professional");
         setSlideColorPalette("colorful");
-        quiz.startQuiz();
-    }, [quiz.startQuiz]);
+        quiz.clearQuiz();
+        notesHook.clearNotes();
+        slidesHook.clearSlides();
+    }, [notesHook, quiz, slidesHook]);
 
     return (
         <StateContext.Provider value={{

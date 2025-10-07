@@ -7,6 +7,7 @@ export function createJsonStream(
     return new ReadableStream({
         async start(controller) {
             let buffer = '';
+            let emitted = 0;
 
             try {
                 for await (const chunk of response) {
@@ -40,7 +41,11 @@ export function createJsonStream(
                                 try {
                                     JSON.parse(json);
                                     controller.enqueue(encoder.encode(json + '\n'));
-                                } catch { }
+                                    emitted++;
+                                } catch {
+                                    controller.error(new Error("Invalid quiz response"));
+                                    return;
+                                }
                                 buffer = buffer.substring(i + 1);
                                 i = -1; // Reset loop
                             }
@@ -53,7 +58,16 @@ export function createJsonStream(
                     try {
                         JSON.parse(buffer.trim());
                         controller.enqueue(encoder.encode(buffer.trim() + '\n'));
-                    } catch { }
+                        emitted++;
+                    } catch {
+                        controller.error(new Error("Invalid quiz response"));
+                        return;
+                    }
+                }
+
+                if (emitted === 0) {
+                    controller.error(new Error("Empty quiz response"));
+                    return;
                 }
 
                 controller.close();
