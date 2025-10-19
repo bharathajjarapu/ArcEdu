@@ -155,7 +155,7 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
     return (
         <div className="h-full bg-gray-50 bg-dots overflow-hidden">
             <div className="max-w-4xl mx-auto px-4 py-4">
-                <div className="bg-white border-2 border-gray-200 rounded-[14px] overflow-hidden flex flex-col">
+                <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden flex flex-col">
                     <div className="relative flex items-center justify-between text-sm text-gray-600 px-5 py-3 border-b border-gray-100 bg-gray-50 flex-shrink-0">
                         <div className="relative z-10">
                             <PageBackButton label="Back to Format" onClick={onBackAction} className="-ml-3" />
@@ -167,18 +167,18 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
                             </div>
                         </div>
                         <div className="relative z-10 flex items-center gap-2">
-                            <button aria-label="Retry notes generation" onClick={handleRetry} className="h-8 px-3 rounded-[14px] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                            <button aria-label="Retry notes generation" onClick={handleRetry} className="h-8 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
                                 <RefreshCw className="w-4 h-4" />
                                 <span className="text-xs font-semibold">Retry</span>
                             </button>
                             {isGenerating && (
-                                <button aria-label="Stop notes generation" onClick={handleEnd} className="h-8 px-3 rounded-[14px] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                <button aria-label="Stop notes generation" onClick={handleEnd} className="h-8 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
                                     <X className="w-4 h-4" />
                                     <span className="text-xs font-semibold">End</span>
                                 </button>
                             )}
                             {!isGenerating && (
-                                <button aria-label="Download notes" onClick={handleDownload} className="h-8 px-3 rounded-[14px] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                <button aria-label="Download notes" onClick={handleDownload} className="h-8 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
                                     <Download className="w-4 h-4" />
                                     <span className="text-xs font-semibold">Download</span>
                                 </button>
@@ -199,10 +199,10 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
                             [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-3 [&_ol]:space-y-1
                             [&_li]:my-1
                             [&_code]:font-mono [&_code]:text-sm [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-[10px] [&_code]:text-gray-800
-                            [&_pre]:bg-gray-100 [&_pre]:text-gray-800 [&_pre]:p-4 [&_pre]:rounded-[14px] [&_pre]:overflow-x-auto [&_pre]:my-4 [&_pre]:border-2
+                            [&_pre]:bg-gray-100 [&_pre]:text-gray-800 [&_pre]:p-4 [&_pre]:rounded-[calc(var(--radius)+2px)] [&_pre]:overflow-x-auto [&_pre]:my-4 [&_pre]:border-2
                             [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit
                             [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:text-gray-600 [&_blockquote]:italic
-                            [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_table]:border-2 [&_table]:border-gray-200 [&_table]:rounded-[14px] [&_table]:overflow-hidden
+                            [&_table]:w-full [&_table]:border-collapse [&_table]:my-4 [&_table]:border-2 [&_table]:border-gray-200 [&_table]:rounded-[calc(var(--radius)+2px)] [&_table]:overflow-hidden
                             [&_th]:bg-gray-100 [&_th]:font-semibold [&_th]:text-left [&_th]:px-4 [&_th]:py-2 [&_th]:border [&_th]:border-gray-200
                             [&_td]:px-4 [&_td]:py-2 [&_td]:border [&_td]:border-gray-200
                             [&_tr:nth-child(even)]:bg-gray-50

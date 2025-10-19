@@ -91,14 +91,14 @@ export function QuizScreen({
       <div className="grid grid-cols-[auto,1fr,auto] items-center gap-3 mb-6">
         <PageBackButton label="Back to Format" onClick={onBackAction} className="-ml-3" />
         <div className="flex items-center justify-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[14px]">
+          <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[calc(var(--radius)+2px)]">
             <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Q</span>
             <span className="text-sm tabular-nums text-gray-600">
               {formatTime(questionElapsed)}
             </span>
           </div>
           <div className={cn(
-            "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[14px] transition-all",
+            "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[calc(var(--radius)+2px)] transition-all",
             isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-300"
           )}>
             <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">T</span>
@@ -117,7 +117,7 @@ export function QuizScreen({
           onClick={onPreviousAction}
           disabled={currentQuestion === 0}
           aria-label="Previous question"
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[14px] w-8 h-8 p-0"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)] w-8 h-8 p-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
@@ -130,7 +130,7 @@ export function QuizScreen({
           onClick={onNextAction}
           disabled={currentQuestion === quizData.length - 1}
           aria-label="Next question"
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[14px] w-8 h-8 p-0"
+          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)] w-8 h-8 p-0"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -155,7 +155,7 @@ export function QuizScreen({
                 onClick={() => !showFeedback && onAnswerSelectAction(optionId)}
                 disabled={showFeedback}
                 className={cn(
-                  "w-full p-4 rounded-[14px] border-2 text-left transition-all duration-200",
+                  "w-full p-4 rounded-[calc(var(--radius)+2px)] border-2 text-left transition-all duration-200",
                   "flex items-center gap-4",
                   !showFeedback &&
                   !isSelected &&
@@ -173,7 +173,7 @@ export function QuizScreen({
               >
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-[14px] border-2 flex items-center justify-center text-sm font-medium shrink-0",
+                    "w-8 h-8 rounded-[calc(var(--radius)+2px)] border-2 flex items-center justify-center text-sm font-medium shrink-0",
                     !showFeedback &&
                     !isSelected &&
                     "border-gray-300 text-gray-600",
@@ -209,7 +209,7 @@ export function QuizScreen({
 
         <div className="mb-10">
           {showFeedback && revealEnabled && (
-            <Card className="p-6 border-gray-200 bg-gray-50 rounded-xl">
+            <Card className="p-6 border-gray-200 bg-gray-50 rounded-[calc(var(--radius)+2px)]">
               <div className="flex items-start gap-3">
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">Explanation</h3>
@@ -229,7 +229,7 @@ export function QuizScreen({
             onClick={onPreviousAction}
             disabled={currentQuestion === 0}
             className={cn(
-              "text-gray-600 border-gray-200 rounded-[14px] hover:bg-gray-50 hover:border-gray-300",
+              "text-gray-600 border-gray-200 rounded-[calc(var(--radius)+2px)] hover:bg-gray-50 hover:border-gray-300",
               "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200"
             )}
           >

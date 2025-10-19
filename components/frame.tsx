@@ -83,29 +83,37 @@ export function Frame({ children }: { children: ReactNode }) {
     }, [pathname, visibleNav]);
 
     useEffect(() => {
-        updateIndicator();
+        const frame = window.requestAnimationFrame(updateIndicator);
         window.addEventListener("resize", updateIndicator);
-        return () => window.removeEventListener("resize", updateIndicator);
-    }, [updateIndicator]);
+        return () => {
+            window.cancelAnimationFrame(frame);
+            window.removeEventListener("resize", updateIndicator);
+        };
+    }, [pathname, updateIndicator]);
 
     const showNewSession = pathname !== "/upload" && pathname !== "/sessions" && pathname !== "/" && !pathname.startsWith("/chat");
 
-    const handleNewSession = async () => {
-        if (current) {
+    const resetSessionInBackground = useCallback(() => {
+        if (!current) return;
+
+        void (async () => {
             await update(current.id, { completed: true });
-        }
+            await refresh();
+        })();
+    }, [current, refresh, update]);
+
+    const handleNewSession = () => {
         setCurrent(null);
         state.reset();
-        await refresh();
         router.push("/upload");
+        resetSessionInBackground();
     };
 
-    const handleNav = async (idx: number, href: string) => {
+    const handleNav = (idx: number, href: string) => {
         setActiveIdx(idx);
 
-        // If navigating to the Home/Upload page from somewhere else, automatically trigger a new session reset
         if (href === "/upload" && pathname !== "/upload" && pathname !== "/") {
-            await handleNewSession();
+            handleNewSession();
             return;
         }
 
@@ -128,26 +136,28 @@ export function Frame({ children }: { children: ReactNode }) {
                     {/* Center — Floating Nav */}
                     <nav
                         ref={navRef}
-                        className="relative flex items-center gap-1 bg-white/95 border border-gray-300 rounded-[14px] p-1 shadow-sm"
+                        className="relative inline-block rounded-[calc(var(--radius)+2px)] border border-border/70 bg-card/70 p-1 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl"
                     >
                         <div
-                            className="absolute top-1 bottom-1 rounded-[12px] border border-gray-200 bg-gray-900 transition-[left,width] duration-200 ease-out pointer-events-none shadow-sm"
+                            className="pointer-events-none absolute top-1 bottom-1 rounded-[calc(var(--radius)+2px)] bg-primary"
                             style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
                         />
-                        {visibleNav.map((item, idx) => (
-                            <button
-                                key={item.label}
-                                ref={(el) => { itemRefs.current[idx] = el; }}
-                                onClick={() => handleNav(idx, item.href)}
-                                className={`relative z-10 flex items-center gap-1.5 px-4 py-2 rounded-[12px] text-[13px] font-medium transition-colors duration-200 cursor-pointer ${activeIdx === idx
-                                    ? "text-white"
-                                    : "text-gray-500 hover:text-gray-800"
-                                    }`}
-                            >
-                                <item.icon className="w-3.5 h-3.5" />
-                                {item.label}
-                            </button>
-                        ))}
+                        <div className="relative z-10 flex items-center">
+                            {visibleNav.map((item, idx) => (
+                                <button
+                                    key={item.label}
+                                    ref={(el) => { itemRefs.current[idx] = el; }}
+                                    onClick={() => handleNav(idx, item.href)}
+                                    className={`relative z-10 flex items-center gap-1.5 rounded-[calc(var(--radius)+2px)] px-5 py-2.5 text-[13px] font-medium cursor-pointer ${activeIdx === idx
+                                        ? "text-primary-foreground"
+                                        : "text-muted-foreground hover:text-foreground"
+                                        }`}
+                                >
+                                    <item.icon className="h-3.5 w-3.5" />
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
                     </nav>
 
                     {/* Right — New Session + Theme toggle */}
@@ -155,14 +165,14 @@ export function Frame({ children }: { children: ReactNode }) {
                         {showNewSession && (
                             <button
                                 onClick={handleNewSession}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] border border-gray-200 bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-[13px] font-medium transition-colors cursor-pointer"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-[calc(var(--radius)+2px)] border border-gray-200 bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-[13px] font-medium transition-colors cursor-pointer"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                                 New Session
                             </button>
                         )}
                         <button
-                            className="p-2 rounded-[12px] border border-gray-200 bg-white text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors cursor-pointer"
+                            className="p-2 rounded-[calc(var(--radius)+2px)] border border-gray-200 bg-white text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-colors cursor-pointer"
                             aria-label="Toggle theme"
                         >
                             <Sun className="w-4 h-4" />

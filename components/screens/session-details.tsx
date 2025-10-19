@@ -221,7 +221,7 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
             </div>
 
             <div className="space-y-10">
-                <section className="bg-white border border-gray-200 rounded-[14px] p-5">
+                <section className="bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5">
                     <div className="flex items-center justify-between gap-4">
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
@@ -240,15 +240,15 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
                 {notes.length > 0 && (
                     <section>
                         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <span className="p-1.5 bg-gray-100 rounded-[12px]"><FileText className="w-5 h-5 text-gray-700" /></span>
+                            <span className="p-1.5 bg-gray-100 rounded-[calc(var(--radius)+2px)]"><FileText className="w-5 h-5 text-gray-700" /></span>
                             Saved Notes
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {notes.map(note => (
-                                <div key={note.id} onClick={() => handleOpenNotes(note)} className="group cursor-pointer bg-white border border-gray-200 rounded-[14px] p-5 hover:border-gray-300 hover:shadow-sm transition-all relative">
+                                <div key={note.id} onClick={() => handleOpenNotes(note)} className="group cursor-pointer bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5 hover:border-gray-300 hover:shadow-sm transition-all relative">
                                     <h3 className="font-medium text-gray-900 mb-1">{note.title}</h3>
                                     <p className="text-sm text-gray-500">{getRelativeTime(new Date(note.createdAt))}</p>
-                                    <button onClick={(e) => handleDeleteNote(e, note.id)} className="absolute top-4 right-4 p-1.5 rounded-[12px] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => handleDeleteNote(e, note.id)} className="absolute top-4 right-4 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -261,15 +261,15 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
                 {slides.length > 0 && (
                     <section>
                         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <span className="p-1.5 bg-gray-100 rounded-[12px]"><Presentation className="w-5 h-5 text-gray-700" /></span>
+                            <span className="p-1.5 bg-gray-100 rounded-[calc(var(--radius)+2px)]"><Presentation className="w-5 h-5 text-gray-700" /></span>
                             Slide Decks
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {slides.map(slide => (
-                                <div key={slide.id} onClick={() => handleOpenSlides(slide)} className="group cursor-pointer bg-white border border-gray-200 rounded-[14px] p-5 hover:border-gray-300 hover:shadow-sm transition-all relative">
+                                <div key={slide.id} onClick={() => handleOpenSlides(slide)} className="group cursor-pointer bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5 hover:border-gray-300 hover:shadow-sm transition-all relative">
                                     <h3 className="font-medium text-gray-900 mb-1">{slide.title}</h3>
                                     <p className="text-sm text-gray-500">{getRelativeTime(new Date(slide.createdAt))}</p>
-                                    <button onClick={(e) => handleDeleteSlides(e, slide.id)} className="absolute top-4 right-4 p-1.5 rounded-[12px] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => handleDeleteSlides(e, slide.id)} className="absolute top-4 right-4 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -282,12 +282,12 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
                 {quizzes.length > 0 && (
                     <section>
                         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <span className="p-1.5 bg-gray-100 rounded-[12px]"><Target className="w-5 h-5 text-gray-700" /></span>
+                            <span className="p-1.5 bg-gray-100 rounded-[calc(var(--radius)+2px)]"><Target className="w-5 h-5 text-gray-700" /></span>
                             Quiz Attempts
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {quizzes.map(quiz => (
-                                <div key={quiz.id} onClick={() => handleOpenQuiz(quiz)} className="cursor-pointer bg-white border border-gray-200 rounded-[14px] p-5 hover:border-gray-300 hover:shadow-sm transition-all">
+                                <div key={quiz.id} onClick={() => handleOpenQuiz(quiz)} className="cursor-pointer bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5 hover:border-gray-300 hover:shadow-sm transition-all">
                                     <div className="flex justify-between items-start mb-1">
                                         <h3 className="font-medium text-gray-900">Score: {quiz.score}/{quiz.quizData.length}</h3>
                                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">{Math.round((quiz.score / quiz.quizData.length) * 100)}%</span>
@@ -300,9 +300,9 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
                 )}
 
                 {notes.length === 0 && slides.length === 0 && quizzes.length === 0 && (
-                    <div className="text-center py-20 bg-white border border-gray-200 border-dashed rounded-[14px]">
+                    <div className="text-center py-20 bg-white border border-gray-200 border-dashed rounded-[calc(var(--radius)+2px)]">
                         <p className="text-gray-500 mb-4">Nothing has been generated in this session yet.</p>
-                        <Button onClick={handleCreateNew} variant="outline" className="rounded-[12px]">
+                        <Button onClick={handleCreateNew} variant="outline" className="rounded-[calc(var(--radius)+2px)]">
                             Get Started
                         </Button>
                     </div>

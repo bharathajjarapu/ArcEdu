@@ -140,9 +140,9 @@ export function Upload({
           </p>
         </div>
 
-        <Card className="bg-white border-gray-200 rounded-[14px] overflow-hidden">
+        <Card className="bg-white border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden">
           <div
-            className={`border-2 border-dashed rounded-[14px] h-75 px-10 flex flex-col items-center justify-center transition-colors ${error ? "border-red-300 bg-red-50/50" : "border-gray-300 bg-gray-100 hover:bg-gray-200/60 hover:border-gray-400"
+            className={`border-2 border-dashed rounded-[calc(var(--radius)+2px)] h-75 px-10 flex flex-col items-center justify-center transition-colors ${error ? "border-red-300 bg-red-50/50" : "border-gray-300 bg-gray-100 hover:bg-gray-200/60 hover:border-gray-400"
               }`}
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
@@ -184,7 +184,7 @@ export function Upload({
             {uploadedDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-[14px] border border-gray-200 text-sm text-gray-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-[calc(var(--radius)+2px)] border border-gray-200 text-sm text-gray-700"
               >
                 <FileText className="w-3.5 h-3.5 text-gray-400" />
                 <span className="max-w-[140px] truncate">{doc.name}</span>

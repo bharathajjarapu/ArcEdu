@@ -35,7 +35,7 @@ function ChatMarkdown({ content }: { content: string }) {
         [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6
         [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-0.5
         [&_code]:rounded-[10px] [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm
-        [&_pre]:overflow-x-auto [&_pre]:rounded-[14px] [&_pre]:border [&_pre]:border-gray-200 [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:my-3
+        [&_pre]:overflow-x-auto [&_pre]:rounded-[calc(var(--radius)+2px)] [&_pre]:border [&_pre]:border-gray-200 [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:my-3
         [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:text-gray-600"
       dangerouslySetInnerHTML={{ __html: html }}
     />
@@ -208,7 +208,7 @@ export function ChatScreen() {
 
       {/* One unified card */}
       <div
-        className="bg-white border-2 border-gray-200 rounded-[14px] overflow-hidden flex"
+        className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden flex"
         style={{ height: containerHeight }}
       >
         {/* ── Left column: Documents ── */}
@@ -232,7 +232,7 @@ export function ChatScreen() {
                     setError(null);
                   }}
                   className={cn(
-                    "px-2.5 py-1 rounded-[10px] text-xs font-semibold transition-colors",
+                    "px-2.5 py-1 rounded-[calc(var(--radius)+2px)] text-xs font-semibold transition-colors",
                     mode === "all"
                       ? "bg-gray-900 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -250,7 +250,7 @@ export function ChatScreen() {
                       type="button"
                       onClick={() => toggleSession(session.id)}
                       className={cn(
-                        "max-w-[140px] truncate px-2.5 py-1 rounded-[10px] text-xs font-semibold transition-colors",
+                        "max-w-[140px] truncate px-2.5 py-1 rounded-[calc(var(--radius)+2px)] text-xs font-semibold transition-colors",
                         active
                           ? "bg-gray-900 text-white"
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200",
@@ -280,7 +280,7 @@ export function ChatScreen() {
                   return (
                     <div
                       key={doc.id}
-                      className="flex items-center gap-2 rounded-[12px] border border-gray-200 bg-gray-50 px-3 py-2"
+                      className="flex items-center gap-2 rounded-[calc(var(--radius)+2px)] border border-gray-200 bg-gray-50 px-3 py-2"
                     >
                       <span className="text-xs font-semibold text-gray-700 truncate flex-1">
                         {fileName}{" "}
@@ -315,7 +315,7 @@ export function ChatScreen() {
                 message.role === "user" ? (
                   /* User bubble — right-aligned, border only */
                   <div key={message.id} className="flex justify-end">
-                    <div className="max-w-[70%] rounded-[14px] border-2 border-gray-300 px-4 py-2.5">
+                    <div className="max-w-[70%] rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 px-4 py-2.5">
                       <p className="text-sm text-gray-900 whitespace-pre-wrap leading-6">
                         {message.content}
                       </p>
@@ -365,7 +365,7 @@ export function ChatScreen() {
           {/* Input area pinned to bottom */}
           <div className="border-t border-gray-100 px-4 py-3 shrink-0">
             <form onSubmit={handleSubmit}>
-              <div className="rounded-[14px] border-2 border-gray-200 bg-gray-50 px-4 py-3">
+              <div className="rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-gray-50 px-4 py-3">
                 <textarea
                   ref={textareaRef}
                   value={draft}

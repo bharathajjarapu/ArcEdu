@@ -126,13 +126,13 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
           onClick={goPrev}
           disabled={safeIndex === 0 || total === 0}
           aria-label="Previous slide"
-          className="shrink-0 w-12 h-12 rounded-[14px] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition mr-4"
+          className="shrink-0 w-12 h-12 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition mr-4"
         >
           <ChevronLeft className="w-6 h-6 text-gray-700" />
         </button>
 
         {/* Slide */}
-        <div className={cn("relative flex-1 max-w-7xl h-full max-h-[75vh] rounded-[14px] border-2 border-gray-200 shadow-2xl overflow-hidden", theme.bg)}>
+        <div className={cn("relative flex-1 max-w-7xl h-full max-h-[75vh] rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 shadow-2xl overflow-hidden", theme.bg)}>
           {slides.length > 0 ? (
             <div
               className={cn(
@@ -146,7 +146,7 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
                 "[&_ol]:list-decimal [&_ol]:pl-8 [&_ol]:space-y-3 [&_ol]:text-2xl",
                 "[&_li]:leading-relaxed",
                 "[&_code]:font-mono [&_code]:text-lg [&_code]:bg-black/10 [&_code]:px-2 [&_code]:py-1 [&_code]:rounded",
-                "[&_pre]:bg-black/20 [&_pre]:p-6 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-5",
+                "[&_pre]:bg-black/20 [&_pre]:p-6 [&_pre]:rounded-[calc(var(--radius)+2px)] [&_pre]:overflow-x-auto [&_pre]:my-5",
                 "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
                 "[&_table]:w-full [&_table]:my-5 [&_table]:border-collapse",
                 "[&_th]:bg-black/10 [&_th]:px-5 [&_th]:py-3 [&_th]:text-left [&_th]:font-semibold [&_th]:text-xl",
@@ -179,7 +179,7 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
           onClick={goNext}
           disabled={safeIndex >= total - 1 || total === 0}
           aria-label="Next slide"
-          className="shrink-0 w-12 h-12 rounded-[14px] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition ml-4"
+          className="shrink-0 w-12 h-12 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition ml-4"
         >
           <ChevronRight className="w-6 h-6 text-gray-700" />
         </button>
@@ -190,19 +190,19 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
         <div className="shrink-0 py-5 flex flex-col items-center gap-3">
           <div className="flex items-center gap-2">
             <PageBackButton label="Back to Format" onClick={onBackAction} />
-            <button aria-label="Retry slide generation" onClick={handleRetry} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+            <button aria-label="Retry slide generation" onClick={handleRetry} className="h-10 px-5 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
               <RefreshCw className="w-4 h-4" /> Retry
             </button>
             {isGenerating ? (
-              <button aria-label="Stop slide generation" onClick={handleEnd} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+              <button aria-label="Stop slide generation" onClick={handleEnd} className="h-10 px-5 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
                 <X className="w-4 h-4" /> End
               </button>
             ) : (
-              <button aria-label="Download slides" onClick={handleDownload} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+              <button aria-label="Download slides" onClick={handleDownload} className="h-10 px-5 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
                 <Download className="w-4 h-4" /> Download
               </button>
             )}
-            <button aria-label="Present slides" onClick={toggleFullscreen} className="h-10 px-5 rounded-[14px] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
+            <button aria-label="Present slides" onClick={toggleFullscreen} className="h-10 px-5 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
               <Maximize2 className="w-4 h-4" /> Present
             </button>
           </div>
@@ -227,7 +227,7 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
                     "[&_ol]:list-decimal [&_ol]:pl-12 [&_ol]:space-y-4 [&_ol]:text-3xl",
                     "[&_li]:leading-relaxed",
                     "[&_code]:font-mono [&_code]:text-2xl [&_code]:bg-black/10 [&_code]:px-3 [&_code]:py-1 [&_code]:rounded",
-                    "[&_pre]:bg-black/20 [&_pre]:p-8 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-6",
+                    "[&_pre]:bg-black/20 [&_pre]:p-8 [&_pre]:rounded-[calc(var(--radius)+2px)] [&_pre]:overflow-x-auto [&_pre]:my-6",
                     "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
                     "[&_table]:w-full [&_table]:my-8 [&_table]:border-collapse",
                     "[&_th]:bg-black/10 [&_th]:px-6 [&_th]:py-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-2xl",
@@ -240,18 +240,18 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
               )}
             </div>
           </div>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/40 backdrop-blur-md rounded-[14px] px-4 py-3 border border-white/10">
-            <button aria-label="Previous slide" onClick={goPrev} disabled={safeIndex === 0} className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition hover:bg-white/10 disabled:opacity-30">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/40 backdrop-blur-md rounded-[calc(var(--radius)+2px)] px-4 py-3 border border-white/10">
+            <button aria-label="Previous slide" onClick={goPrev} disabled={safeIndex === 0} className="flex h-9 w-9 items-center justify-center rounded-[calc(var(--radius)+2px)] text-white transition hover:bg-white/10 disabled:opacity-30">
               <ChevronLeft className="w-6 h-6" />
             </button>
             <span className="text-white text-sm font-medium min-w-20 text-center">
               {safeIndex + 1} / {total}
             </span>
-            <button aria-label="Next slide" onClick={goNext} disabled={safeIndex >= total - 1} className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition hover:bg-white/10 disabled:opacity-30">
+            <button aria-label="Next slide" onClick={goNext} disabled={safeIndex >= total - 1} className="flex h-9 w-9 items-center justify-center rounded-[calc(var(--radius)+2px)] text-white transition hover:bg-white/10 disabled:opacity-30">
               <ChevronRight className="w-6 h-6" />
             </button>
             <div className="w-px h-5 bg-white/30" />
-            <button aria-label="Exit fullscreen" onClick={toggleFullscreen} className="flex h-9 w-9 items-center justify-center rounded-[12px] text-white transition hover:bg-white/10">
+            <button aria-label="Exit fullscreen" onClick={toggleFullscreen} className="flex h-9 w-9 items-center justify-center rounded-[calc(var(--radius)+2px)] text-white transition hover:bg-white/10">
               <Minimize2 className="w-5 h-5" />
             </button>
           </div>

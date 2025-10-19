@@ -31,7 +31,7 @@ export function SessionDocuments({
           <div
             key={doc.id}
             onClick={(e) => e.stopPropagation()}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-[14px] border border-gray-200 text-sm text-gray-700"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-[calc(var(--radius)+2px)] border border-gray-200 text-sm text-gray-700"
           >
             <FileText className="w-3.5 h-3.5 text-gray-400" />
             <span className="max-w-[120px] truncate">{doc.name}</span>
@@ -51,7 +51,7 @@ export function SessionDocuments({
             inputRef.current?.click();
           }}
           aria-label={`Add documents to ${sessionTitle}`}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] border border-dashed border-gray-300 bg-white text-sm font-medium text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius)+2px)] border border-dashed border-gray-300 bg-white text-sm font-medium text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Docs

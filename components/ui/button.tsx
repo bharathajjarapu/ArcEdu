@@ -13,7 +13,7 @@ export const Button = ({
   children,
   ...props
 }: ButtonProps) => {
-  const baseClasses = "inline-flex items-center justify-center rounded-[12px] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
+  const baseClasses = "inline-flex items-center justify-center rounded-[calc(var(--radius)+2px)] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
 
   const variants = {
     default: "bg-gray-900 text-white hover:bg-gray-800",

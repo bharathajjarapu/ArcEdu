@@ -38,10 +38,10 @@ export function Sessions({
                 }
               }}
               aria-label={`Open session ${session.title}`}
-              className="group cursor-pointer relative bg-white border border-gray-200 rounded-[14px] p-5 hover:border-gray-300 transition-colors"
+              className="group cursor-pointer relative bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5 hover:border-gray-300 transition-colors"
             >
               <div
-                className="w-12 h-12 rounded-[14px] flex items-center justify-center mb-4"
+                className="w-12 h-12 rounded-[calc(var(--radius)+2px)] flex items-center justify-center mb-4"
                 style={{ backgroundColor: session.color || "#f3f4f6" }}
               >
                 <Folder className="w-6 h-6 text-gray-700" />
@@ -61,7 +61,7 @@ export function Sessions({
                   onDelete(session.id);
                 }}
                 aria-label={`Delete session ${session.title}`}
-                className="absolute top-3 right-3 p-1.5 rounded-[12px] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

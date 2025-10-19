@@ -81,19 +81,19 @@ export function Results({
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+          <div className="bg-white rounded-[calc(var(--radius)+2px)] p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
             <div className="text-sm text-gray-500 mb-2">Time taken</div>
             <div className="text-3xl font-bold text-gray-900">
               {formatTime(totalTime)}
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+          <div className="bg-white rounded-[calc(var(--radius)+2px)] p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
             <div className="text-sm text-gray-500 mb-2">Fastest answer</div>
             <div className="text-3xl font-bold text-gray-900">
               {formatTime(fastestAnswer)}
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
+          <div className="bg-white rounded-[calc(var(--radius)+2px)] p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
             <div className="text-sm text-gray-500 mb-2">Hot streak</div>
             <div className="text-3xl font-bold text-gray-900">
               {maxStreak}
@@ -113,7 +113,7 @@ export function Results({
                 <div
                   key={index}
                   className={cn(
-                    "w-12 h-12 rounded-lg flex items-center justify-center shadow-sm",
+                    "w-12 h-12 rounded-[calc(var(--radius)+2px)] flex items-center justify-center shadow-sm",
                     isCorrect ? "bg-green-500/80" : "bg-red-500/80",
                   )}
                 >
