@@ -7,7 +7,7 @@ import { Loader2, Download, RefreshCw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { normalizeMathDelimiters, renderMath, sanitizeHtml } from "@/lib/markdown";
 import { cancelNotesGeneration } from "@/lib/api/client";
-import { PageBackButton } from "@/components/page-back-button";
+import { PageBackButton } from "@/components/back";
 
 type MermaidApi = {
     initialize: (config: object) => void;
@@ -79,6 +79,11 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
         return { title: foundTitle, body: filtered.join("\n") };
     }, [content]);
 
+    const displayTitle = useMemo(() => {
+        if (!title) return "Notes";
+        return title.replace(/\s*\(Based on.+\)\s*$/i, "").trim() || "Notes";
+    }, [title]);
+
     const renderedHtml = useMemo(() => {
         if (!body) return "";
         const normalized = normalizeMathDelimiters(body);
@@ -136,12 +141,12 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${title || "notes"}.md`;
+        a.download = `${displayTitle || "notes"}.md`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
-    }, [content, title]);
+    }, [content, displayTitle]);
 
     const handleRetry = useCallback(() => {
         router.push("/format");
@@ -156,31 +161,29 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
         <div className="h-full bg-gray-50 bg-dots overflow-hidden">
             <div className="max-w-4xl mx-auto px-4 py-4">
                 <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden flex flex-col">
-                    <div className="relative flex items-center justify-between text-sm text-gray-600 px-5 py-3 border-b border-gray-100 bg-gray-50 flex-shrink-0">
-                        <div className="relative z-10">
+                    <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between sm:px-5 flex-shrink-0">
+                        <div className="flex justify-start">
                             <PageBackButton label="Back to Format" onClick={onBackAction} className="-ml-3" />
                         </div>
-                        <div className="pointer-events-none absolute inset-x-0 flex justify-center px-24">
-                            <div className="flex items-center gap-2 truncate font-medium text-gray-700">
+                        <div className="flex min-w-0 items-center justify-center gap-2 text-center font-medium text-gray-700">
                                 {isGenerating && <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
-                                <span className="truncate text-center">{isGenerating ? "Generating notes..." : (title || "Notes")}</span>
-                            </div>
+                                <span className="truncate text-center">{isGenerating ? "Generating notes..." : displayTitle}</span>
                         </div>
-                        <div className="relative z-10 flex items-center gap-2">
-                            <button aria-label="Retry notes generation" onClick={handleRetry} className="h-8 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                            <button aria-label="Retry notes generation" onClick={handleRetry} className="h-10 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition sm:h-8">
                                 <RefreshCw className="w-4 h-4" />
-                                <span className="text-xs font-semibold">Retry</span>
+                                <span className="hidden text-xs font-semibold sm:inline">Retry</span>
                             </button>
                             {isGenerating && (
-                                <button aria-label="Stop notes generation" onClick={handleEnd} className="h-8 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                <button aria-label="Stop notes generation" onClick={handleEnd} className="h-10 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition sm:h-8">
                                     <X className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">End</span>
+                                    <span className="hidden text-xs font-semibold sm:inline">End</span>
                                 </button>
                             )}
                             {!isGenerating && (
-                                <button aria-label="Download notes" onClick={handleDownload} className="h-8 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition">
+                                <button aria-label="Download notes" onClick={handleDownload} className="h-10 px-3 rounded-[calc(var(--radius)+2px)] border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition sm:h-8">
                                     <Download className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">Download</span>
+                                    <span className="hidden text-xs font-semibold sm:inline">Download</span>
                                 </button>
                             )}
                         </div>
@@ -190,7 +193,7 @@ export function NotesScreen({ content, isGenerating, error, onEnd, onBackAction 
 
                     <div
                         ref={containerRef}
-                        className="px-6 pt-4 pb-6 overflow-y-auto max-h-[calc(100vh-12rem)] text-gray-700 leading-relaxed
+                        className="px-4 pt-4 pb-6 overflow-y-auto max-h-[calc(100vh-14rem)] text-gray-700 leading-relaxed sm:px-6 sm:max-h-[calc(100vh-12rem)]
                             [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-4 [&_h1]:mb-4 [&_h1:first-child]:mt-0
                             [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-gray-800 [&_h2]:mt-5 [&_h2]:mb-3
                             [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-700 [&_h3]:mt-4 [&_h3]:mb-2

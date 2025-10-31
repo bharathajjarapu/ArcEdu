@@ -13,8 +13,8 @@ import { parse } from "@/lib/parse";
 import { simple as simpleHash } from "@/lib/data/hash";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Presentation, Target, Trash2 } from "lucide-react";
-import { PageBackButton } from "@/components/page-back-button";
-import { SessionDocuments } from "@/components/session-documents";
+import { PageBackButton } from "@/components/back";
+import { SessionDocuments } from "@/components/sessiondocs";
 import type { Chunk, SavedNotes, SavedSlides, QuizAttempt } from "@/types";
 
 interface SessionDetailsProps {
@@ -204,18 +204,18 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
     // Need a function for removing quiz attempts from store too, but for simplicity let's stick to notes/slides for now or just avoid deletion.
 
     if (loading || !session) {
-        return <div className="max-w-7xl mx-auto py-10 px-5 text-gray-400">Loading session...</div>;
+        return <div className="max-w-7xl mx-auto px-4 py-8 sm:px-5 sm:py-10 text-gray-400">Loading session...</div>;
     }
 
     return (
-        <div className="max-w-5xl mx-auto py-10 px-5">
+        <div className="max-w-5xl mx-auto px-4 py-8 sm:px-5 sm:py-10">
             <PageBackButton label="Back to Sessions" onClick={() => router.push("/sessions")} className="mb-6 -ml-3" />
 
-            <div className="flex items-center justify-between mb-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{session.title}</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{session.title}</h1>
                 </div>
-                <Button onClick={handleCreateNew} className="px-5 h-11 bg-gray-900 hover:bg-gray-800 shadow-sm border border-transparent hover:border-gray-700 transition">
+                <Button onClick={handleCreateNew} className="w-full sm:w-auto px-5 h-11 bg-gray-900 hover:bg-gray-800 shadow-sm border border-transparent hover:border-gray-700 transition">
                     <Plus className="w-4 h-4 mr-2" /> Generate New
                 </Button>
             </div>
@@ -248,7 +248,7 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
                                 <div key={note.id} onClick={() => handleOpenNotes(note)} className="group cursor-pointer bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5 hover:border-gray-300 hover:shadow-sm transition-all relative">
                                     <h3 className="font-medium text-gray-900 mb-1">{note.title}</h3>
                                     <p className="text-sm text-gray-500">{getRelativeTime(new Date(note.createdAt))}</p>
-                                    <button onClick={(e) => handleDeleteNote(e, note.id)} className="absolute top-4 right-4 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => handleDeleteNote(e, note.id)} className="absolute top-4 right-4 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -269,7 +269,7 @@ export function SessionDetails({ sessionId }: SessionDetailsProps) {
                                 <div key={slide.id} onClick={() => handleOpenSlides(slide)} className="group cursor-pointer bg-white border border-gray-200 rounded-[calc(var(--radius)+2px)] p-5 hover:border-gray-300 hover:shadow-sm transition-all relative">
                                     <h3 className="font-medium text-gray-900 mb-1">{slide.title}</h3>
                                     <p className="text-sm text-gray-500">{getRelativeTime(new Date(slide.createdAt))}</p>
-                                    <button onClick={(e) => handleDeleteSlides(e, slide.id)} className="absolute top-4 right-4 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => handleDeleteSlides(e, slide.id)} className="absolute top-4 right-4 p-1.5 rounded-[calc(var(--radius)+2px)] text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>

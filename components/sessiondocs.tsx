@@ -26,7 +26,7 @@ export function SessionDocuments({
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-100">
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex flex-wrap items-center gap-2 pb-1 sm:flex-nowrap sm:overflow-x-auto">
         {documents.map((doc) => (
           <div
             key={doc.id}

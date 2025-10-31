@@ -130,19 +130,19 @@ export function Upload({
 
   return (
     <div className="px-4 flex items-center justify-center">
-      <div className="w-full max-w-3xl pt-16 pb-12">
+      <div className="w-full max-w-3xl pt-6 pb-10 sm:pt-10 md:pt-16 md:pb-12">
         <div className="text-center mb-6">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-900 mb-9">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-900 mb-6 sm:mb-9">
             Ready to Quiz<br />anything ?
           </h1>
-          <p className="text-gray-700 text-lg font-medium leading-relaxed">
+          <p className="text-gray-700 text-base sm:text-lg font-medium leading-relaxed">
             Drop your Docs here<br />We'll handle your Learning !
           </p>
         </div>
 
         <Card className="bg-white border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden">
           <div
-            className={`border-2 border-dashed rounded-[calc(var(--radius)+2px)] h-75 px-10 flex flex-col items-center justify-center transition-colors ${error ? "border-red-300 bg-red-50/50" : "border-gray-300 bg-gray-100 hover:bg-gray-200/60 hover:border-gray-400"
+            className={`border-2 border-dashed rounded-[calc(var(--radius)+2px)] min-h-[18rem] px-6 py-8 text-center flex flex-col items-center justify-center transition-colors sm:h-75 sm:px-10 ${error ? "border-red-300 bg-red-50/50" : "border-gray-300 bg-gray-100 hover:bg-gray-200/60 hover:border-gray-400"
               }`}
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
@@ -180,14 +180,14 @@ export function Upload({
         </Card>
 
         {uploadedDocs.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center mt-4">
+          <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
             {uploadedDocs.map((doc) => (
               <div
                 key={doc.id}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-[calc(var(--radius)+2px)] border border-gray-200 text-sm text-gray-700"
               >
                 <FileText className="w-3.5 h-3.5 text-gray-400" />
-                <span className="max-w-[140px] truncate">{doc.name}</span>
+                <span className="max-w-[10rem] truncate sm:max-w-[140px]">{doc.name}</span>
                 <button
                   onClick={() => void handleRemoveDoc(doc.id)}
                   aria-label={`Remove ${doc.name}`}
@@ -204,7 +204,7 @@ export function Upload({
           <Button
             onClick={onContinueAction}
             disabled={isLoading}
-            className="bg-gray-900 hover:bg-gray-800 text-white h-12 px-8 text-base font-medium shadow-md"
+            className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white h-12 px-8 text-base font-medium shadow-md"
           >
             Let's Start
             <ArrowRight className="w-4 h-4 ml-2" />

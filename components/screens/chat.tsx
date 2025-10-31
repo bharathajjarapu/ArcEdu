@@ -193,26 +193,23 @@ export function ChatScreen() {
   const canSend =
     draft.trim().length > 0 && !isLoading && sortedSessions.length > 0;
 
-  const containerHeight = "calc(100vh - 20rem)";
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
       <div className="text-center mb-6">
-        <h1 className="text-5xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl md:text-5xl">
           Chat with your Docs
         </h1>
-        <p className="mt-2 text-gray-700 text-xl font-medium">
+        <p className="mt-2 text-base text-gray-700 font-medium sm:text-lg md:text-xl">
           Ask questions across all your sessions
         </p>
       </div>
 
       {/* One unified card */}
       <div
-        className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden flex"
-        style={{ height: containerHeight }}
+        className="flex min-h-[32rem] h-[calc(100vh-15rem)] flex-col overflow-hidden rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white lg:h-[calc(100vh-16rem)] lg:flex-row"
       >
         {/* ── Left column: Documents ── */}
-        <div className="w-[240px] shrink-0 border-r border-gray-200 flex flex-col">
+        <div className="flex w-full shrink-0 flex-col border-b border-gray-200 lg:w-[240px] lg:border-b-0 lg:border-r">
           {/* Header */}
           <div className="px-4 pt-3 pb-2.5 border-b border-gray-100 shrink-0">
             <span className="text-sm font-bold text-gray-600 tracking-wider">
@@ -266,7 +263,7 @@ export function ChatScreen() {
           )}
 
           {/* Document list */}
-          <div className="flex-1 overflow-y-auto px-3 py-2">
+          <div className="max-h-44 flex-1 overflow-y-auto px-3 py-2 lg:max-h-none">
             {loading || docsLoading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
@@ -309,13 +306,13 @@ export function ChatScreen() {
         {/* ── Right column: Chat ── */}
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Messages */}
-          <div ref={transcriptRef} className="flex-1 overflow-y-auto px-6 py-5">
+          <div ref={transcriptRef} className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
             <div className="flex flex-col gap-5">
               {messages.map((message) =>
                 message.role === "user" ? (
                   /* User bubble — right-aligned, border only */
                   <div key={message.id} className="flex justify-end">
-                    <div className="max-w-[70%] rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 px-4 py-2.5">
+                    <div className="max-w-[88%] rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 px-4 py-2.5 sm:max-w-[70%]">
                       <p className="text-sm text-gray-900 whitespace-pre-wrap leading-6">
                         {message.content}
                       </p>
@@ -323,7 +320,7 @@ export function ChatScreen() {
                   </div>
                 ) : (
                   /* Assistant — plain text, no bubble */
-                  <div key={message.id} className="max-w-[85%]">
+                  <div key={message.id} className="max-w-full sm:max-w-[85%]">
                     <ChatMarkdown content={message.content} />
                     {message.sources && message.sources.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
@@ -381,7 +378,7 @@ export function ChatScreen() {
                   className="w-full resize-none bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 disabled:opacity-50 leading-6"
                   style={{ maxHeight: 120 }}
                 />
-                <div className="flex items-center justify-between mt-2">
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   {error ? (
                     <p className="text-xs text-red-600">{error}</p>
                   ) : (
@@ -395,7 +392,7 @@ export function ChatScreen() {
                     type="submit"
                     disabled={!canSend}
                     className={cn(
-                      "text-sm font-medium transition-colors",
+                      "self-end text-sm font-medium transition-colors sm:self-auto",
                       canSend
                         ? "text-gray-900 hover:text-gray-600"
                         : "text-gray-400 cursor-not-allowed",

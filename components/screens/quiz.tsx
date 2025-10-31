@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import { PageBackButton } from "@/components/page-back-button";
+import { PageBackButton } from "@/components/back";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -87,10 +87,10 @@ export function QuizScreen({
   const question = quizData[currentQuestion];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-[auto,1fr,auto] items-center gap-3 mb-6">
+    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-[auto,1fr,auto] md:items-center">
         <PageBackButton label="Back to Format" onClick={onBackAction} className="-ml-3" />
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[calc(var(--radius)+2px)]">
             <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Q</span>
             <span className="text-sm tabular-nums text-gray-600">
@@ -107,21 +107,21 @@ export function QuizScreen({
             </span>
           </div>
         </div>
-        <div className="w-[140px]" aria-hidden="true" />
+        <div className="hidden w-[140px] md:block" aria-hidden="true" />
       </div>
 
-      <div className="flex items-center justify-center gap-4 mb-8">
+      <div className="mb-8 flex items-center justify-center gap-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={onPreviousAction}
           disabled={currentQuestion === 0}
           aria-label="Previous question"
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)] w-8 h-8 p-0"
+          className="h-11 w-11 p-0 text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)]"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <span className="text-gray-600 text-2xl font-medium">
+        <span className="text-center text-lg font-medium text-gray-600 sm:text-2xl">
           Question {currentQuestion + 1} of {quizData.length}
         </span>
         <Button
@@ -130,14 +130,14 @@ export function QuizScreen({
           onClick={onNextAction}
           disabled={currentQuestion === quizData.length - 1}
           aria-label="Next question"
-          className="text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)] w-8 h-8 p-0"
+          className="h-11 w-11 p-0 text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)]"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-8 leading-tight">
+        <h2 className="mb-8 text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl md:text-4xl">
           {question.question}
         </h2>
 
@@ -223,7 +223,7 @@ export function QuizScreen({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Button
             variant="outline"
             onClick={onPreviousAction}

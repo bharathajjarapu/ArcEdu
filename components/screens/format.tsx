@@ -23,7 +23,7 @@ import {
   Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageBackButton } from "@/components/page-back-button";
+import { PageBackButton } from "@/components/back";
 import type { Format, Difficulty, NotesFormat, NotesLength, SlideColorPalette } from "@/types";
 
 interface FormatProps {
@@ -267,18 +267,18 @@ export function Format({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-[auto,1fr,auto] items-center gap-3 mb-10">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <div className="mb-8 grid grid-cols-1 gap-4 text-center sm:mb-10 md:grid-cols-[auto,1fr,auto] md:items-center">
         <PageBackButton label="Back to Session" onClick={onBackAction} className="-ml-3" />
         <div className="text-center">
-          <h1 className="text-5xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl md:text-5xl">
             Setup your Learning
           </h1>
-          <p className="mt-2 text-gray-700 text-xl font-medium leading-relaxed">
+          <p className="mt-2 text-base text-gray-700 font-medium leading-relaxed sm:text-lg md:text-xl">
             How would you like to study ?
           </p>
         </div>
-        <div className="w-[140px]" aria-hidden="true" />
+        <div className="hidden w-[140px] md:block" aria-hidden="true" />
       </div>
 
       <div className="mb-4">
@@ -396,14 +396,14 @@ export function Format({
       </div>
 
       <div className="mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden flex flex-col">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] overflow-hidden flex min-h-[12rem] max-h-64 flex-col lg:max-h-none">
             <div className="px-4 pt-3 pb-2 border-gray-100 shrink-0">
               <div className="flex items-center ">
                 <span className="text-sm font-bold text-gray-600 tracking-wider">Documents</span>
               </div>
             </div>
-            <div className="px-4 flex-1 overflow-y-auto">
+            <div className="px-4 flex-1 overflow-y-auto py-2">
               {uploadedDocs.length > 0 ? (
                 <div className="space-y-1">
                   {uploadedDocs.map((doc) => {
@@ -441,19 +441,19 @@ export function Format({
             </div>
           </div>
 
-          <div className="col-span-2 flex flex-col gap-3 h-[350px]">
+          <div className="flex min-h-[22rem] flex-col gap-3 lg:col-span-2 lg:h-[350px]">
             <textarea
               aria-label="Focus topics"
               placeholder="Focus your learning — describe what topics or concepts to emphasize..."
               value={promptText}
               onChange={(e) => setPromptTextAction(e.target.value)}
-              className="w-full flex-1 px-4 py-3 text-sm bg-white font-semibold text-gray-500 focus:bg-gray-50 border-2 border-gray-200 focus:border-gray-300 rounded-[calc(var(--radius)+2px)] transition-colors resize-none"
+              className="min-h-[12rem] w-full flex-1 resize-none rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-500 transition-colors focus:bg-gray-50 focus:border-gray-300 lg:min-h-0"
             />
 
             {selectedFormat === "notes" ? (
               <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex bg-gray-100 rounded-[calc(var(--radius)+2px)] p-1 gap-1 border-2 border-gray-300">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="grid grid-cols-2 gap-1 rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 bg-gray-100 p-1">
                     {(["short", "medium", "long", "adaptive"] as NotesLength[]).map((length) => {
                       const isActive = notesLength === length;
                       return (
@@ -473,7 +473,7 @@ export function Format({
                     })}
                   </div>
 
-                  <div className="flex bg-gray-100 rounded-[calc(var(--radius)+2px)] gap-1 border-2 border-gray-300 p-1">
+                  <div className="grid grid-cols-2 gap-1 rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 bg-gray-100 p-1 md:grid-cols-4">
                     <button
                       onClick={() => setCodeEnabledAction(!codeEnabled)}
                       className={cn(
@@ -541,8 +541,8 @@ export function Format({
                   </div>
                 </div>
 
-                <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] p-3 h-35">
-                  <div className="flex gap-2 h-full">
+                <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] p-3">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
                     {(Object.keys(notesFormatConfig) as NotesFormat[]).map((format) => {
                       const config = notesFormatConfig[format];
                       const isActive = notesFormat === format;
@@ -585,17 +585,17 @@ export function Format({
                 </div>
               </div>
             ) : selectedFormat === "slides" ? (
-              <div className="flex-1 grid grid-cols-2 gap-3">
+              <div className="flex-1 grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {/* Left Column - Color Palette + Slide Counter */}
                 <div className="flex flex-col gap-3">
                   {/* Color Palette */}
-                  <div className="flex bg-gray-100 rounded-[calc(var(--radius)+2px)] gap-2 border-2 border-gray-300 py-4 px-3 items-center justify-center">
+                  <div className="flex flex-wrap items-center justify-center gap-2 rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 bg-gray-100 px-3 py-4">
                     {colorPaletteConfig.map((palette) => (
                       <button
                         key={palette.id}
                         onClick={() => setSlideColorPaletteAction(palette.id)}
                         aria-label={`Use ${palette.id} slide palette`}
-                        className="rounded-[calc(var(--radius)+2px)] p-1 transition-all duration-200 hover:scale-105"
+                        className="rounded-[calc(var(--radius)+2px)] p-1 transition-all duration-200"
                       >
                         <div
                           className={cn(
@@ -779,8 +779,8 @@ export function Format({
               </div>
             ) : (
               <div className="flex-1 flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex bg-gray-100 rounded-[calc(var(--radius)+2px)] p-1 gap-1 border-2 border-gray-300">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-2 gap-1 rounded-[calc(var(--radius)+2px)] border-2 border-gray-300 bg-gray-100 p-1">
                     {(Object.keys(difficultyConfig) as Difficulty[]).map((level) => {
                       const config = difficultyConfig[level];
                       const isActive = difficulty === level;
@@ -836,7 +836,7 @@ export function Format({
                   )}
                 </div>
 
-                <div className="flex-1 grid grid-cols-2 gap-3">
+                <div className="flex-1 grid grid-cols-1 gap-3 lg:grid-cols-2">
                   <div className="bg-white border-2 border-gray-200 rounded-[calc(var(--radius)+2px)] p-4">
                     <div className="flex justify-between mb-4 h-14 items-start pt-1">
                       <button
@@ -884,13 +884,13 @@ export function Format({
                     <div className="absolute top-0 right-0 flex flex-col h-full">
                       <button
                         onClick={incrementTime}
-                        className="flex-1 w-12 rounded-tr-[14px] border-l border-b border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
+                        className="flex-1 w-12 rounded-tr-[calc(var(--radius)+2px)] border-l border-b border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
                       >
                         <Plus className="w-5 h-5" />
                       </button>
                       <button
                         onClick={decrementTime}
-                        className="flex-1 w-12 rounded-br-[14px] border-l border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
+                        className="flex-1 w-12 rounded-br-[calc(var(--radius)+2px)] border-l border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors flex items-center justify-center"
                       >
                         <Minus className="w-5 h-5" />
                       </button>
@@ -968,7 +968,7 @@ export function Format({
         <Button
           onClick={() => onSelectAction(selectedFormat)}
           disabled={isLoading}
-          className="bg-gray-900 hover:bg-gray-800 text-white h-14 px-10 text-base font-medium shadow-lg shadow-gray-900/10 transition-all hover:shadow-xl hover:shadow-gray-900/15"
+          className="h-14 w-full max-w-sm bg-gray-900 px-6 text-base font-medium text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-900/15 sm:w-auto sm:max-w-none sm:px-10"
         >
           {isLoading ? (
             <>

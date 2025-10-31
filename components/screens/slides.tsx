@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { normalizeMathDelimiters, renderMath, sanitizeHtml } from "@/lib/markdown";
 import { cancelSlidesGeneration } from "@/lib/api/client";
-import { PageBackButton } from "@/components/page-back-button";
+import { PageBackButton } from "@/components/back";
 
 import type { SlideColorPalette } from "@/types";
 
@@ -118,41 +118,41 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
   }, [onEnd]);
 
   return (
-    <div ref={containerRef} className={cn("bg-gray-50 bg-dots overflow-hidden flex flex-col", isFullscreen ? "fixed inset-0" : "h-full")}>
+    <div ref={containerRef} className={cn("bg-gray-50 bg-dots overflow-hidden flex flex-col", isFullscreen ? "fixed inset-0" : "min-h-[calc(100vh-12rem)]")}>
       {/* Slide Area with Arrows */}
-      <div className="flex-1 flex items-center justify-center px-4 min-h-0">
+      <div className="flex flex-1 items-center justify-center px-3 sm:px-4 min-h-[18rem] sm:min-h-[24rem]">
         {/* Left Arrow */}
         <button
           onClick={goPrev}
           disabled={safeIndex === 0 || total === 0}
           aria-label="Previous slide"
-          className="shrink-0 w-12 h-12 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition mr-4"
+          className="mr-4 hidden h-12 w-12 shrink-0 items-center justify-center rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 sm:flex"
         >
           <ChevronLeft className="w-6 h-6 text-gray-700" />
         </button>
 
         {/* Slide */}
-        <div className={cn("relative flex-1 max-w-7xl h-full max-h-[75vh] rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 shadow-2xl overflow-hidden", theme.bg)}>
+        <div className={cn("relative h-[52vh] min-h-[18rem] w-full max-w-7xl flex-1 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 shadow-2xl overflow-hidden sm:h-[60vh] lg:h-full lg:max-h-[78vh]", theme.bg)}>
           {slides.length > 0 ? (
             <div
               className={cn(
-                "absolute inset-0 p-12 md:p-16 overflow-auto",
+                "absolute inset-0 overflow-auto p-5 sm:p-8 md:p-12 lg:p-16",
                 theme.text,
-                "[&_h1]:text-5xl [&_h1]:font-bold [&_h1]:mb-8",
-                "[&_h2]:text-3xl [&_h2]:font-semibold [&_h2]:mb-5",
-                "[&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:mb-4",
-                "[&_p]:text-2xl [&_p]:leading-relaxed [&_p]:mb-5",
-                "[&_ul]:list-disc [&_ul]:pl-8 [&_ul]:space-y-3 [&_ul]:text-2xl",
-                "[&_ol]:list-decimal [&_ol]:pl-8 [&_ol]:space-y-3 [&_ol]:text-2xl",
+                "[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-5 sm:[&_h1]:text-4xl lg:[&_h1]:text-5xl",
+                "[&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-4 sm:[&_h2]:text-2xl lg:[&_h2]:text-3xl",
+                "[&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-3 sm:[&_h3]:text-xl lg:[&_h3]:text-2xl",
+                "[&_p]:text-base [&_p]:leading-relaxed [&_p]:mb-4 sm:[&_p]:text-xl lg:[&_p]:text-2xl",
+                "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_ul]:text-base sm:[&_ul]:pl-8 sm:[&_ul]:text-xl lg:[&_ul]:text-2xl",
+                "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-2 [&_ol]:text-base sm:[&_ol]:pl-8 sm:[&_ol]:text-xl lg:[&_ol]:text-2xl",
                 "[&_li]:leading-relaxed",
-                "[&_code]:font-mono [&_code]:text-lg [&_code]:bg-black/10 [&_code]:px-2 [&_code]:py-1 [&_code]:rounded",
-                "[&_pre]:bg-black/20 [&_pre]:p-6 [&_pre]:rounded-[calc(var(--radius)+2px)] [&_pre]:overflow-x-auto [&_pre]:my-5",
+                "[&_code]:font-mono [&_code]:text-sm sm:[&_code]:text-base lg:[&_code]:text-lg [&_code]:bg-black/10 [&_code]:px-2 [&_code]:py-1 [&_code]:rounded",
+                "[&_pre]:bg-black/20 [&_pre]:p-4 sm:[&_pre]:p-6 [&_pre]:rounded-[calc(var(--radius)+2px)] [&_pre]:overflow-x-auto [&_pre]:my-5",
                 "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
                 "[&_table]:w-full [&_table]:my-5 [&_table]:border-collapse",
-                "[&_th]:bg-black/10 [&_th]:px-5 [&_th]:py-3 [&_th]:text-left [&_th]:font-semibold [&_th]:text-xl",
-                "[&_td]:px-5 [&_td]:py-3 [&_td]:border-t [&_td]:border-black/10 [&_td]:text-xl",
+                "[&_th]:bg-black/10 [&_th]:px-3 sm:[&_th]:px-5 [&_th]:py-2 sm:[&_th]:py-3 [&_th]:text-left [&_th]:font-semibold [&_th]:text-sm sm:[&_th]:text-lg lg:[&_th]:text-xl",
+                "[&_td]:px-3 sm:[&_td]:px-5 [&_td]:py-2 sm:[&_td]:py-3 [&_td]:border-t [&_td]:border-black/10 [&_td]:text-sm sm:[&_td]:text-lg lg:[&_td]:text-xl",
                 "[&_.math-block]:my-6 [&_.math-block]:text-center",
-                "[&_.katex]:text-3xl"
+                "[&_.katex]:text-xl sm:[&_.katex]:text-2xl lg:[&_.katex]:text-3xl"
               )}
               dangerouslySetInnerHTML={{ __html: slides[safeIndex] || "" }}
             />
@@ -179,7 +179,7 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
           onClick={goNext}
           disabled={safeIndex >= total - 1 || total === 0}
           aria-label="Next slide"
-          className="shrink-0 w-12 h-12 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition ml-4"
+          className="ml-4 hidden h-12 w-12 shrink-0 items-center justify-center rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 sm:flex"
         >
           <ChevronRight className="w-6 h-6 text-gray-700" />
         </button>
@@ -187,8 +187,11 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
 
       {/* Bottom Navigation - Buttons and Slide Count */}
       {!isFullscreen && (
-        <div className="shrink-0 py-5 flex flex-col items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="shrink-0 py-5 flex flex-col items-center gap-3 px-4">
+          <div className="flex w-full flex-wrap items-center justify-center gap-2">
+            <button aria-label="Previous slide" onClick={goPrev} disabled={safeIndex === 0 || total === 0} className="flex h-10 items-center gap-2 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 sm:hidden">
+              <ChevronLeft className="w-4 h-4" /> Prev
+            </button>
             <PageBackButton label="Back to Format" onClick={onBackAction} />
             <button aria-label="Retry slide generation" onClick={handleRetry} className="h-10 px-5 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
               <RefreshCw className="w-4 h-4" /> Retry
@@ -204,6 +207,9 @@ export function SlidesScreen({ content, isGenerating, error, currentSlide, slide
             )}
             <button aria-label="Present slides" onClick={toggleFullscreen} className="h-10 px-5 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition text-sm font-semibold">
               <Maximize2 className="w-4 h-4" /> Present
+            </button>
+            <button aria-label="Next slide" onClick={goNext} disabled={safeIndex >= total - 1 || total === 0} className="flex h-10 items-center gap-2 rounded-[calc(var(--radius)+2px)] border-2 border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 sm:hidden">
+              Next <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
