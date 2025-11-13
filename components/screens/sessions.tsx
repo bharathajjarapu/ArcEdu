@@ -21,7 +21,7 @@ export function Sessions({
       {completed.length === 0 ? (
         <div className="text-center py-20">
           <Folder className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-sm text-gray-500">No sessions yet.</p>
+          <p className="text-sm text-gray-500">No study sessions yet. Upload material to create your first one.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

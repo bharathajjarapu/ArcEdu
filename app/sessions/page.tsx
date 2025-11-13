@@ -13,7 +13,7 @@ export default function SessionsPage() {
     };
 
     const handleDeleteSession = async (id: string) => {
-        if (confirm("Delete this session?")) {
+        if (confirm("Delete this session and its saved notes, quizzes, and slides?")) {
             await remove(id);
             refresh();
         }
