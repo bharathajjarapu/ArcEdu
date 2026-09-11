@@ -1,176 +1,94 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  Plus,
-  RotateCcw,
-  Check,
-  X,
-  Loader2,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Quiz, Format } from "@/types";
-import { formatTime } from "@/lib/format";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Icon, Spinner } from "@/components/icons";
+import { Button, Card, cn } from "@/components/ui";
+import { useApp } from "@/contexts/app";
+import * as db from "@/lib/db";
 
-interface ResultsProps {
-  selectedFormat: Format;
-  quizData: Quiz[];
-  userAnswers: Record<number, string>;
-  totalTime: number;
-  fastestAnswer: number;
-  maxStreak: number;
-  onGoBackAction: () => void;
-  onNewSessionAction: () => void;
-  onRetryAction: () => void;
-  onReviewAction: () => void;
-  isLoading: boolean;
-}
+// Formats milliseconds as "1m 5s".
+const time = (ms: number) => {
+  const seconds = Math.floor(ms / 1000);
+  return seconds >= 60 ? `${Math.floor(seconds / 60)}m ${seconds % 60}s` : `${seconds}s`;
+};
 
-export function Results({
-  selectedFormat,
-  quizData,
-  userAnswers,
-  totalTime,
-  fastestAnswer,
-  maxStreak,
-  onGoBackAction,
-  onNewSessionAction,
-  onRetryAction,
-  onReviewAction,
-  isLoading,
-}: ResultsProps) {
-  const calcResults = () => {
-    const correctAnswers = Object.entries(userAnswers).filter(
-      ([questionIndex, answer]) => {
-        const selectedIndex = answer.charCodeAt(0) - 65;
-        return (
-          quizData[Number.parseInt(questionIndex)].answer === selectedIndex
-        );
-      },
-    ).length;
+// Results step: score, stats, and saving the attempt.
+export function Results() {
+  const router = useRouter();
+  const { play, setPlay, current, busy, generate } = useApp();
+  const { questions, answers } = play;
+  const right = questions.filter((question, index) => answers[index] === question.answer).length;
+  const accuracy = questions.length ? Math.round((right / questions.length) * 100) : 0;
 
-    const totalQuestions = quizData.length;
-    const accuracy =
-      totalQuestions > 0
-        ? Math.round((correctAnswers / totalQuestions) * 100)
-        : 0;
+  // Saves the finished attempt, keyed by start time so repeat runs overwrite.
+  useEffect(() => {
+    if (play.end || !current || questions.length === 0) return;
+    const end = Date.now();
+    setPlay((play) => ({ ...play, end }));
+    void db.put("quizzes", { ...play, end, id: String(play.start), sessionId: current.id });
+  }, [play.end, current, questions.length]);
 
-    return {
-      correctAnswers,
-      totalQuestions,
-      accuracy,
-    };
-  };
-
-  const results = calcResults();
+  const stats = [
+    { label: "Time taken", value: time(play.end - play.start) },
+    { label: "Fastest answer", value: time(play.times.length ? Math.min(...play.times) : 0) },
+    { label: "Hot streak", value: play.best },
+  ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <div className="text-6xl md:text-8xl font-bold tracking-tight text-gray-900 mb-4">
-          {results.correctAnswers}
-          <span className="text-3xl md:text-5xl text-gray-500">
-            /{results.totalQuestions}
-          </span>
+    <div className="mx-auto flex w-full max-w-4xl flex-col justify-center px-4 pt-2 pb-12 sm:px-6 md:h-full">
+      <div className="mb-10 text-center">
+        <p className="text-sm text-muted-foreground">You scored</p>
+        <div className="font-heading text-6xl font-bold tracking-tight md:text-8xl">
+          {right}
+          <span className="text-4xl text-muted-foreground md:text-6xl">/{questions.length}</span>
         </div>
-        <p className="text-gray-500 text-lg leading-relaxed max-w-md mx-auto mb-8">
-          Great job! You answered {results.correctAnswers} out of{" "}
-          {results.totalQuestions} questions correctly — that's{" "}
-          {results.accuracy}% accuracy!
+        <p className="mx-auto mt-4 max-w-md text-lg text-muted-foreground">
+          {right} of {questions.length} correct, that&apos;s {accuracy}% accuracy.
         </p>
-
-        <div className="flex flex-wrap justify-center gap-6 mb-8">
-          <div className="bg-white rounded-[calc(var(--radius)+2px)] p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
-            <div className="text-sm text-gray-500 mb-2">Time taken</div>
-            <div className="text-3xl font-bold text-gray-900">
-              {formatTime(totalTime)}
-            </div>
-          </div>
-          <div className="bg-white rounded-[calc(var(--radius)+2px)] p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
-            <div className="text-sm text-gray-500 mb-2">Fastest answer</div>
-            <div className="text-3xl font-bold text-gray-900">
-              {formatTime(fastestAnswer)}
-            </div>
-          </div>
-          <div className="bg-white rounded-[calc(var(--radius)+2px)] p-6 shadow-sm border-2 border-gray-200 min-w-[140px]">
-            <div className="text-sm text-gray-500 mb-2">Hot streak</div>
-            <div className="text-3xl font-bold text-gray-900">
-              {maxStreak}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center mb-12 w-full">
-          <div className="flex flex-wrap justify-center gap-3">
-            {quizData.map((question, index) => {
-              const userAnswer = userAnswers[index];
-              const selectedIndex = userAnswer
-                ? userAnswer.charCodeAt(0) - 65
-                : -1;
-              const isCorrect = selectedIndex === question.answer;
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    "w-12 h-12 rounded-[calc(var(--radius)+2px)] flex items-center justify-center shadow-sm",
-                    isCorrect ? "bg-green-500/80" : "bg-red-500/80",
-                  )}
-                >
-                  {isCorrect ? (
-                    <Check className="w-6 h-6 text-white" />
-                  ) : (
-                    <X className="w-6 h-6 text-white" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4">
-        <Button
-          variant="ghost"
-          className="text-gray-700 hover:bg-gray-100 border border-gray-200"
-          onClick={onGoBackAction}
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Format
-        </Button>
-        <Button
-          variant="ghost"
-          className="text-gray-700 hover:bg-gray-100 border border-gray-200"
-          onClick={onNewSessionAction}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Session
-        </Button>
+      <div className="mb-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="p-4">
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <p className="font-heading text-3xl font-bold">{play.end ? stat.value : "–"}</p>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="mb-10 flex flex-wrap justify-center gap-2 p-4">
+        {questions.map((question, index) => {
+          const correct = answers[index] === question.answer;
+          return (
+            <span
+              key={index}
+              aria-label={`Question ${index + 1}: ${correct ? "correct" : "incorrect"}`}
+              className={cn(
+                "flex size-10 items-center justify-center rounded-md border",
+                correct ? "border-success bg-success text-white" : "border-danger bg-danger/10 text-danger",
+              )}
+            >
+              <Icon name={correct ? "check" : "x"} className="size-5" />
+            </span>
+          );
+        })}
+      </Card>
+
+      <div className="flex flex-wrap justify-center gap-3">
         <Button
           variant="outline"
-          className="border border-gray-200 text-gray-700 hover:bg-gray-100"
-          disabled={isLoading}
-          onClick={onReviewAction}
+          size="lg"
+          disabled={busy}
+          onClick={() => {
+            setPlay((play) => ({ ...play, index: 0 }));
+            router.push("/quiz");
+          }}
         >
-          <Check className="w-4 h-4 mr-2" />
-          Review Answers
+          <Icon name="list-checks" /> Review answers
         </Button>
-        <Button
-          className="bg-gray-900 hover:bg-gray-800 text-white"
-          disabled={isLoading}
-          onClick={onRetryAction}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Generate New
-            </>
-          )}
+        <Button size="lg" disabled={busy} onClick={() => void generate()}>
+          {busy ? <><Spinner /> Generating…</> : <><Icon name="rotate-ccw" /> Generate new</>}
         </Button>
       </div>
     </div>

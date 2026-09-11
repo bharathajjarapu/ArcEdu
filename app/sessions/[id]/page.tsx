@@ -1,9 +1,13 @@
-"use client";
+import { Suspense } from "react";
+import { Session } from "@/components/screens/session";
 
-import { use } from "react";
-import { SessionDetails } from "@/components/screens/session-details";
+export const metadata = { title: "Session" };
 
-export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
-    return <SessionDetails sessionId={id} />;
+// Suspense lets the static shell prerender while the route id is read on the client.
+export default function Page() {
+  return (
+    <Suspense>
+      <Session />
+    </Suspense>
+  );
 }

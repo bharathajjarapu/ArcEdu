@@ -1,13 +1,7 @@
-import QuizPageClient from "./page-client";
+import { Quiz } from "@/components/screens/quiz";
 
-type QuizPageProps = {
-    searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
+export const metadata = { title: "Quiz" };
 
-export default async function QuizPage({ searchParams }: QuizPageProps) {
-    const resolvedSearchParams = await searchParams;
-    const rawSessionId = resolvedSearchParams?.sessionId;
-    const sessionId = Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId;
-
-    return <QuizPageClient sessionId={sessionId} />;
+export default function Page() {
+  return <Quiz />;
 }

@@ -1,132 +1,46 @@
 import katex from "katex";
+import { marked } from "marked";
+import "katex/dist/katex.min.css";
 
-const ALLOWED_TAGS = new Set([
-    "a",
-    "blockquote",
-    "br",
-    "code",
-    "div",
-    "em",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "hr",
-    "li",
-    "ol",
-    "p",
-    "pre",
-    "span",
-    "strong",
-    "table",
-    "tbody",
-    "td",
-    "th",
-    "thead",
-    "tr",
-    "ul",
-]);
+const tags = new Set(["A", "BLOCKQUOTE", "BR", "CODE", "DEL", "EM", "H1", "H2", "H3", "H4", "H5", "H6", "HR", "LI", "OL", "P", "PRE", "SPAN", "STRONG", "TABLE", "TBODY", "TD", "TH", "THEAD", "TR", "UL"]);
+const math = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\$([^$\n]+?)\$|\\\(([\s\S]+?)\\\)/g;
 
-const DANGEROUS_TAGS = new Set([
-    "embed",
-    "iframe",
-    "link",
-    "meta",
-    "object",
-    "script",
-    "style",
-]);
-
-export function escapeHtml(text: string): string {
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-}
-
-export function sanitizeHtml(html: string): string {
-    if (typeof document === "undefined" || !html) return html;
-
-    const template = document.createElement("template");
-    template.innerHTML = html;
-
-    const elements = Array.from(template.content.querySelectorAll("*"));
-    for (const element of elements) {
-        const tag = element.tagName.toLowerCase();
-
-        if (DANGEROUS_TAGS.has(tag)) {
-            element.remove();
-            continue;
-        }
-
-        if (!ALLOWED_TAGS.has(tag)) {
-            const text = document.createTextNode(element.textContent || "");
-            element.replaceWith(text);
-            continue;
-        }
-
-        for (const attr of Array.from(element.attributes)) {
-            const name = attr.name.toLowerCase();
-            const value = attr.value.trim();
-
-            const isSafeHref = name === "href" &&
-                /^(https?:|mailto:|\/|#)/i.test(value);
-            const isAllowedAttr = name === "class" ||
-                name === "title" ||
-                name === "colspan" ||
-                name === "rowspan" ||
-                isSafeHref;
-
-            if (!isAllowedAttr || name.startsWith("on")) {
-                element.removeAttribute(attr.name);
-            }
-        }
+// Keeps only safe tags, classes and http links from model output.
+function sanitize(html: string) {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  for (const element of Array.from(template.content.querySelectorAll("*"))) {
+    if (!tags.has(element.tagName)) {
+      element.replaceWith(element.textContent ?? "");
+      continue;
     }
-
-    return template.innerHTML;
+    for (const { name, value } of Array.from(element.attributes)) {
+      if (name !== "class" && !(name === "href" && /^(https?:|#)/i.test(value))) element.removeAttribute(name);
+    }
+  }
+  return template.innerHTML;
 }
 
-export function normalizeMathDelimiters(input: string): string {
-    const fencedSplit = input.split(/(```[\s\S]*?```)/g);
-    const processInline = (segment: string) => {
-        const inlineSplit = segment.split(/(`[^`]*`)/g);
-        return inlineSplit
-            .map((part) => {
-                if (part.startsWith("`") && part.endsWith("`")) return part;
-                let replaced = part.replace(/\\\[([\\s\S]*?)\\\]/g, (_, p1) => `$$${p1}$$`);
-                replaced = replaced.replace(/\\\(([^]*?)\\\)/g, (_, p1) => `$${p1}$`);
-                return replaced;
-            })
-            .join("");
-    };
-    return fencedSplit
-        .map((seg) => (seg.startsWith("```") ? seg : processInline(seg)))
-        .join("");
+// Renders markdown with KaTeX math into sanitized HTML.
+export function render(markdown: string) {
+  if (!markdown) return "";
+  const formulas: string[] = [];
+  const text = markdown
+    .split(/(```[\s\S]*?```|`[^`\n]*`)/)
+    .map((part, index) => index % 2 ? part : part.replace(math, (_, block, bracket, inline, paren) => {
+      const display = block ?? bracket;
+      formulas.push(katex.renderToString(display ?? inline ?? paren, { displayMode: display !== undefined, throwOnError: false }));
+      return `@@${formulas.length - 1}@@`;
+    }))
+    .join("");
+  return sanitize(marked.parse(text, { async: false })).replace(/@@(\d+)@@/g, (_, index) => formulas[Number(index)]);
 }
 
-export function renderMath(html: string): string {
-    html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
-        try {
-            const cleanTex = tex.replace(/<br\s*\/?>/gi, ' ').replace(/&nbsp;/gi, ' ').trim();
-            return `<div style="overflow-x:auto;padding:0.5rem 0;text-align:center">${katex.renderToString(cleanTex, { displayMode: true, throwOnError: false })}</div>`;
-        } catch {
-            return `<code>${escapeHtml(tex)}</code>`;
-        }
-    });
-
-    html = html.replace(/\$([^$]+?)\$/g, (match, tex) => {
-        if (!tex || tex.trim().length === 0) return match;
-        try {
-            const cleanTex = tex.replace(/<br\s*\/?>/gi, ' ').replace(/&nbsp;/gi, ' ').trim();
-            return katex.renderToString(cleanTex, { displayMode: false, throwOnError: false });
-        } catch {
-            return `<code>${escapeHtml(tex)}</code>`;
-        }
-    });
-
-    return html;
+// Saves text as a markdown file.
+export function download(name: string, content: string) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([content], { type: "text/markdown" }));
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }

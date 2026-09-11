@@ -2,30 +2,26 @@
   "name": "arcedu",
   "version": "0.1.2",
   "scripts": {
-    "build": "next build",
-    "dev": "next dev --turbo",
-    "lint": "tsc --noEmit",
+    "build": "next build --turbopack",
+    "dev": "next dev --turbopack",
+    "lint": "next typegen && tsc --noEmit",
     "start": "next start"
   },
   "dependencies": {
-    "clsx": "^2.1.1",
-    "fflate": "^0.8.2",
-    "katex": "^0.16.27",
-    "lucide-react": "^0.454.0",
-    "marked": "^17.0.1",
-    "next": "^16.0.7",
-    "openai": "^6.9.1",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
-    "tailwind-merge": "^2.5.5"
+    "@base-ui/react": "^1.8.0",
+    "@firecrawl/anydoc": "^0.2.4",
+    "katex": "^0.18.9",
+    "marked": "^18.0.14",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.9",
-    "@types/node": "^22",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "postcss": "^8.5",
-    "tailwindcss": "^4.1.9",
-    "typescript": "^5"
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
   }
 }

@@ -1,13 +1,7 @@
-import ResultsPageClient from "./page-client";
+import { Results } from "@/components/screens/results";
 
-type ResultsPageProps = {
-    searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
+export const metadata = { title: "Results" };
 
-export default async function ResultsPage({ searchParams }: ResultsPageProps) {
-    const resolvedSearchParams = await searchParams;
-    const rawSessionId = resolvedSearchParams?.sessionId;
-    const sessionId = Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId;
-
-    return <ResultsPageClient sessionId={sessionId} />;
+export default function Page() {
+  return <Results />;
 }

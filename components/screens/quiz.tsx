@@ -1,261 +1,163 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Icon } from "@/components/icons";
+import { Button, Card, cn } from "@/components/ui";
+import { useApp } from "@/contexts/app";
 
-import { Button } from "@/components/ui/button";
-import { PageBackButton } from "@/components/back";
-import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Quiz } from "@/types";
+// Formats seconds as mm:ss.
+const clock = (seconds: number) =>
+  `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-interface QuizProps {
-  quizData: Quiz[];
-  currentQuestion: number;
-  selectedAnswer: string | null;
-  userAnswers: Record<number, string>;
-  showFeedback: boolean;
-  revealEnabled: boolean;
-  onAnswerSelectAction: (optionId: string) => void;
-  onContinueAction: () => void;
-  onNextAction: () => void;
-  onPreviousAction: () => void;
-  onTimeoutAction?: () => void;
-  startTime: number;
-  questionStartTime: number;
-  timeLimit?: number;
-  onBackAction: () => void;
-}
-
-export function QuizScreen({
-  quizData,
-  currentQuestion,
-  selectedAnswer,
-  userAnswers,
-  showFeedback,
-  revealEnabled,
-  onAnswerSelectAction,
-  onContinueAction,
-  onNextAction,
-  onPreviousAction,
-  onTimeoutAction,
-  startTime,
-  questionStartTime,
-  timeLimit,
-  onBackAction,
-}: QuizProps) {
-  const [now, setNow] = useState(Date.now());
-  const timeoutFired = useRef(false);
+// Quiz step: answer one question at a time against the clock.
+export function Quiz() {
+  const router = useRouter();
+  const { play, setPlay, options } = useApp();
+  const [picked, setPicked] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
+  const { questions, index, answers } = play;
+  const limit = play.end ? 0 : options.minutes * 60;
+  const left = limit && now ? Math.max(0, limit - Math.floor((now - play.start) / 1000)) : Infinity;
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  // Reset timeout guard when session restarts
+  // Time is up: go to results.
   useEffect(() => {
-    timeoutFired.current = false;
-  }, [startTime]);
+    if (left === 0 && play.start) router.push("/results");
+  }, [left, play.start, router]);
 
-  if (!quizData.length) return null;
+  if (questions.length === 0) return null;
 
-  const totalElapsed = Math.floor((now - startTime) / 1000);
-  const questionElapsed = Math.floor((now - questionStartTime) / 1000);
+  const question = questions[index];
+  const answer = answers[index];
+  const answered = answer !== undefined;
+  const selected = answered ? answer : picked;
+  const last = index === questions.length - 1;
 
-  const totalTimeLimit = timeLimit !== undefined && timeLimit > 0 ? timeLimit * 60 : 0;
-  const remainingTime = totalTimeLimit > 0 ? Math.max(0, totalTimeLimit - totalElapsed) : Infinity;
-  const isLowTime = remainingTime < totalTimeLimit * 0.2;
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  // Moves to another question.
+  const go = (step: number) => {
+    setPicked(null);
+    setPlay((play) => ({ ...play, index: play.index + step, shown: Date.now() }));
   };
 
-  // Auto-redirect when time runs out (fires only once via useEffect)
-  useEffect(() => {
-    if (remainingTime === 0 && !timeoutFired.current) {
-      timeoutFired.current = true;
-      if (onTimeoutAction) {
-        onTimeoutAction();
-      } else {
-        onNextAction();
-      }
-    }
-  }, [remainingTime, onTimeoutAction, onNextAction]);
+  // Locks in the picked answer and updates the streak.
+  const submit = () => {
+    if (picked === null) return;
+    setPlay((play) => {
+      const streak = picked === question.answer ? play.streak + 1 : 0;
+      return {
+        ...play,
+        answers: { ...play.answers, [play.index]: picked },
+        times: [...play.times, Date.now() - play.shown],
+        streak,
+        best: Math.max(play.best, streak),
+      };
+    });
+  };
 
-  const question = quizData[currentQuestion];
+  const correct = answered && answer === question.answer;
+  const low = left < limit * 0.2;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-[auto,1fr,auto] md:items-center">
-        <PageBackButton label="Back to Format" onClick={onBackAction} className="-ml-3" />
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[calc(var(--radius)+2px)]">
-            <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">Q</span>
-            <span className="text-sm tabular-nums text-gray-600">
-              {formatTime(questionElapsed)}
+    <div className="mx-auto flex w-full max-w-2xl flex-col px-4 pt-2 pb-6 sm:px-6 md:h-full">
+      <div className="flex items-center gap-3 pb-5">
+        <Button variant="outline" size="icon-lg" onClick={() => go(-1)} disabled={index === 0} aria-label="Previous question">
+          <Icon name="chevron-left" />
+        </Button>
+        <div className="flex-1">
+          <div className="mb-2 flex items-center justify-between gap-3 text-sm text-muted-foreground tabular-nums">
+            <span>Question {index + 1} of {questions.length}</span>
+            <span className="flex items-center gap-3">
+              <span className="flex items-center gap-1" aria-label="Time on this question">
+                <Icon name="timer" className="size-4" /> {clock(Math.max(0, Math.floor((now - play.shown) / 1000)))}
+              </span>
+              <span className={cn("flex items-center gap-1", low && "font-medium text-danger")} aria-label="Time left">
+                <Icon name="hourglass" className="size-4" /> {left === Infinity ? "∞" : clock(left)}
+              </span>
             </span>
           </div>
-          <div className={cn(
-            "flex items-center gap-2 px-3 py-1.5 border-2 border-gray-300 rounded-[calc(var(--radius)+2px)] transition-all",
-            isLowTime ? "border-gray-400 bg-gray-50 animate-pulse" : "border-gray-300"
-          )}>
-            <span className="text-sm uppercase tracking-wider text-gray-500 font-semibold">T</span>
-            <span className={cn("text-sm tabular-nums font-medium", isLowTime ? "text-gray-900" : "text-gray-600")}>
-              {remainingTime === Infinity ? "∞" : formatTime(remainingTime)}
-            </span>
+          <div role="progressbar" aria-label="Quiz progress" aria-valuemin={1} aria-valuemax={questions.length} aria-valuenow={index + 1} className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
           </div>
         </div>
-        <div className="hidden w-[140px] md:block" aria-hidden="true" />
-      </div>
-
-      <div className="mb-8 flex items-center justify-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onPreviousAction}
-          disabled={currentQuestion === 0}
-          aria-label="Previous question"
-          className="h-11 w-11 p-0 text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)]"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <span className="text-center text-lg font-medium text-gray-600 sm:text-2xl">
-          Question {currentQuestion + 1} of {quizData.length}
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onNextAction}
-          disabled={currentQuestion === quizData.length - 1}
-          aria-label="Next question"
-          className="h-11 w-11 p-0 text-gray-600 hover:bg-gray-100 border border-gray-200 rounded-[calc(var(--radius)+2px)]"
-        >
-          <ChevronRight className="w-4 h-4" />
+        <Button variant="outline" size="icon-lg" onClick={() => go(1)} disabled={last} aria-label="Next question">
+          <Icon name="chevron-right" />
         </Button>
       </div>
 
-      <div className="max-w-2xl mx-auto">
-        <h2 className="mb-8 text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl md:text-4xl">
+      <div className="min-h-0 overflow-y-auto">
+        <h2 className="mb-5 font-heading text-xl leading-snug font-semibold tracking-tight text-balance sm:text-2xl">
           {question.question}
         </h2>
 
-        <div className="space-y-4 mb-8">
-          {question.options.map((option, index) => {
-            const optionId = String.fromCharCode(65 + index);
-            const isSelected = selectedAnswer === optionId;
-            const isCorrect = index === question.answer;
-            const isIncorrect = showFeedback && isSelected && !isCorrect;
-            const shouldShowCorrect = showFeedback && isCorrect;
-
+        <div className="space-y-2.5">
+          {question.options.map((option, choice) => {
+            const right = answered && choice === question.answer;
+            const wrong = answered && choice === selected && !right;
+            const chosen = !answered && choice === selected;
             return (
               <button
-                key={index}
-                onClick={() => !showFeedback && onAnswerSelectAction(optionId)}
-                disabled={showFeedback}
+                key={choice}
+                onClick={() => setPicked(choice)}
+                disabled={answered}
+                aria-pressed={choice === selected}
                 className={cn(
-                  "w-full p-4 rounded-[calc(var(--radius)+2px)] border-2 text-left transition-all duration-200",
-                  "flex items-center gap-4",
-                  !showFeedback &&
-                  !isSelected &&
-                  "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50",
-                  !showFeedback &&
-                  isSelected &&
-                  "bg-gray-100 border-gray-900 shadow-sm",
-                  isIncorrect && "bg-red-50 border-red-300",
-                  shouldShowCorrect && "bg-green-50 border-green-300",
-                  showFeedback &&
-                  !isIncorrect &&
-                  !shouldShowCorrect &&
-                  "bg-white border-gray-200",
+                  "flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                  !answered && !chosen && "hover:bg-muted/50",
+                  chosen && "border-primary",
+                  right && "border-success bg-success/10",
+                  wrong && "border-danger bg-danger/10",
+                  answered && !right && !wrong && "text-muted-foreground",
                 )}
               >
-                <div
+                <span
                   className={cn(
-                    "w-8 h-8 rounded-[calc(var(--radius)+2px)] border-2 flex items-center justify-center text-sm font-medium shrink-0",
-                    !showFeedback &&
-                    !isSelected &&
-                    "border-gray-300 text-gray-600",
-                    !showFeedback &&
-                    isSelected &&
-                    "border-gray-600 text-gray-700 bg-gray-200",
-                    isIncorrect && "border-red-500 bg-red-500 text-white",
-                    shouldShowCorrect &&
-                    "border-green-500 bg-green-500 text-white",
-                    showFeedback &&
-                    !isIncorrect &&
-                    !shouldShowCorrect &&
-                    "border-gray-300 text-gray-600",
+                    "flex size-8 shrink-0 items-center justify-center rounded-md border text-sm font-medium",
+                    chosen && "border-primary bg-primary text-primary-foreground",
+                    right && "border-success bg-success text-white",
+                    wrong && "border-danger bg-danger text-white",
                   )}
                 >
-                  {showFeedback ? (
-                    isIncorrect ? (
-                      <X className="w-4 h-4" />
-                    ) : shouldShowCorrect ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      optionId
-                    )
-                  ) : (
-                    optionId
-                  )}
-                </div>
-                <span className="text-gray-900">{option}</span>
+                  {wrong ? <Icon name="x" className="size-4" /> : right ? <Icon name="check" className="size-4" /> : String.fromCharCode(65 + choice)}
+                </span>
+                <span>{option}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="mb-10">
-          {showFeedback && revealEnabled && (
-            <Card className="p-6 border-gray-200 bg-gray-50 rounded-[calc(var(--radius)+2px)]">
-              <div className="flex items-start gap-3">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Explanation</h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {question.explanation ||
-                      `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Button
-            variant="outline"
-            onClick={onPreviousAction}
-            disabled={currentQuestion === 0}
-            className={cn(
-              "text-gray-600 border-gray-200 rounded-[calc(var(--radius)+2px)] hover:bg-gray-50 hover:border-gray-300",
-              "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200"
+        {answered && (
+          <Card role="status" className={cn("mt-4 p-4", correct ? "border-success/30 bg-success/10" : "border-danger/30 bg-danger/10")}>
+            <h3 className={cn("font-heading font-semibold", correct ? "text-success" : "text-danger")}>
+              {correct ? "Correct" : "Not quite"}
+            </h3>
+            {options.reveal && (
+              <p className="mt-1 text-sm leading-relaxed text-foreground/80">
+                {question.explanation || `The correct answer is ${String.fromCharCode(65 + question.answer)}: ${question.options[question.answer]}`}
+              </p>
             )}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Previous
-          </Button>
+          </Card>
+        )}
+      </div>
 
-          {!showFeedback ? (
-            <Button
-              onClick={onContinueAction}
-              disabled={!selectedAnswer}
-              className="bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              Continue
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : (
-            <Button
-              onClick={onNextAction}
-              className="bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              {currentQuestion === quizData.length - 1 ? "Finish" : "Continue"}
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          )}
-        </div>
+      <div className="grid grid-cols-2 gap-3 pt-5">
+        <Button variant="outline" size="xl" onClick={() => go(-1)} disabled={index === 0}>
+          <Icon name="chevron-left" /> Previous
+        </Button>
+        {answered ? (
+          <Button size="xl" onClick={() => (last ? router.push("/results") : go(1))}>
+            {last ? "Finish" : "Continue"} <Icon name="chevron-right" />
+          </Button>
+        ) : (
+          <Button size="xl" onClick={submit} disabled={picked === null}>
+            Check <Icon name="chevron-right" />
+          </Button>
+        )}
       </div>
     </div>
   );

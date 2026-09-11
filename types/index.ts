@@ -1,124 +1,75 @@
+export type Format = "quiz" | "notes" | "slides";
+export type Palette = "minimal" | "dark" | "colorful" | "ocean" | "forest" | "sunset" | "purple";
+
 export interface Session {
   id: string;
   title: string;
   createdAt: number;
   updatedAt: number;
-  color?: string;
-  completed?: boolean;
-  lastFormat?: Format;
-  notesContent?: string;
-  slidesContent?: string;
-  slideIndex?: number;
 }
 
-export interface SavedNotes {
-  id: string;
-  sessionId: string;
-  title: string;
-  content: string;
-  createdAt: number;
+// A span of a document's markdown, with its embedding once indexed.
+export interface Chunk {
+  start: number;
+  end: number;
+  vector?: Float32Array;
 }
 
-export interface SavedSlides {
-  id: string;
-  sessionId: string;
-  title: string;
-  content: string;
-  createdAt: number;
-}
-
-export interface Document {
+export interface Doc {
   id: string;
   sessionId: string;
   name: string;
   size: string;
   content: string;
   createdAt: number;
+  chunks?: Chunk[];
 }
 
-export interface Chunk {
+// Saved notes or slides.
+export interface Saved {
   id: string;
   sessionId: string;
-  documentId: string;
-  text: string;
-  embedding: number[];
-  index: number;
-  hash?: string;
-}
-
-export interface Cache {
-  hash: string;
-  sessionId: string;
-  embedding: number[];
-  createdAt: number;
-}
-
-export interface ChatSource {
-  sessionId: string;
-  sessionTitle: string;
-  documentId: string;
-  documentName: string;
-  chunkId: string;
-  score?: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
+  title: string;
   content: string;
   createdAt: number;
-  sources?: ChatSource[];
 }
 
-export interface Quiz {
+export interface Question {
   question: string;
   options: string[];
   answer: number;
-  explanation: string;
+  explanation?: string;
 }
 
-export interface Notes {
-  content: string;
-}
-
-export interface QuizAttempt {
-  id: string;
-  sessionId: string;
-  quizData: Quiz[];
-  answers: Record<number, string>;
-  score: number;
-  completedAt: number;
-  totalTime?: number;
-  questionTimes?: number[];
-  maxStreak?: number;
-}
-
-export type InputType = "prompt" | "docs" | "links";
-export type Format = "quiz" | "notes" | "slides";
-export type Difficulty = "easy" | "medium" | "hard" | "adaptive";
-export type NotesFormat = "summary" | "structured" | "exam" | "cheatsheet" | "prompt";
-export type NotesLength = "short" | "medium" | "long" | "adaptive";
-export type SlideDesign = "minimal" | "professional" | "colorful" | "academic" | "creative" | "dark" | "technical" | "visual";
-export type SlideColorPalette = "minimal" | "dark" | "colorful" | "ocean" | "forest" | "sunset" | "purple";
-
-
-
-export interface QuizState {
-  data: Quiz[];
-  current: number;
-  selected: string | null;
-  answers: Record<number, string>;
-  feedback: boolean;
-  startTime: number;
-  questionStart: number;
+// A quiz run: live while playing, stored once finished.
+export interface Play {
+  questions: Question[];
+  index: number;
+  answers: Record<number, number>;
+  start: number;
+  shown: number;
+  end: number;
   times: number[];
   streak: number;
-  maxStreak: number;
+  best: number;
 }
 
-export interface Progress {
-  type: "upload" | "chunk" | "embed" | "generate";
-  current: number;
-  total: number;
-  message?: string;
+export interface Attempt extends Play {
+  id: string;
+  sessionId: string;
+}
+
+export interface Options {
+  format: Format;
+  prompt: string;
+  questions: number;
+  difficulty: string;
+  minutes: number;
+  reveal: boolean;
+  style: string;
+  length: string;
+  extras: string[];
+  slides: number;
+  design: string;
+  palette: Palette;
 }
