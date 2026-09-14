@@ -1,11 +1,9 @@
 "use client";
 
 import { useDeferredValue, useEffect, useRef } from "react";
-import Link from "next/link";
-import { Icon, Spinner } from "@/components/icons";
-import { Button, Tip, buttonVariants, cn } from "@/components/ui";
+import { cn } from "@/components/ui";
 import { useApp } from "@/contexts/app";
-import { download, render } from "@/lib/markdown";
+import { render } from "@/lib/markdown";
 
 interface Mermaid {
   initialize: (config: object) => void;
@@ -47,9 +45,8 @@ async function diagrams(root: HTMLElement) {
 // Notes step: streams, renders and downloads generated notes.
 export function Notes() {
   const ref = useRef<HTMLElement>(null);
-  const { notes, busy, error, stop } = useApp();
+  const { notes, busy, error } = useApp();
   const content = useDeferredValue(notes);
-  const title = notes.match(/^#\s+(.+)/m)?.[1] ?? "Notes";
 
   useEffect(() => {
     if (!ref.current) return;
@@ -58,29 +55,9 @@ export function Notes() {
   }, [content, busy]);
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-16 sm:px-6">
-      <div className="sticky top-0 z-10 -mx-4 flex items-center gap-2 bg-background/90 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6">
-        <p role="status" className="flex min-w-0 flex-1 items-center gap-2 text-sm text-muted-foreground">
-          {busy ? <><Spinner /> Writing notes…</> : <span className="truncate">{notes ? `${notes.split(/\s+/).length.toLocaleString()} words` : ""}</span>}
-        </p>
-        <Tip label="Regenerate">
-          <Link href="/format" aria-label="Regenerate notes" className={buttonVariants({ variant: "outline", size: "icon" })}>
-            <Icon name="refresh-cw" />
-          </Link>
-        </Tip>
-        {busy ? (
-          <Button variant="outline" onClick={stop}>
-            <Icon name="x" /> Stop
-          </Button>
-        ) : (
-          <Button disabled={!notes} onClick={() => download(`${title}.md`, notes)}>
-            <Icon name="download" /> Download
-          </Button>
-        )}
-      </div>
-
+    <div className="mx-auto w-full max-w-3xl px-4 pt-2 pb-16 sm:px-6">
       {!notes && !busy && <p className="py-24 text-center text-muted-foreground">{error || "Your notes will appear here."}</p>}
-      <article ref={ref} className={cn("markdown pt-4", !notes && "hidden")} />
+      <article ref={ref} className={cn("markdown", !notes && "hidden")} />
     </div>
   );
 }

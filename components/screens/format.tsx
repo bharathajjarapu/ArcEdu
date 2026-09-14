@@ -204,7 +204,7 @@ export function Format() {
 
       {error && <p role="alert" className="mt-4 rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">{error}</p>}
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex justify-center">
         <Button size="xl" onClick={() => void generate()} disabled={busy} className="max-sm:w-full">
           {busy ? <><Spinner /> Generating…</> : <><Icon name="sparkles" /> Generate {format}</>}
         </Button>

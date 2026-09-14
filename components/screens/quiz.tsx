@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/components/icons";
+import { Icon, Spinner } from "@/components/icons";
 import { Button, Card, cn } from "@/components/ui";
 import { useApp } from "@/contexts/app";
 
@@ -31,7 +31,9 @@ export function Quiz() {
     if (left === 0 && play.start) router.push("/results");
   }, [left, play.start, router]);
 
-  if (questions.length === 0) return null;
+  if (questions.length === 0) {
+    return <div className="flex justify-center py-24"><Spinner className="size-6 text-muted-foreground" /></div>;
+  }
 
   const question = questions[index];
   const answer = answers[index];

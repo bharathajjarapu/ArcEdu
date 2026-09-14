@@ -62,21 +62,16 @@ function Remove({ session }: { session: Session }) {
   );
 }
 
-// Brand, close button, new-session button and the session list; onPick runs after navigating.
-export function Sessions({ onClose, onPick }: { onClose: () => void; onPick?: () => void }) {
+// Brand, new-session button and the session list; onPick runs after navigating.
+export function Sessions({ onPick }: { onPick?: () => void }) {
   const { sessions, current, reset } = useApp();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex h-14 shrink-0 items-center justify-between pr-2 pl-5">
+      <div className="flex h-14 shrink-0 items-center pr-2 pl-5">
         <Link href="/upload" onClick={() => { reset(); onPick?.(); }} className="rounded-md font-heading text-lg font-bold tracking-tight outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
           ArcEdu
         </Link>
-        <Tip label="Close sidebar">
-          <Button variant="ghost" size="icon" aria-label="Close sidebar" onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <Icon name="panel-left" />
-          </Button>
-        </Tip>
       </div>
       <div className="px-3">
         <Link href="/upload" onClick={() => { reset(); onPick?.(); }} className={cn(buttonVariants({ size: "lg" }), "w-full")}>
@@ -110,17 +105,17 @@ export function Sessions({ onClose, onPick }: { onClose: () => void; onPick?: ()
   );
 }
 
-// Desktop sidebar; collapses fully and smoothly.
+// Desktop sidebar; collapses fully and smoothly, above the page wallpaper.
 export function Sidebar() {
-  const { side, setSide } = useApp();
+  const { side } = useApp();
   return (
     <aside
       inert={!side}
       aria-hidden={!side}
-      className={cn("hidden shrink-0 overflow-hidden transition-[width] duration-300 ease-out motion-reduce:transition-none md:flex", side ? "w-64 border-r" : "w-0")}
+      className={cn("relative z-10 hidden shrink-0 overflow-hidden bg-background transition-[width] duration-300 ease-out motion-reduce:transition-none md:flex", side ? "w-64 border-r" : "w-0")}
     >
       <div className="flex w-64 shrink-0 flex-col">
-        <Sessions onClose={() => setSide(false)} />
+        <Sessions />
       </div>
     </aside>
   );

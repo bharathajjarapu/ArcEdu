@@ -4,26 +4,27 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Icon, Spinner } from "@/components/icons";
 import { Button } from "@/components/ui";
-import { accept } from "@/components/docs";
+import { Reading, accept } from "@/components/docs";
 import { useApp } from "@/contexts/app";
 import * as db from "@/lib/db";
 
 // Upload step: add documents to a new or active session.
 export function Upload() {
   const router = useRouter();
-  const { docs, upload, busy, error, setError, load } = useApp();
+  const { docs, upload, busy, error, setError, load, pending, indexing } = useApp();
 
   return (
     <div className="relative isolate flex min-h-full items-center">
-      {/* Chalkboard of equations: dark ink in light mode, chalk in dark mode. */}
+      {/* Chalkboard of equations: dark ink in light mode, chalk in dark mode. Pinned to the viewport so the sidebar's width never stretches it. */}
       <Image
         src="/hero.jpg"
         alt=""
-        fill
+        width={1920}
+        height={1280}
         priority
         sizes="100vw"
         quality={60}
-        className="pointer-events-none -z-10 object-cover opacity-10 invert mask-b-from-40% dark:opacity-15 dark:invert-0"
+        className="pointer-events-none fixed inset-0 -z-10 h-dvh w-screen object-cover opacity-10 invert mask-b-from-40% dark:opacity-15 dark:invert-0"
       />
       <div className="mx-auto w-full max-w-3xl px-4 py-12">
         <div className="mb-10 text-center">
@@ -44,7 +45,7 @@ export function Upload() {
           }}
           className="dropzone flex min-h-72 cursor-pointer flex-col gap-4 rounded-xl bg-background/70 p-4 backdrop-blur-sm transition-colors hover:bg-muted/40 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 sm:p-6"
         >
-          {docs.length > 0 && (
+          {(docs.length > 0 || pending.length > 0) && (
             <ul aria-label="Uploaded files" className="flex flex-wrap justify-center gap-x-2 gap-y-3">
               {docs.map((doc) => (
                 <li
@@ -73,12 +74,17 @@ export function Upload() {
                   </Button>
                 </li>
               ))}
+              {pending.map((name, index) => <Reading key={`${name}-${index}`} name={name} />)}
             </ul>
           )}
           <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
             {busy ? (
               <span className="flex items-center gap-2 font-medium text-muted-foreground">
-                <Spinner className="size-5" /> Processing…
+                <Spinner className="size-5" /> Reading your documents…
+              </span>
+            ) : indexing ? (
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Spinner className="size-4" /> Embedding for search…
               </span>
             ) : (
               <>
@@ -87,9 +93,9 @@ export function Upload() {
                 <span className="text-sm text-muted-foreground">
                   or <span className="text-foreground underline underline-offset-4">browse files</span> · PDF, Word, PowerPoint, Excel, EPUB, text
                 </span>
-                {error && <span role="alert" className="text-sm font-medium text-danger">{error}</span>}
               </>
             )}
+            {error && <span role="alert" className="text-sm font-medium text-danger">{error}</span>}
           </div>
           <input
             type="file"

@@ -16,7 +16,7 @@ const time = (ms: number) => {
 // Results step: score, stats, and saving the attempt.
 export function Results() {
   const router = useRouter();
-  const { play, setPlay, current, busy, generate } = useApp();
+  const { play, setPlay, current, busy, error, generate } = useApp();
   const { questions, answers } = play;
   const right = questions.filter((question, index) => answers[index] === question.answer).length;
   const accuracy = questions.length ? Math.round((right / questions.length) * 100) : 0;
@@ -28,6 +28,15 @@ export function Results() {
     setPlay((play) => ({ ...play, end }));
     void db.put("quizzes", { ...play, end, id: String(play.start), sessionId: current.id });
   }, [play.end, current, questions.length]);
+
+  // While a regeneration is in flight the old questions are gone, so show progress instead of a blank result.
+  if (questions.length === 0) {
+    return (
+      <div className="flex flex-1 items-center justify-center py-24">
+        {busy ? <Spinner className="size-6 text-muted-foreground" /> : <p className="text-muted-foreground">{error || "No questions yet."}</p>}
+      </div>
+    );
+  }
 
   const stats = [
     { label: "Time taken", value: time(play.end - play.start) },
