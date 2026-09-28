@@ -27,11 +27,22 @@ const lengths: Record<string, string> = {
 
 const designs: Record<string, string> = {
   professional: "Formal tone, concise bullets.",
-  academic: "Educational tone with structured bullets and formulas where useful.",
+  academic: "Educational tone that defines key terms, with formulas in plain text where useful.",
   creative: "Bold, short impactful phrases and metaphors.",
-  technical: "Technical bullets with short code snippets.",
-  visual: "At most 3 very short bullets per slide.",
+  technical: "Precise technical language with concrete specifics.",
+  visual: "Prefer stats, steps, columns and quote slides, with at most 3 bullets per slide.",
 };
+
+// Slide layouts the deck builder draws, with their limits so text always fits.
+const layouts = [
+  '{"layout": "title", "title": "...", "subtitle": "..."} opening slide only',
+  '{"layout": "bullets", "title": "...", "bullets": ["...", "..."]} 3 to 5 bullets',
+  '{"layout": "columns", "title": "...", "columns": [{"heading": "...", "bullets": ["...", "..."]}]} 2 or 3 columns of 2 or 3 bullets under 8 words, to compare things',
+  '{"layout": "stats", "title": "...", "stats": [{"value": "...", "label": "..."}]} 2 to 4 numbers from the material, values at most 6 characters',
+  '{"layout": "steps", "title": "...", "steps": ["...", "..."]} 3 to 5 stages of a process, each at most 4 words',
+  '{"layout": "table", "title": "...", "rows": [["...", "..."], ["...", "..."]]} first row is the header, up to 4 columns and 6 rows, cells under 5 words',
+  '{"layout": "quote", "quote": "...", "author": "..."} a key definition or idea under 25 words',
+].join("\n");
 
 const extras: Record<string, string> = {
   code: "Include code examples where relevant.",
@@ -75,12 +86,13 @@ function prompts(body: Record<string, unknown>) {
   if (body.kind === "slides") {
     const count = clamp(body.slides, 1, 50, 10);
     return [
-      "You write presentation slides in markdown. Every slide starts with a line containing only --- and then a # title.",
+      "You design presentation slides from study material. Output one JSON object per line, one slide per line, and nothing else: no markdown, no code fences, no numbering.",
       lines(
-        `Write exactly ${count} slides using only the material below.`,
-        "Use short one-line bullets (under 15 words), at most 5 per slide, no paragraphs, no nested lists, no emojis. The first slide introduces the topic and the last one sums up the key takeaways.",
+        `Write exactly ${count} slides using only the material below. Pick a layout for each slide:\n${layouts}`,
+        "Start with a title slide and end with a bullets slide of key takeaways. Vary the layouts: never more than two bullets slides in a row, and use columns, stats, steps or table wherever the material compares, counts or sequences things. Never invent numbers.",
+        "Titles under 8 words. Bullets under 12 words with no full stops. No markdown, emojis or LaTeX: write math in plain text with Unicode symbols like x², √ and π.",
+        body.speaker === true && 'Add "notes" to every slide: 2 or 3 sentences the presenter can say.',
         pick(designs, body.design, "professional"),
-        ...chosen.filter((line) => line !== extras.diagrams),
         focus && `Focus on: ${focus}`,
         material,
       ),

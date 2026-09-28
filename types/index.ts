@@ -72,4 +72,5 @@ export interface Options {
   slides: number;
   design: string;
   palette: Palette;
+  speaker: boolean;
 }

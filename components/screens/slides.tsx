@@ -1,20 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { Icon, Spinner } from "@/components/icons";
 import { Button, Tip, buttonVariants, cn } from "@/components/ui";
-import { palettes } from "@/components/screens/format";
 import { useApp } from "@/contexts/app";
-import { download, render } from "@/lib/markdown";
+import { draw, palettes, parse, save, type Box } from "@/lib/slides";
 
-// Slide typography in container units, so it scales with the slide on any screen and when presenting.
-const type = cn(
-  "p-[6cqw] font-heading leading-snug [&_h1]:mb-[2.5cqw] [&_h1]:text-[max(1.25rem,4.6cqw)] [&_h1]:font-bold [&_h2]:mb-[2cqw] [&_h2]:text-[max(1rem,3.4cqw)] [&_h2]:font-semibold",
-  "[&_p]:mb-[2cqw] [&_:is(p,li)]:text-[max(0.8rem,2.4cqw)] [&_:is(ol,ul)]:space-y-[1cqw] [&_:is(ol,ul)]:pl-[4cqw] [&_ol]:list-decimal [&_ul]:list-disc",
-  "[&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1.5 [&_code]:font-mono [&_pre]:my-[2cqw] [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-black/20 [&_pre]:p-[2cqw] [&_pre_code]:bg-transparent",
-  "[&_table]:my-[2cqw] [&_table]:w-full [&_:is(td,th)]:px-[1.5cqw] [&_:is(td,th)]:py-[1cqw] [&_:is(td,th)]:text-left [&_:is(td,th)]:text-[max(0.7rem,2cqw)] [&_th]:bg-black/10 [&_td]:border-t [&_td]:border-black/10 [&_.katex]:text-[max(0.9rem,2.6cqw)]",
-);
+const aligns = { top: "flex-start", middle: "center", bottom: "flex-end" };
+
+// Places a box in percent of the 10 x 5.625 inch slide, with points as container units, matching the pptx.
+const css = (box: Box): CSSProperties => ({
+  left: `${box.x * 10}%`,
+  top: `${(box.y / 5.625) * 100}%`,
+  width: `${box.w * 10}%`,
+  height: `${(box.h / 5.625) * 100}%`,
+  padding: `${(box.pad ?? 0) * 10}cqw`,
+  background: box.fill && `#${box.fill}${Math.round(2.55 * (100 - (box.fade ?? 0))).toString(16).padStart(2, "0")}`,
+  color: box.color && `#${box.color}`,
+  fontSize: `${(box.size ?? 14) / 7.2}cqw`,
+  fontWeight: box.bold ? 700 : 400,
+  fontStyle: box.italic ? "italic" : undefined,
+  textAlign: box.align,
+  justifyContent: aligns[box.valign ?? "top"],
+  borderRadius: box.round ? "50%" : undefined,
+});
 const light = "flex size-9 items-center justify-center rounded-lg outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-white/50 disabled:opacity-50";
 
 // Slides step: navigate, present and download generated slides.
@@ -23,9 +33,10 @@ export function Slides() {
   const [index, setIndex] = useState(0);
   const [full, setFull] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const slides = content.split(/^---+\s*$/m).filter((slide) => slide.trim());
+  const slides = parse(content);
   const total = slides.length;
   const shown = Math.min(index, Math.max(0, total - 1));
+  const { bg, boxes } = total ? draw(slides[shown], shown, total, options.palette) : { bg: palettes[options.palette].cover, boxes: [] };
 
   // Moves by a number of slides, staying in range.
   const go = (step: number) => setIndex(Math.min(Math.max(0, shown + step), Math.max(0, total - 1)));
@@ -58,14 +69,14 @@ export function Slides() {
             "@container relative aspect-video w-full overflow-hidden",
             // Width follows the free height, so the whole slide always fits on screen.
             full ? "max-w-[calc(100dvh*16/9)]" : "rounded-xl border md:max-w-[calc((100dvh-9.5rem)*16/9)]",
-            palettes[options.palette],
           )}
+          style={{ background: `#${bg}`, fontFamily: "Arial, Helvetica, sans-serif" }}
         >
           {total > 0 ? (
-            <div className={cn("absolute inset-0 overflow-auto", type)} dangerouslySetInnerHTML={{ __html: render(slides[shown]) }} />
+            boxes.map((box, key) => <div key={key} style={css(box)} className="absolute flex flex-col leading-[1.15] whitespace-pre-line">{box.text}</div>)
           ) : (
-            <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-(--dim)">
-              {busy ? <><Spinner className="size-8" /><p>Generating slides…</p></> : <p>{error || "Your slides will appear here."}</p>}
+            <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white/80">
+              {busy ? <><Spinner className="size-8" /><p>Generating slides…</p></> : <p>{error || (content ? "Regenerate to view this deck." : "Your slides will appear here.")}</p>}
             </div>
           )}
         </section>
@@ -109,7 +120,7 @@ export function Slides() {
             <Icon name="x" /> Stop
           </Button>
         ) : (
-          <Button variant="outline" disabled={!content} onClick={() => download("slides.md", content)}>
+          <Button variant="outline" disabled={total === 0} onClick={() => void save(slides, options.palette, slides[0].title || "slides")}>
             <Icon name="download" /> <span className="max-sm:sr-only">Download</span>
           </Button>
         )}

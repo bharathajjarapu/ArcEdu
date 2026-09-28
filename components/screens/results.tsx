@@ -57,16 +57,16 @@ export function Results() {
         </p>
       </div>
 
-      <div className="mb-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mb-8 flex flex-wrap justify-center gap-3">
         {stats.map((stat) => (
-          <Card key={stat.label} className="p-4">
+          <Card key={stat.label} className="px-4 py-2">
             <p className="text-sm text-muted-foreground">{stat.label}</p>
-            <p className="font-heading text-3xl font-bold">{play.end ? stat.value : "–"}</p>
+            <p className="font-heading text-2xl font-bold">{play.end ? stat.value : "–"}</p>
           </Card>
         ))}
       </div>
 
-      <Card className="mb-10 flex flex-wrap justify-center gap-2 p-4">
+      <div className="mb-10 flex flex-wrap justify-center gap-2">
         {questions.map((question, index) => {
           const correct = answers[index] === question.answer;
           return (
@@ -74,15 +74,15 @@ export function Results() {
               key={index}
               aria-label={`Question ${index + 1}: ${correct ? "correct" : "incorrect"}`}
               className={cn(
-                "flex size-10 items-center justify-center rounded-md border",
-                correct ? "border-success bg-success text-white" : "border-danger bg-danger/10 text-danger",
+                "flex size-10 items-center justify-center rounded-md text-white",
+                correct ? "bg-success" : "bg-danger",
               )}
             >
               <Icon name={correct ? "check" : "x"} className="size-5" />
             </span>
           );
         })}
-      </Card>
+      </div>
 
       <div className="flex flex-wrap justify-center gap-3">
         <Button

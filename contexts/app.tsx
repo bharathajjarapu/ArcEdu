@@ -22,6 +22,7 @@ const defaults: Options = {
   slides: 10,
   design: "professional",
   palette: "colorful",
+  speaker: true,
 };
 
 export const fresh: Play = { questions: [], index: 0, answers: {}, start: 0, shown: 0, end: 0, times: [], streak: 0, best: 0 };
@@ -157,7 +158,8 @@ function useValue() {
         set("");
         router.push(`/${format}`);
         const content = await stream({ ...options, kind: format, context }, abort.signal, set);
-        const title = content.match(/^#\s+(.+)/m)?.[1] ?? current.title;
+        const match = content.match(/^#\s+(.+)|"title":\s*"([^"]+)"/m);
+        const title = match?.[1] ?? match?.[2] ?? current.title;
         await db.put(format, { id: crypto.randomUUID(), sessionId: current.id, title, content, createdAt: Date.now() });
       }
     } catch (error) {

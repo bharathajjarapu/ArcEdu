@@ -8,6 +8,7 @@ import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { Icon, Spinner } from "@/components/icons";
 import { Button, Card, cn } from "@/components/ui";
 import { useApp } from "@/contexts/app";
+import { palettes } from "@/lib/slides";
 import type { Format as Kind, Palette } from "@/types";
 
 type Name = Parameters<typeof Icon>[0]["name"];
@@ -26,16 +27,6 @@ const extras: { value: string; icon: Name }[] = [
   { value: "diagrams", icon: "workflow" },
   { value: "tables", icon: "table" },
 ];
-
-export const palettes: Record<Palette, string> = {
-  minimal: "bg-white text-gray-900 [--dim:var(--color-gray-500)]",
-  dark: "bg-gradient-to-br from-zinc-900 to-zinc-700 text-white [--dim:var(--color-zinc-400)]",
-  colorful: "bg-gradient-to-br from-violet-500 via-pink-500 to-amber-400 text-white [--dim:rgb(255_255_255/0.8)]",
-  ocean: "bg-gradient-to-br from-blue-600 to-cyan-500 text-white [--dim:var(--color-blue-100)]",
-  forest: "bg-gradient-to-br from-emerald-700 to-green-500 text-white [--dim:var(--color-emerald-100)]",
-  sunset: "bg-gradient-to-br from-orange-500 to-rose-500 text-white [--dim:var(--color-orange-100)]",
-  purple: "bg-gradient-to-br from-purple-700 to-indigo-600 text-white [--dim:var(--color-purple-100)]",
-};
 
 // One labelled option row; stacks on small screens.
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -76,6 +67,20 @@ function Count({ label, value, onChange, min, max }: { label: string; value: num
       <NumberField.Input aria-label={label} className="h-9 w-14 border-x bg-transparent text-center text-sm font-medium tabular-nums outline-none" />
       <NumberField.Increment aria-label={`More ${label}`} className={step}><Icon name="plus" className="size-4" /></NumberField.Increment>
     </NumberField.Root>
+  );
+}
+
+// On/off switch.
+function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <Switch.Root
+      checked={checked}
+      onCheckedChange={onChange}
+      aria-label={label}
+      className={cn("flex h-6 w-11 items-center rounded-full bg-muted p-0.5 transition-colors data-checked:bg-primary", focus)}
+    >
+      <Switch.Thumb className="size-5 rounded-full bg-background shadow-sm transition-transform data-checked:translate-x-5" />
+    </Switch.Root>
   );
 }
 
@@ -136,14 +141,7 @@ export function Format() {
               <Count label="minutes" value={options.minutes} onChange={(minutes) => setOptions({ minutes })} min={0} max={120} />
             </Row>
             <Row label="Explanations" hint="Show why an answer is right after checking">
-              <Switch.Root
-                checked={options.reveal}
-                onCheckedChange={(reveal) => setOptions({ reveal })}
-                aria-label="Show explanations"
-                className={cn("flex h-6 w-11 items-center rounded-full bg-muted p-0.5 transition-colors data-checked:bg-primary", focus)}
-              >
-                <Switch.Thumb className="size-5 rounded-full bg-background shadow-sm transition-transform data-checked:translate-x-5" />
-              </Switch.Root>
+              <Check label="Show explanations" checked={options.reveal} onChange={(reveal) => setOptions({ reveal })} />
             </Row>
           </>
         )}
@@ -188,15 +186,19 @@ export function Format() {
                 onValueChange={(next) => next[0] && setOptions({ palette: next[0] as Palette })}
                 className="flex flex-wrap gap-1.5"
               >
-                {Object.entries(palettes).map(([name, look]) => (
+                {Object.entries(palettes).map(([name, theme]) => (
                   <Toggle
                     key={name}
                     value={name}
                     aria-label={`${name} palette`}
-                    className={cn("size-8 rounded-full border ring-offset-2 ring-offset-background transition-shadow aria-pressed:ring-2 aria-pressed:ring-foreground", look, focus)}
+                    style={{ background: `linear-gradient(135deg, #${theme.cover} 50%, #${theme.accent} 50%)` }}
+                    className={cn("size-8 rounded-full border ring-offset-2 ring-offset-background transition-shadow aria-pressed:ring-2 aria-pressed:ring-foreground", focus)}
                   />
                 ))}
               </ToggleGroup>
+            </Row>
+            <Row label="Speaker notes" hint="Talking points saved in the PowerPoint">
+              <Check label="Speaker notes" checked={options.speaker} onChange={(speaker) => setOptions({ speaker })} />
             </Row>
           </>
         )}
