@@ -72,10 +72,13 @@ export function draw(slide: Slide, index: number, total: number, palette: Palett
   const add = (...items: Box[]) => boxes.push(...items);
 
   if (slide.layout === "title") {
+    // ponytail: ~26 bold 40pt characters fit a line; measure text if titles overlap the subtitle.
+    const lines = (slide.title ?? "").length > 26 ? 2 : 1;
+    const top = lines === 1 ? 1.85 : 1.5;
     add(
-      { x: 0.7, y: 1.5, w: 0.8, h: 0.08, fill: accent },
-      { x: 0.7, y: 1.75, w: 8.6, h: 1.5, text: slide.title, size: 40, bold: true, color: ink },
-      { x: 0.7, y: 3.4, w: 8.6, h: 1, text: slide.subtitle, size: 18, color: dim },
+      { x: 0.7, y: top, w: 0.8, h: 0.08, fill: accent },
+      { x: 0.7, y: top + 0.25, w: 8.6, h: lines * 0.7, text: slide.title, size: 40, bold: true, color: ink },
+      { x: 0.7, y: top + 0.4 + lines * 0.7, w: 8.6, h: 1, text: slide.subtitle, size: 18, color: dim },
     );
     return { bg, boxes };
   }
@@ -111,8 +114,8 @@ export function draw(slide: Slide, index: number, total: number, palette: Palett
         add(
           { x, y: 1.8, w, h: 3.1, fill: accent, fade: 90 },
           { x, y: 1.8, w, h: 0.06, fill: accent },
-          { x: x + 0.25, y: 2.05, w: w - 0.5, h: 0.6, text: card.heading, size: 18, bold: true, color: ink },
-          ...list(card.bullets, 3).map((line, n): Box => ({ x: x + 0.25, y: 2.7 + n * 0.7, w: w - 0.5, h: 0.7, text: `• ${line}`, size: 15, color: ink })),
+          { x: x + 0.25, y: 2.05, w: w - 0.5, h: 0.7, text: card.heading, size: 18, bold: true, color: ink },
+          ...list(card.bullets, 3).map((line, n): Box => ({ x: x + 0.25, y: 2.85 + n * 0.65, w: w - 0.5, h: 0.65, text: `• ${line}`, size: 15, color: ink })),
         );
       }
     });

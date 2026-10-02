@@ -3,6 +3,8 @@
 import { createContext, use, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import * as db from "@/lib/db";
+import { config, llm, ocr } from "@/lib/llm";
+import { prompts } from "@/lib/prompts";
 import * as rag from "@/lib/rag";
 import type { Doc, Options, Play, Question, Session } from "@/types";
 
@@ -54,18 +56,23 @@ function parse(text: string): Question[] {
   });
 }
 
-// Reads a generation stream, reporting the text so far.
-async function stream(body: object, signal: AbortSignal, onText: (text: string) => void) {
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal,
-  });
-  if (!response.ok || !response.body) throw new Error((await response.json().catch(() => null))?.error ?? "Generation failed");
+// Streams a generation from the LLM's server-sent events, reporting the text so far.
+async function stream(body: Record<string, unknown>, signal: AbortSignal, onText: (text: string) => void) {
+  const [system, prompt] = prompts(body);
+  const response = await llm([{ role: "system", content: system }, { role: "user", content: prompt }], { stream: true, signal });
+  if (!response.body) throw new Error("Generation failed");
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let text = "";
-  for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) onText((text += chunk.value));
+  let buffer = "";
+  for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
+    const events = (buffer + chunk.value).split("\n");
+    buffer = events.pop() ?? "";
+    for (const event of events) {
+      const data = event.replace(/^data:\s*/, "").trim();
+      if (event.startsWith("data:") && data !== "[DONE]") text += JSON.parse(data).choices?.[0]?.delta?.content ?? "";
+    }
+    onText(text);
+  }
   return text;
 }
 
@@ -112,11 +119,14 @@ function useValue() {
     const results = await Promise.allSettled(files.map(async (file) => {
       const form = new FormData();
       form.append("file", file);
-      const response = await fetch("/api/parse", { method: "POST", body: form });
-      const data = await response.json().catch(() => ({ error: "Upload failed" }));
-      if (!response.ok) throw new Error(`${file.name}: ${data.error}`);
+      // Images and scans are transcribed in the browser so the API key stays local.
+      const data = file.type.startsWith("image/")
+        ? { ocr: true }
+        : await fetch("/api/parse", { method: "POST", body: form }).then((response) => response.json()).catch(() => ({ error: "Upload failed" }));
+      const markdown = data.ocr ? await ocr(file) : data.markdown;
+      if (!markdown?.trim()) throw new Error(`${file.name}: ${data.error ?? "No text found"}`);
       const size = file.size < 1024 * 1024 ? `${Math.ceil(file.size / 1024)} KB` : `${(file.size / 1024 / 1024).toFixed(1)} MB`;
-      await db.put("documents", { id: crypto.randomUUID(), sessionId: session.id, name: file.name, size, content: data.markdown, createdAt: now });
+      await db.put("documents", { id: crypto.randomUUID(), sessionId: session.id, name: file.name, size, content: markdown, createdAt: now });
     }));
     const failed = results.flatMap((result) => result.status === "rejected" ? [result.reason.message] : []);
     if (failed.length > 0) setError(failed.join(" · "));
@@ -135,6 +145,7 @@ function useValue() {
   const generate = async () => {
     const { format } = options;
     if (!current || docs.length === 0) return setError("Upload documents first");
+    if (!config().url || !config().model) return setError("Add your API settings in Settings first");
     controller.current?.abort();
     const abort = (controller.current = new AbortController());
     setBusy(true);

@@ -44,6 +44,9 @@ export function Slides() {
   // Enters or leaves fullscreen presenting.
   const toggle = () => (document.fullscreenElement ? document.exitFullscreen() : ref.current?.requestFullscreen());
 
+  // Starts each visit at the first slide; Next keeps hidden pages' state between visits.
+  useEffect(() => setIndex(0), []);
+
   useEffect(() => {
     const keys = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight" || event.key === " ") go(1);

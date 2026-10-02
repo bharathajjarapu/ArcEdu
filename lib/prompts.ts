@@ -1,6 +1,4 @@
-import { llm } from "@/lib/llm";
-
-// Guard on retrieved material size; the client already sends only its best ~40k characters.
+// Guard on retrieved material size; retrieval already picks only its best ~40k characters.
 const limit = 60_000;
 
 const levels: Record<string, string> = {
@@ -60,7 +58,7 @@ const clamp = (value: unknown, min: number, max: number, fallback: number) =>
   Math.min(max, Math.max(min, Math.round(Number(value) || fallback)));
 
 // Builds the system and user prompts for a generation request.
-function prompts(body: Record<string, unknown>) {
+export function prompts(body: Record<string, unknown>) {
   const focus = String(body.prompt ?? "").slice(0, 2_000).trim();
   const material = `Study material:\n${String(body.context).slice(0, limit)}`;
   const chosen = Array.isArray(body.extras) ? body.extras.map((key) => pick(extras, key, "")).filter(Boolean) : [];
@@ -110,37 +108,4 @@ function prompts(body: Record<string, unknown>) {
       material,
     ),
   ];
-}
-
-// Streams generated text from the configured LLM.
-export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
-  if (!["quiz", "notes", "slides"].includes(body?.kind)) return Response.json({ error: "Unknown format" }, { status: 400 });
-  if (typeof body.context !== "string" || !body.context.trim()) return Response.json({ error: "Upload documents first" }, { status: 400 });
-
-  const [system, prompt] = prompts(body);
-  const response = await llm(
-    [{ role: "system", content: system }, { role: "user", content: prompt }],
-    { stream: true, signal: request.signal },
-  );
-  if (!response?.ok || !response.body) return Response.json({ error: "The AI service is unavailable" }, { status: 502 });
-
-  // Turns server-sent events into plain text deltas.
-  let buffer = "";
-  const text = new TransformStream<string, string>({
-    transform(chunk, controller) {
-      const events = (buffer + chunk).split("\n");
-      buffer = events.pop() ?? "";
-      for (const event of events) {
-        const data = event.replace(/^data:\s*/, "").trim();
-        if (!event.startsWith("data:") || data === "[DONE]") continue;
-        const delta = JSON.parse(data).choices?.[0]?.delta?.content;
-        if (delta) controller.enqueue(delta);
-      }
-    },
-  });
-
-  return new Response(response.body.pipeThrough(new TextDecoderStream()).pipeThrough(text).pipeThrough(new TextEncoderStream()), {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
-  });
 }

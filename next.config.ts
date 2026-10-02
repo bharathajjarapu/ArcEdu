@@ -4,6 +4,7 @@ const config: NextConfig = {
   cacheComponents: true,
   serverExternalPackages: ["@firecrawl/anydoc"],
   images: { qualities: [60, 75] },
+  redirects: async () => [{ source: "/", destination: "/upload", permanent: false }],
   // Cross-origin isolation lets the embedding runtime use threads.
   headers: async () => [{
     source: "/:path*",
